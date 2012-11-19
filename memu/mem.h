@@ -26,6 +26,7 @@ enum _mem_access_type
 extern void get_dma_info(void **membase, size_t *memsize);
 extern int mem_create(size_t size);
 extern int mem_init();
+extern int mem_loadimg(char const *filename, u32_t img_base);
 extern int mem_destroy();
 extern int mem_read(u32_t paddr, u32_t vaddr, u32_t attr, int access_type, i32_t *word);
 extern int mem_write(u32_t paddr, u32_t vaddr, u32_t attr, int access_type, i32_t word);

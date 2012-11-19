@@ -2,6 +2,13 @@
 total memory: 256MB, 0x0 to 0xfffffff, wordsize 4B
 system reserved memory(shell included): from 0x0 to 0x1ffffff
 
+system image filename:
+    "sys.img"
+system image load base:
+    0x00001000
+entry point:
+    0x00001000
+
 interrupt vector table: 0x00000000 size: 0x1000
 	keyboard input: 0x80
 	timer: 0x100
