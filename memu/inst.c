@@ -414,8 +414,8 @@ static int (* const inst_callback[])(u32_t) =
     [INST_SH]           = inst_not_implemented,
     [INST_SLL]          = inst_exec_sll,
     [INST_SLLV]         = inst_exec_sllv,
-    [INST_SLT]          = inst_not_implemented,
-    [INST_SLTI]         = inst_not_implemented,
+    [INST_SLT]          = inst_exec_slt,
+    [INST_SLTI]         = inst_exec_slti,
     [INST_SLTIU]        = inst_exec_sltiu,
     [INST_SLTU]         = inst_not_implemented,
     [INST_SQRT_FMT]     = inst_not_implemented,
@@ -476,11 +476,6 @@ static inline void branch_to_offset(int offset)
 
 static inline void jump_to_target(u32_t target)
 {
-    void *membase;
-    size_t memsize;
-    get_dma_info(&membase, &memsize);
-    unsigned int *sbase = membase + 0x00008000;
-    target += *(sbase + 0); //dma access offset. for dynamic loading..
     reg_special_write(REG_SPECIAL_PC_ADVANCE2, target);
     reg_special_write(REG_SPECIAL_BRANCH_JUMP, MEMU_TRUE);
 #if DUMP_INST
@@ -493,9 +488,12 @@ static inline void link_pc_ra()
 {
     u32_t pcdata;
     reg_special_read(REG_SPECIAL_PC, &pcdata);
-    reg_gpr_write(REG_GPR_RA, pcdata + 8);
+    //reg_gpr_write(REG_GPR_RA, pcdata + 8);
+    //TODO: remove this line after ZLK finish his fix
+    reg_gpr_write(REG_GPR_RA, pcdata + 4);
 #if DUMP_INST
-    fprintf(LOG_FILE, "Link: ra=%.8X\n", pcdata + 8);
+    //fprintf(LOG_FILE, "Link: ra=%.8X\n", pcdata + 8);
+    fprintf(LOG_FILE, "Link: ra=%.8X\n", pcdata + 4);
 #endif
     return;
 }
@@ -1063,14 +1061,40 @@ static int inst_exec_sllv(u32_t code)
     return EXCEPTION_NONE;
 }
 
-static int inst_exec_slt(u32_t code);
-static int inst_exec_slti(u32_t code);
+static int inst_exec_slt(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    int rt = MASKSHR(code, 20, 16);
+    int rd = MASKSHR(code, 15, 11);
+    i32_t regdata1;
+    reg_gpr_read(rs, &regdata1);
+    i32_t regdata2;
+    reg_gpr_read(rt, &regdata2);
+    reg_gpr_write(rd, regdata1 <= regdata2);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: SLT: rs=%d, rt=%d, rd=%d\n", rs, rt, rd);
+#endif    
+    return EXCEPTION_NONE;
+}
 
-static int inst_exec_sltiu(u32_t code)
+static int inst_exec_slti(u32_t code)
 {
     int rs = MASKSHR(code, 25, 21);
     int rt = MASKSHR(code, 20, 16);
     int immediate = MASKSHRSIGNEXT(code, 15, 0);
+    i32_t regdata;
+    reg_gpr_read(rs, &regdata);
+    reg_gpr_write(rt, *(u32_t*)&regdata < *(u32_t*)&immediate);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: SLTI: rs=%d, rt=%d, immediate=%d\n", rs, rt, immediate);
+#endif
+    return EXCEPTION_NONE;
+}
+static int inst_exec_sltiu(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    int rt = MASKSHR(code, 20, 16);
+    int immediate = MASKSHR(code, 15, 0);
     i32_t regdata;
     reg_gpr_read(rs, &regdata);
     reg_gpr_write(rt, *(u32_t*)&regdata < *(u32_t*)&immediate);

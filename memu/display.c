@@ -17,6 +17,7 @@
 #include "display.h"
 #include "config.h"
 #include "mem.h"
+#include "memu.h"
 
 const u32_t led_base    = 0x1F000400;
 const int led_size  = 8;
@@ -62,37 +63,42 @@ void display_init()
 
 void display_fini()
 {
-    while (1)
-        refresh();
     endwin();
     return;
 }
 
 void *display_daemon(void *ptr)
 {
-    assert(*(sbase + 32) == 0); //display mode
-    unsigned int scrx = *(sbase + 33); //screen x
-    unsigned int scry = *(sbase + 34); //screen y
-    unsigned int fbbase = *(sbase + 36);    //fb base
-    unsigned int fbhead = *(sbase + 37);    //fb head offset
-    int cursor_off = *(sbase + 38);   //cursor_off
-    int chrsz = 4;
-    int scrsize = scrx * scry * chrsz;
-    memcpy(membase + fbbase + scrsize, membase + fbbase, fbhead * chrsz);
-
-    int i;
-    for (i = 0; i < scrx; i++)
+    while (1)
     {
-        int j;
-        for (j = 0; j < scry; j++)
-        {
-            int *p = membase + fbbase + fbhead;
-            mvaddch(i, j, *(p + i * scry + j));
-        }
-    }
-    move((cursor_off / 4) / scry, (cursor_off / 4) % scry);
+        assert(*(sbase + 8) == 0); //display mode
+        unsigned int scrx = *(sbase + 9); //screen x
+        unsigned int scry = *(sbase + 10); //screen y
+        unsigned int fbbase = *(sbase + 12);    //fb base
+        unsigned int fbhead = *(sbase + 13);    //fb head offset
+        int cursor_off = *(sbase + 14);   //cursor_off
+        int chrsz = 4;
+        int scrsize = scrx * scry * chrsz;
+        //memcpy(membase + fbbase + scrsize, membase + fbbase, fbhead * chrsz);
 
-    refresh();
+        int i;
+        for (i = 0; i < scrx; i++)
+        {
+            int j;
+            for (j = 0; j < scry; j++)
+            {
+                unsigned int p = fbbase + fbhead + (i * scry + j) * chrsz;
+                unsigned int c = *(unsigned int*)(p + membase);
+                mvaddch(i, j, c);
+#if DUMP_DISPLAY
+                fprintf(LOG_FILE, "DISPLAY: %.8X: %d at %d %d\n", p, c, i, j);
+#endif
+            }
+        }
+        move((cursor_off / 4) / scry, (cursor_off / 4) % scry);
+
+        refresh();
+    }
 
     return;
 
