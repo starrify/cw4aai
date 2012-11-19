@@ -40,8 +40,8 @@
 }
 .def lil r1, inst
 {
-        lui     r1, (inst >> 16) & 0xff
-        addi    r1, $zero, inst & 0xff
+        lui     r1, (inst >> 16) & 0xffff
+        addiu   r1, $zero, inst & 0xffff
 }
 .def swia r1, base_addr, offset
 {

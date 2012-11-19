@@ -43,8 +43,8 @@ INIT:
         addiu $t0, $zero, 63536
         
         
-        lui     $at, (32768 >> 16) & 0xff
-        addi    $at, $zero, 32768 & 0xff
+        lui     $at, (32768 >> 16) & 0xffff
+        addiu   $at, $zero, 32768 & 0xffff
 
         sw $t0, 48($at)
 
@@ -88,8 +88,8 @@ SYS_GOTOXY:
         
         
         
-        lui     $at, (32768 >> 16) & 0xff
-        addi    $at, $zero, 32768 & 0xff
+        lui     $at, (32768 >> 16) & 0xffff
+        addiu   $at, $zero, 32768 & 0xffff
 
         lw $t1, 52($at)
 
@@ -104,8 +104,8 @@ SYS_GOTOXY:
 SYS_GXY1:
         
         
-        lui     $at, (32768 >> 16) & 0xff
-        addi    $at, $zero, 32768 & 0xff
+        lui     $at, (32768 >> 16) & 0xffff
+        addiu   $at, $zero, 32768 & 0xffff
 
         sw $t0, 56($at)
 
@@ -118,15 +118,15 @@ SYS_GXYERR:
 SYS_PUTC: 
         
         
-        lui     $at, (32768 >> 16) & 0xff
-        addi    $at, $zero, 32768 & 0xff
+        lui     $at, (32768 >> 16) & 0xffff
+        addiu   $at, $zero, 32768 & 0xffff
 
         lw $t0, 48($at)
 
         
         
-        lui     $at, (32768 >> 16) & 0xff
-        addi    $at, $zero, 32768 & 0xff
+        lui     $at, (32768 >> 16) & 0xffff
+        addiu   $at, $zero, 32768 & 0xffff
 
         lw $t1, 56($at)
 
@@ -149,16 +149,16 @@ SYS_PUTC:
 SYS_PTC1:
         
         
-        lui     $at, (32768 >> 16) & 0xff
-        addi    $at, $zero, 32768 & 0xff
+        lui     $at, (32768 >> 16) & 0xffff
+        addiu   $at, $zero, 32768 & 0xffff
 
         sw $t1, 56($at)
 
 
         
         
-        lui     $at, (32768 >> 16) & 0xff
-        addi    $at, $zero, 32768 & 0xff
+        lui     $at, (32768 >> 16) & 0xffff
+        addiu   $at, $zero, 32768 & 0xffff
 
         lw $t2, 52($at)
 
@@ -179,8 +179,8 @@ SYS_PTC1:
 SYS_PTC2:
         
         
-        lui     $at, (32768 >> 16) & 0xff
-        addi    $at, $zero, 32768 & 0xff
+        lui     $at, (32768 >> 16) & 0xffff
+        addiu   $at, $zero, 32768 & 0xffff
 
         sw $t2, 52($at)
 
@@ -191,15 +191,15 @@ SYS_PTC3:
 SYS_GETC:
         
         
-        lui     $at, (32768 >> 16) & 0xff
-        addi    $at, $zero, 32768 & 0xff
+        lui     $at, (32768 >> 16) & 0xffff
+        addiu   $at, $zero, 32768 & 0xffff
 
         lw $t0, 68($at)
 
         
         
-        lui     $at, (32768 >> 16) & 0xff
-        addi    $at, $zero, 32768 & 0xff
+        lui     $at, (32768 >> 16) & 0xffff
+        addiu   $at, $zero, 32768 & 0xffff
 
         lw $t1, 72($at)
 
@@ -214,8 +214,8 @@ SYS_GETC:
 SYS_GTCAVL:
         
         
-        lui     $at, (32768 >> 16) & 0xff
-        addi    $at, $zero, 32768 & 0xff
+        lui     $at, (32768 >> 16) & 0xffff
+        addiu   $at, $zero, 32768 & 0xffff
 
         lw $t1, 64($at)
 
@@ -232,8 +232,8 @@ SYS_GTCAVL:
 SYS_GTC1:
         
         
-        lui     $at, (32768 >> 16) & 0xff
-        addi    $at, $zero, 32768 & 0xff
+        lui     $at, (32768 >> 16) & 0xffff
+        addiu   $at, $zero, 32768 & 0xffff
 
         sw $t0, 68($at)
 

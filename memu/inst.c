@@ -242,8 +242,8 @@ static int (* const inst_callback[])(u32_t) =
 {
     [INST_NONE]         = inst_not_implemented,
     [INST_ABS_FMT]      = inst_not_implemented,
-    [INST_ADD]          = inst_not_implemented,
-    [INST_ADDI]         = inst_not_implemented,
+    [INST_ADD]          = inst_exec_add,
+    [INST_ADDI]         = inst_exec_addi,
     [INST_ADDIU]        = inst_exec_addiu,
     [INST_ADDR_PS]      = inst_not_implemented,
     [INST_ADDU]         = inst_exec_addu,
@@ -476,6 +476,11 @@ static inline void branch_to_offset(int offset)
 
 static inline void jump_to_target(u32_t target)
 {
+    void *membase;
+    size_t memsize;
+    get_dma_info(&membase, &memsize);
+    unsigned int *sbase = membase + 0x00008000;
+    target += *(sbase + 0); //dma access offset. for dynamic loading..
     reg_special_write(REG_SPECIAL_PC_ADVANCE2, target);
     reg_special_write(REG_SPECIAL_BRANCH_JUMP, MEMU_TRUE);
 #if DUMP_INST
@@ -504,8 +509,37 @@ static int inst_not_implemented(u32_t code)
 }
 
 static int inst_exec_abs_fmt(u32_t code);
-static int inst_exec_add(u32_t code);
-static int inst_exec_addi(u32_t code);
+
+static int inst_exec_add(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    int rt = MASKSHR(code, 20, 16);
+    int rd = MASKSHR(code, 15, 11);
+    i32_t regdata1;
+    i32_t regdata2;
+    reg_gpr_read(rs, &regdata1);
+    reg_gpr_read(rt, &regdata2);
+    reg_gpr_write(rd, regdata1 + regdata2);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: ADD: rs=%d, rt=%d, rd=%d\n", rs, rt, rd);
+#endif
+    return EXCEPTION_NONE;
+}
+
+static int inst_exec_addi(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    int rt = MASKSHR(code, 20, 16);
+    int immediate = MASKSHRSIGNEXT(code, 15, 0);
+    i32_t regdata;
+    reg_gpr_read(rs, &regdata);
+    regdata += immediate;
+    reg_gpr_write(rt, regdata);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: ADDI: rs=%d, rt=%d, immediate=%d\n", rs, rt, immediate);
+#endif
+    return EXCEPTION_NONE;
+}
 
 static int inst_exec_addiu(u32_t code)
 {
