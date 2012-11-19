@@ -79,6 +79,8 @@ int mem_init()
     *(sbase + 34) = 80; //screen y
     *(sbase + 36) = 0x00080000; //framebuffer base
     *(sbase + 37) = 0;  //screen start offsite in framebuffer base
+    *(sbase + 38) = 0;  //cursor_off_x
+    *(sbase + 39) = 0;  //cursor_off_y
     *(sbase + 64) = 0x00040000; //input buffer base
     *(sbase + 65) = 0x00020000; //input buffer size
     *(sbase + 66) = 0x00040000; //input queue head
@@ -89,7 +91,7 @@ int mem_init()
     unsigned int fbbase = *(sbase + 36);
     int i;
     for (i = 0; i < 35*80; i++)
-        *(unsigned int*)(membase + fbbase + i * 4) = i;
+        *(unsigned int*)(membase + fbbase + i * 4) = (unsigned int)' ';
         
 
     return ret;

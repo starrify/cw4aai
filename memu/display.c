@@ -49,11 +49,6 @@ void display_init()
     init_pair(1, COLOR_CYAN, COLOR_BLACK);
     init_pair(0, COLOR_WHITE, COLOR_BLACK);
 
-    printw("Hello, world! %d", sizeof(chtype));
-    refresh();
-    getch();
-    printw("111111111111Hello, world!");
-    refresh();
     return;
     /* scroll enough space for display */
     int i;
@@ -78,6 +73,8 @@ void *display_daemon(void *ptr)
     unsigned int scry = *(sbase + 34); //screen y
     unsigned int fbbase = *(sbase + 36);    //fb base
     unsigned int fbhead = *(sbase + 37);    //fb head offset
+    int cursor_x = *(sbase + 38);   //cursor_off_x
+    int cursor_y = *(sbase + 39);   //cursor_off_y
     int chrsz = 4;
     int scrsize = scrx * scry * chrsz;
     memcpy(membase + fbbase + scrsize, membase + fbbase, fbhead * chrsz);
@@ -92,6 +89,7 @@ void *display_daemon(void *ptr)
             mvaddch(i, j, *(p + i * scry + j));
         }
     }
+    move(cursor_x, cursor_y);
 
     refresh();
 
