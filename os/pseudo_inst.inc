@@ -38,3 +38,8 @@
 	sltu	$at, r1, r2
 	beq	$at, $zero, label
 }
+.def lil r1, inst
+{
+        lui     $r1, (inst >> 16) & 0xff
+        addi    $r1, $zero, inst & 0xff
+}
