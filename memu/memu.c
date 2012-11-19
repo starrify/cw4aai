@@ -68,8 +68,16 @@ int main()
     while (1)
     {
 #if SINGLE_STEP
-        while (getch() != 'p')
-            ;
+        static const int step = 500;
+        static int step_count = step;
+        step_count--;
+        if (!step_count)
+        {
+            while(getch() != 'p')
+                ;
+            step_count = step;
+        }
+
 #endif
         u32_t code;
         u32_t paddr;

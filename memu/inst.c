@@ -417,7 +417,7 @@ static int (* const inst_callback[])(u32_t) =
     [INST_SLT]          = inst_exec_slt,
     [INST_SLTI]         = inst_exec_slti,
     [INST_SLTIU]        = inst_exec_sltiu,
-    [INST_SLTU]         = inst_not_implemented,
+    [INST_SLTU]         = inst_exec_sltu,
     [INST_SQRT_FMT]     = inst_not_implemented,
     [INST_SRA]          = inst_not_implemented,
     [INST_SRAV]         = inst_not_implemented,
@@ -543,7 +543,7 @@ static int inst_exec_addiu(u32_t code)
 {
     int rs = MASKSHR(code, 25, 21);
     int rt = MASKSHR(code, 20, 16);
-    int immediate = MASKSHR(code, 15, 0);
+    int immediate = MASKSHRSIGNEXT(code, 15, 0);
     i32_t regdata;
     reg_gpr_read(rs, &regdata);
     regdata += immediate;
@@ -1104,7 +1104,22 @@ static int inst_exec_sltiu(u32_t code)
     return EXCEPTION_NONE;
 }
 
-static int inst_exec_sltu(u32_t code);
+static int inst_exec_sltu(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    int rt = MASKSHR(code, 20, 16);
+    int rd = MASKSHR(code, 15, 11);
+    u32_t regdata1;
+    reg_gpr_read(rs, &regdata1);
+    u32_t regdata2;
+    reg_gpr_read(rt, &regdata2);
+    reg_gpr_write(rd, regdata1 <= regdata2);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: SLTU: rs=%d, rt=%d, rd=%d\n", rs, rt, rd);
+#endif    
+    return EXCEPTION_NONE;
+}
+
 static int inst_exec_sqrt_fmt(u32_t code);
 static int inst_exec_sra(u32_t code);
 static int inst_exec_srav(u32_t code);
