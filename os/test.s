@@ -5,7 +5,9 @@
 INIT:
         #addiu $t0, $zero, 1000
         #SYSINFO_S $t0, SCR_BASE
-
+        addi $a0, $zero, 34
+        addi $a1, $zero, 78
+        jal SYS_GOTOXY
 TEST:
         addi $a0, $zero, 104
         jal SYS_PUTC
@@ -16,8 +18,6 @@ TEST:
         addi $a0, $zero, 108
         jal SYS_PUTC
         addi $a0, $zero, 111
-        jal SYS_PUTC
-        addi $a0, $zero, 10
         jal SYS_PUTC
         j TEST
 END:
