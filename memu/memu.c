@@ -54,8 +54,17 @@ int main()
     
     reg_special_write(REG_SPECIAL_PC_ADVANCE1, config.entry_offset);
     reg_special_write(REG_SPECIAL_PC_ADVANCE2, config.entry_offset + 4);
-    u32_t reg_pc = reg_advance_pc();
+   
+    //TODO: remove this line after ZLK's fix
+    reg_special_write(REG_SPECIAL_PC_ADVANCE2, 0);
 
+    u32_t reg_pc = reg_advance_pc();
+    
+    void *membase;
+    size_t memsize;
+    get_dma_info(&membase, &memsize);
+    unsigned int *sbase = membase + 0x00008000;
+    
     while (1)
     {
 #if SINGLE_STEP
@@ -65,6 +74,7 @@ int main()
         u32_t code;
         u32_t paddr;
         u32_t attr;
+        reg_pc += *(sbase + 0); //dma access offset. for dynamic loading..
         mmu_addr_trans(reg_pc, MEM_ACCESS_INST | MEM_ACCESS_READ, &paddr, &attr);
         mem_read(paddr, reg_pc, attr, MEM_ACCESS_LEN_4 | MEM_ACCESS_INST | MEM_ACCESS_READ, &code);
 #if DUMP_FETCH

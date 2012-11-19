@@ -23,12 +23,13 @@
 #define MASK64(n, a, b) ((n) & ((u64_t)(-1ll) >> (63 - (a))) & (- (1llu << (b))))
 #define MASK64SHR(n, a, b)  ((u64_t)MASK64((n), (a), (b)) >> (b))
 
-#define SINGLE_STEP 0
+#define SINGLE_STEP 1
 
 #define DUMP_INST   1
 #define DUMP_MEM    1
 #define DUMP_REG_CPR    1
 #define DUMP_FETCH  1
+#define DUMP_DISPLAY    0
 #define DUMP_IIC    0
 #define LOG_FILE    config.log_file
 
