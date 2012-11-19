@@ -545,7 +545,7 @@ static int inst_exec_addiu(u32_t code)
 {
     int rs = MASKSHR(code, 25, 21);
     int rt = MASKSHR(code, 20, 16);
-    int immediate = MASKSHRSIGNEXT(code, 15, 0);
+    int immediate = MASKSHR(code, 15, 0);
     i32_t regdata;
     reg_gpr_read(rs, &regdata);
     regdata += immediate;
