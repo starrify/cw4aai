@@ -16,35 +16,19 @@
 static void *membase;
 static size_t memsize;
 
-static int mem_readflash(char *filename)
+int mem_loadimg(char const *filename, u32_t offset)
 {
-    FILE *fl = fopen(filename, "r");
-    if (!fl)
-        return MEMU_FAILURE;
-    char str[0x40];
-    int paddr = 0;
-    int tmp;
-    while (fgets(str, 0x40, fl))
+    FILE *fin = fopen(filename, "rb");
+    if (!fin)
     {
-        switch (*str)
-        {
-        case '#':
-        case '!':
-        case '>':
-            break;
-        case '@':
-            paddr = strtol(str + 1, NULL, 0x10);
-            break;
-        default:
-            if (paddr >= memsize)
-                return MEMU_FAILURE;
-            tmp = strtol(str, NULL, 0x10);
-            *(int*)(membase + paddr) = tmp;
-            paddr += sizeof(int); 
-            break;
-        }
+        fprintf(stderr, "Error loading image %s\n", filename);
+        exit(1);
     }
-    fclose(fl);
+    fseek(fin, 0, SEEK_END);
+    int fsz = ftell(fin);
+    fseek(fin, 0, SEEK_SET);
+    fread(membase + offset, fsz, 1, fin);
+    fclose(fin);
     return MEMU_SUCCESS;
 }
 

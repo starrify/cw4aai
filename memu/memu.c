@@ -25,6 +25,7 @@ static void init()
 {
     mem_create(config.memsize);
     mem_init();
+    mem_loadimg(config.img_file, config.img_base);
     reg_init();
     display_init();
     
@@ -39,7 +40,6 @@ static void init()
 
 static void fini()
 {
-    while(1);
     pthread_join(display_daemon_thread, NULL);
 //    pthread_join(iic_daemon_thread, NULL);
     display_fini();
