@@ -10,15 +10,15 @@ SYS_GOTOXY: #row, col
         sll $t0, $a0, 4
         add $t0, $t0, $t1
         add $t0, $t0, $a1
-        #two bytes per unit
-        sll $t0, $t0, 1
+        #four bytes per unit
+        sll $t0, $t0, 2
 
         #decide real offset
         lw $t1, GLBVAR SCR_OFFSET
         add $t0, $t0, $t1
-        addi $t1, $zero, 2 * SCR_WIDTH * SCR_HEIGHT
+        addi $t1, $zero, 4 * SCR_WIDTH * SCR_HEIGHT
         blt $t0, $t1, SYS_GXY1
-        addi $t0, $t0, -2 * SCR_WIDTH * SCR_HEIGHT
+        addi $t0, $t0, -4 * SCR_WIDTH * SCR_HEIGHT
 
 SYS_GXY1:
         sw $t0, GLBVAR CURSOR
@@ -34,15 +34,16 @@ SYS_PUTC: #ch
 
         #write to disp mem
         add $t0, $t0, $t1
-        sb $a0, 0($t0)
-        srl $a0, $a0, 8
-        sb $a0, 1($t0)
+        sw $a0, 0($t0)
+        #sb $a0, 0($t0)
+        #srl $a0, $a0, 8
+        #sb $a0, 1($t0)
 
         #move cursor
-        addi $t1, $t1, 2
-        addi $t0, $zero, 2 * SCR_WIDTH * SCR_HEIGHT
+        addi $t1, $t1, 4
+        addi $t0, $zero, 4 * SCR_WIDTH * SCR_HEIGHT
         blt $t1, $t0, SYS_PTC1
-        addi $t1, $t1, -2 * SCR_WIDTH * SCR_HEIGHT
+        addi $t1, $t1, -4 * SCR_WIDTH * SCR_HEIGHT
 SYS_PTC1:
         sw $t1, GLBVAR CURSOR
 
@@ -50,13 +51,13 @@ SYS_PTC1:
         bne $t1, $t2, SYS_PTC3
 
         #scroll
-        addi $t2, $t2, 2 * SCR_WIDTH
+        addi $t2, $t2, 4 * SCR_WIDTH
         blt $t2, $t0, SYS_PTC2
-        addi $t2, $t2, -2 * SCR_WIDTH * SCR_HEIGHT
+        addi $t2, $t2, -4 * SCR_WIDTH * SCR_HEIGHT
         #clear the new row
         add $a0, $zero, $t2
-        and $a1, $zero, $zero
-        addi $a2, $zero, 2 * SCR_WIDTH
+        andi $a1, $zero, 32
+        addi $a2, $zero, 4 * SCR_WIDTH
         jal MEMSET
 SYS_PTC2:
         sw $t2, GLBVAR SCR_OFFSET
@@ -69,11 +70,11 @@ SYS_GETC:
         lw $t1, GLBVAR INBUF_END
         bne $t0, $t1, SYS_GTCAVL
         #return?
-        #addi $v0, $zero, -1
-        #jr $ra
+        addi $v0, $zero, -1
+        jr $ra
 
         #block?
-        j SYS_GETC
+        #j SYS_GETC
 
 SYS_GTCAVL:
         lw $t1, GLBVAR INBUF_BASE

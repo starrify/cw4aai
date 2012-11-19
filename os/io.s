@@ -1,12 +1,29 @@
 .inc "syscall.inc"
-
+.inc "var.inc"
 
 PUTC: #ch
         syscall SC_PUTC
         jr $ra
 
 GETC:
-        syscall SC_GETC
+GTCBLK:
+        lw $t0, GLBVAR LIB_INBUF_START
+        lw $t1, GLBVAR LIB_INBUF_END
+        beq $t0, $t1, GTCBLK
+
+        #read from lib buf
+        lw $t1, GLBVAR LIB_INBUF_BASE
+        add $t1, $t0, $t1
+        lw $v0, 0($t1)
+        
+        #move lib buf start
+        addi $t0, $t0, 1
+        addi $t1, $zero, LIB_INBUF_SIZE
+        blt $t0, $t1, GTC1
+        addi $t0, $t0, -LIB_INBUF_SIZE
+GTC1:
+        sw $t0, GLBVAR LIB_INBUF_START
+        
         jr $ra
 
 PUTS: #pt

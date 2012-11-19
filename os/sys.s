@@ -2,8 +2,13 @@
 SYS:
         jal INIT
         jal SHELL
+        #syscall exit
 
 INIT:
+        #register input function
+        #initialize library
+        jal LIB_INIT
+        
         jr $ra
 
 SHELL:
@@ -24,3 +29,4 @@ SHLLP:
         jr $ra
 
 .inc "io.s"
+.inc "lib.s"
