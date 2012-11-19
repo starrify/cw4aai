@@ -317,7 +317,7 @@ static int (* const inst_callback[])(u32_t) =
     [INST_INS]          = inst_not_implemented,
     [INST_J]            = inst_exec_j,
     [INST_JAL]          = inst_exec_jal,
-    [INST_JALR]         = inst_not_implemented,
+    [INST_JALR]         = inst_exec_jalr,
     [INST_JALX]         = inst_not_implemented,
     [INST_JR]           = inst_exec_jr,
     [INST_LB]           = inst_exec_lb,
@@ -382,7 +382,7 @@ static int (* const inst_callback[])(u32_t) =
     [INST_NMSUB_D]      = inst_not_implemented,
     [INST_NMSUB_PS]     = inst_not_implemented,
     [INST_NMSUB_S]      = inst_not_implemented,
-    [INST_NOR]          = inst_not_implemented,
+    [INST_NOR]          = inst_exec_nor,
     [INST_OR]           = inst_exec_or,
     [INST_ORI]          = inst_exec_ori,
     [INST_PLL_PS]       = inst_not_implemented,
@@ -403,7 +403,7 @@ static int (* const inst_callback[])(u32_t) =
     [INST_RSQRT_FMT]    = inst_not_implemented,
     [INST_RSQRT1]       = inst_not_implemented,
     [INST_RSQRT2]       = inst_not_implemented,
-    [INST_SB]           = inst_not_implemented,
+    [INST_SB]           = inst_exec_sb,
     [INST_SC]           = inst_not_implemented,
     [INST_SDBBP]        = inst_not_implemented,
     [INST_SDC1]         = inst_not_implemented,
@@ -423,8 +423,8 @@ static int (* const inst_callback[])(u32_t) =
     [INST_SRAV]         = inst_not_implemented,
     [INST_SRL]          = inst_exec_srl,
     [INST_SRLV]         = inst_exec_srlv,
-    [INST_SUB]          = inst_not_implemented,
-    [INST_SUBU]         = inst_not_implemented,
+    [INST_SUB]          = inst_exec_sub,
+    [INST_SUBU]         = inst_exec_subu,
     [INST_SUB_FMT]      = inst_not_implemented,
     [INST_SUXC1]        = inst_not_implemented,
     [INST_SW]           = inst_exec_sw,
@@ -457,7 +457,7 @@ static int (* const inst_callback[])(u32_t) =
     [INST_WAIT]         = inst_not_implemented,
     [INST_WRPGPR]       = inst_not_implemented,
     [INST_WSBH]         = inst_not_implemented,
-    [INST_XOR]          = inst_not_implemented,
+    [INST_XOR]          = inst_exec_xor,
     [INST_XORI]         = inst_exec_xori,
 };
 
@@ -775,7 +775,20 @@ static int inst_exec_jal(u32_t code)
     return EXCEPTION_NONE;
 }
 
-static int inst_exec_jalr(u32_t code);
+static int inst_exec_jalr(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    int hint = MASKSHR(code, 10, 6);
+    link_pc_ra();
+    i32_t regdata;
+    reg_gpr_read(rs, &regdata);
+    jump_to_target(regdata);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: JALR: rs=%d, hint=%d\n", rs, hint);
+#endif 
+    return EXCEPTION_NONE;
+}
+
 static int inst_exec_jalx(u32_t code);
 
 static int inst_exec_jr(u32_t code)
@@ -970,7 +983,22 @@ static int inst_exec_nmadd_s(u32_t code);
 static int inst_exec_nmsub_d(u32_t code);
 static int inst_exec_nmsub_ps(u32_t code);
 static int inst_exec_nmsub_s(u32_t code);
-static int inst_exec_nor(u32_t code);
+
+static int inst_exec_nor(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    int rt = MASKSHR(code, 20, 16);
+    int rd = MASKSHR(code, 15, 11);
+    i32_t regdata1;
+    i32_t regdata2;
+    reg_gpr_read(rs, &regdata1);
+    reg_gpr_read(rt, &regdata2);
+    reg_gpr_write(rd, ~(regdata1 | regdata2));
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: NOR: rs=%d, rt=%d, rd=%d\n", rs, rt, rd);
+#endif
+    return EXCEPTION_NONE;
+}
 
 static int inst_exec_or(u32_t code)
 {
@@ -1021,7 +1049,32 @@ static int inst_exec_round_w_fmt(u32_t code);
 static int inst_exec_rsqrt_fmt(u32_t code);
 static int inst_exec_rsqrt1(u32_t code);
 static int inst_exec_rsqrt2(u32_t code);
-static int inst_exec_sb(u32_t code);
+
+static int inst_exec_sb(u32_t code)
+{
+    int base = MASKSHR(code, 25, 21);
+    int rt = MASKSHR(code, 20, 16);
+    int offset = MASKSHRSIGNEXT(code, 15, 0);
+    u32_t vaddr;
+    reg_gpr_read(base, &vaddr);
+    vaddr += offset;
+    u32_t paddr;
+    u32_t attr;
+    int access_type = MEM_ACCESS_LEN_1 | MEM_ACCESS_DATA | MEM_ACCESS_WRITE;
+    int exception = mmu_addr_trans(vaddr, access_type, &paddr, &attr);
+    if (exception != EXCEPTION_NONE)
+        return exception;
+    i32_t memdata;
+    reg_gpr_read(rt, &memdata);
+    exception = mem_write(paddr, vaddr, attr, access_type, memdata);
+    if (exception != EXCEPTION_NONE)
+        return exception;
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: SB: base=%d, rt=%d, offset=%d\n", base, rt, offset);
+#endif
+    return EXCEPTION_NONE;
+}
+
 static int inst_exec_sc(u32_t code);
 static int inst_exec_sdbbp(u32_t code);
 static int inst_exec_sdc1(u32_t code);
@@ -1090,6 +1143,7 @@ static int inst_exec_slti(u32_t code)
 #endif
     return EXCEPTION_NONE;
 }
+
 static int inst_exec_sltiu(u32_t code)
 {
     int rs = MASKSHR(code, 25, 21);
@@ -1113,7 +1167,7 @@ static int inst_exec_sltu(u32_t code)
     reg_gpr_read(rs, &regdata1);
     u32_t regdata2;
     reg_gpr_read(rt, &regdata2);
-    reg_gpr_write(rd, regdata1 <= regdata2);
+    reg_gpr_write(rd, regdata1 < regdata2);
 #if DUMP_INST
     fprintf(LOG_FILE, "Instruction: SLTU: rs=%d, rt=%d, rd=%d\n", rs, rt, rd);
 #endif    
@@ -1121,7 +1175,22 @@ static int inst_exec_sltu(u32_t code)
 }
 
 static int inst_exec_sqrt_fmt(u32_t code);
-static int inst_exec_sra(u32_t code);
+
+static int inst_exec_sra(u32_t code)
+{
+    int rt = MASKSHR(code, 20, 16);
+    int rd = MASKSHR(code, 15, 11);
+    int sa = MASKSHR(code, 10, 6);
+    i32_t regdata;
+    reg_gpr_read(rt, &regdata);
+    regdata >>= sa;
+    reg_gpr_write(rd, regdata);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: SRA: rt=%d, rd=%d, sa=%d\n", rt, rd, sa);
+#endif
+    return EXCEPTION_NONE;
+}
+
 static int inst_exec_srav(u32_t code);
 
 static int inst_exec_srl(u32_t code)
@@ -1156,8 +1225,39 @@ static int inst_exec_srlv(u32_t code)
     return EXCEPTION_NONE;
 }
 
-static int inst_exec_sub(u32_t code);
-static int inst_exec_subu(u32_t code);
+static int inst_exec_sub(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    int rt = MASKSHR(code, 20, 16);
+    int rd = MASKSHR(code, 15, 11);
+    i32_t regdata1;
+    i32_t regdata2;
+    reg_gpr_read(rs, &regdata1);
+    reg_gpr_read(rt, &regdata2);
+    reg_gpr_write(rd, regdata1 - regdata2);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: SUB: rs=%d, rt=%d, rd=%d\n", rs, rt, rd);
+#endif
+    return EXCEPTION_NONE;
+}
+
+static int inst_exec_subu(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    int rt = MASKSHR(code, 20, 16);
+    int rd = MASKSHR(code, 15, 11);
+    i32_t regdata1;
+    i32_t regdata2;
+    reg_gpr_read(rs, &regdata1);
+    reg_gpr_read(rt, &regdata2);
+    reg_gpr_write(rd, regdata1 - regdata2);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: SUBU: rs=%d, rt=%d, rd=%d\n", rs, rt, rd);
+#endif
+    return EXCEPTION_NONE;
+}
+
+
 static int inst_exec_sub_fmt(u32_t code);
 static int inst_exec_suxc1(u32_t code);
 
@@ -1225,7 +1325,22 @@ static int inst_exec_trunc_w_fmt(u32_t code);
 static int inst_exec_wait(u32_t code);
 static int inst_exec_wrpgpr(u32_t code);
 static int inst_exec_wsbh(u32_t code);
-static int inst_exec_xor(u32_t code);
+
+static int inst_exec_xor(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    int rt = MASKSHR(code, 20, 16);
+    int rd = MASKSHR(code, 15, 11);
+    i32_t regdata1;
+    i32_t regdata2;
+    reg_gpr_read(rs, &regdata1);
+    reg_gpr_read(rt, &regdata2);
+    reg_gpr_write(rd, regdata1 ^ regdata2);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: XOR: rs=%d, rt=%d, rd=%d\n", rs, rt, rd);
+#endif
+    return EXCEPTION_NONE;
+}
 
 static int inst_exec_xori(u32_t code)
 {
