@@ -73,8 +73,7 @@ void *display_daemon(void *ptr)
     unsigned int scry = *(sbase + 34); //screen y
     unsigned int fbbase = *(sbase + 36);    //fb base
     unsigned int fbhead = *(sbase + 37);    //fb head offset
-    int cursor_x = *(sbase + 38);   //cursor_off_x
-    int cursor_y = *(sbase + 39);   //cursor_off_y
+    int cursor_off = *(sbase + 38);   //cursor_off
     int chrsz = 4;
     int scrsize = scrx * scry * chrsz;
     memcpy(membase + fbbase + scrsize, membase + fbbase, fbhead * chrsz);
@@ -89,7 +88,7 @@ void *display_daemon(void *ptr)
             mvaddch(i, j, *(p + i * scry + j));
         }
     }
-    move(cursor_x, cursor_y);
+    move((cursor_off / 4) / scry, (cursor_off / 4) % scry);
 
     refresh();
 
