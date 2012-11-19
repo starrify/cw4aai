@@ -5,19 +5,19 @@
 INIT:
         #addiu $t0, $zero, 1000
         #SYSINFO_S $t0, SCR_BASE
-        addi $a0, $zero, 34
-        addi $a1, $zero, 78
+        ori $a0, $zero, 34
+        ori $a1, $zero, 78
         jal SYS_GOTOXY
 TEST:
-        addi $a0, $zero, 104
+        ori $a0, $zero, 104
         jal SYS_PUTC
-        addi $a0, $zero, 101
+        ori $a0, $zero, 101
         jal SYS_PUTC
-        addi $a0, $zero, 108
+        ori $a0, $zero, 108
         jal SYS_PUTC
-        addi $a0, $zero, 108
+        ori $a0, $zero, 108
         jal SYS_PUTC
-        addi $a0, $zero, 111
+        ori $a0, $zero, 111
         jal SYS_PUTC
         j TEST
 END:

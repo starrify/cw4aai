@@ -21,7 +21,7 @@ SHLLP:
         jal GETS
         add $a0, $sp, shell_cmd
         jal PUTS
-        addi $a0, $zero, 10
+        ori $a0, $zero, 10
         jal PUTC
         j SHLLP
         

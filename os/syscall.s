@@ -1,8 +1,8 @@
 SYS_GOTOXY: #row, col
         #boundary check
-        addi $t0, $zero, SCR_HEIGHT
+        ori $t0, $zero, SCR_HEIGHT
         bgeu $a0, $t0, SYS_GXYERR
-        addi $t0, $zero, SCR_WIDTH
+        ori $t0, $zero, SCR_WIDTH
         bgeu $a1, $t0, SYS_GXYERR
 
         #calculate cursor position
@@ -16,7 +16,7 @@ SYS_GOTOXY: #row, col
         #decide real offset
         SYSINFO_L $t1, SCR_OFFSET
         add $t0, $t0, $t1
-        addi $t1, $zero, 4 * SCR_WIDTH * SCR_HEIGHT
+        ori $t1, $zero, 4 * SCR_WIDTH * SCR_HEIGHT
         blt $t0, $t1, SYS_GXY1
         addi $t0, $t0, -4 * SCR_WIDTH * SCR_HEIGHT
 
@@ -41,7 +41,7 @@ SYS_PUTC: #ch
 
         #move cursor
         addi $t1, $t1, 4
-        addi $t0, $zero, 4 * SCR_WIDTH * SCR_HEIGHT
+        ori $t0, $zero, 4 * SCR_WIDTH * SCR_HEIGHT
         blt $t1, $t0, SYS_PTC1
         addi $t1, $t1, -4 * SCR_WIDTH * SCR_HEIGHT
 SYS_PTC1:
@@ -57,7 +57,7 @@ SYS_PTC1:
         #clear the new row
         add $a0, $zero, $t2
         andi $a1, $zero, 32
-        addi $a2, $zero, 4 * SCR_WIDTH
+        ori $a2, $zero, 4 * SCR_WIDTH
         jal MEMSET
 SYS_PTC2:
         SYSINFO_S $t2, SCR_OFFSET
@@ -81,7 +81,7 @@ SYS_GTCAVL:
         add $t1, $t0, $t1
         lbu $v0, 0($t1)
         addi $t0, $t0, 1
-        addi $t1, $zero, INBUF_SIZE
+        ori $t1, $zero, INBUF_SIZE
         blt $t0, $t1, SYS_GTC1
         addi $t0, $t0, -INBUF_SIZE
 

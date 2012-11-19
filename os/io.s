@@ -1,5 +1,6 @@
 .inc "syscall.inc"
 .inc "var.inc"
+.inc "pseudo_inst.inc"
 
 PUTC: #ch
         syscall SC_PUTC
@@ -18,7 +19,7 @@ GTCBLK:
         
         #move lib buf start
         addi $t0, $t0, 1
-        addi $t1, $zero, LIB_INBUF_SIZE
+        ori $t1, $zero, LIB_INBUF_SIZE
         blt $t0, $t1, GTC1
         addi $t0, $t0, -LIB_INBUF_SIZE
 GTC1:
@@ -47,7 +48,7 @@ GETS: #pt
         addi $sp, $sp, -4
         sw $s0, 0($sp)
         
-        addi $t0, $zero, 10
+        ori $t0, $zero, 10
         add $s0, $zero, $a0
 GTSLP:
         jal GETC

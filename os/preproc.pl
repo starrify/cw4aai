@@ -156,8 +156,14 @@ sub process() {
 	$out .= $src;
 }
 
+sub format() {
+	$_[0] =~ s/(\s*\n)+/\n/g;
+	$_[0];
+}
+
 my $src = &readSrc();
 my $res = &process($src);
+$res = &format($res);
 print($res);
 0;
 
