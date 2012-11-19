@@ -17,7 +17,7 @@ interrupt vector table: 0x00000000 size: 0x1000
 
 os_var: 0x1000 to 0x7fff
         
-        lib buffer: -> 0x7ff0
+        lib buffer: -> 0x6ff0
                 1word: lib_buf_base
                 1word: lib_buf_start
                 1word: lib_buf_end
@@ -27,13 +27,13 @@ sysinfo and device mapping: 0x00008000 0x007FFFFF
 	R for read W for write and S for static
 	32word: reserved
 	display: -> 32
-		1word: RW mode chr/rgba
+		1word: RW mode chr      #/rgba
 		1word: 35 screen x
 		1word: 80 screen y
 		1word: reserved
 		4word: RS base, scr_off, cursor_off, reserved 
 			(35*80, zero based, 4bytes per char, upper byte: color info, lower byte: ascii)
-		4word: RS base, reserved, cursor, reserved of mode 1
+#		4word: RS base, reserved, cursor, reserved of mode 1
 	keyboard io:  ->64
 		1word: input buffer base
                 1word: 10000, fixed size 4kB, round buffer

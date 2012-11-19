@@ -4,8 +4,8 @@
 LIBINIT:
         #initialize lib input base
         lil $t0, LIB_INPUT_BASE_VALUE
-        sw $t0, GLBVAR LIB_INPUT_BASE
-        sw $zero, GLBVAR LIB_INPUT_START
-        sw $zero, GLBVAR LIB_INPUT_END
-
+        OSVAR_S $t0, LIB_INPUT_BASE
+        OSVAR_S $zero, LIB_INPUT_START
+        OSVAR_S $zero, LIB_INPUT_END
+        
         jr $ra

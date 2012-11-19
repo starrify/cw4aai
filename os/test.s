@@ -3,7 +3,7 @@
 
 INIT:
         addiu $t0, $zero, 63536
-        sw $t0, GLBVAR SCR_BASE
+        SYSINFO_S $t0, SCR_BASE
 
 TEST:
         addi $a0, $zero, 104

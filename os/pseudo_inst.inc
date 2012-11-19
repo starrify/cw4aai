@@ -40,6 +40,16 @@
 }
 .def lil r1, inst
 {
-        lui     $r1, (inst >> 16) & 0xff
-        addi    $r1, $zero, inst & 0xff
+        lui     r1, (inst >> 16) & 0xff
+        addi    r1, $zero, inst & 0xff
+}
+.def swia r1, base_addr, offset
+{
+        lil $at, base_addr
+        sw r1, offset($at)
+}
+.def lwia r1, base_addr, offset
+{
+        lil $at, base_addr
+        lw r1, offset($at)
 }

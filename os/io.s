@@ -7,12 +7,12 @@ PUTC: #ch
 
 GETC:
 GTCBLK:
-        lw $t0, GLBVAR LIB_INBUF_START
-        lw $t1, GLBVAR LIB_INBUF_END
+        OSVAR_L $t0, LIB_INBUF_START
+        OSVAR_L $t1, LIB_INBUF_END
         beq $t0, $t1, GTCBLK
 
         #read from lib buf
-        lw $t1, GLBVAR LIB_INBUF_BASE
+        OSVAR_L $t1, LIB_INBUF_BASE
         add $t1, $t0, $t1
         lw $v0, 0($t1)
         
@@ -22,8 +22,8 @@ GTCBLK:
         blt $t0, $t1, GTC1
         addi $t0, $t0, -LIB_INBUF_SIZE
 GTC1:
-        sw $t0, GLBVAR LIB_INBUF_START
-        
+        OSVAR_S $t0, LIB_INBUF_START
+
         jr $ra
 
 PUTS: #pt

@@ -14,14 +14,14 @@ SYS_GOTOXY: #row, col
         sll $t0, $t0, 2
 
         #decide real offset
-        lw $t1, GLBVAR SCR_OFFSET
+        SYSINFO_L $t1, SCR_OFFSET
         add $t0, $t0, $t1
         addi $t1, $zero, 4 * SCR_WIDTH * SCR_HEIGHT
         blt $t0, $t1, SYS_GXY1
         addi $t0, $t0, -4 * SCR_WIDTH * SCR_HEIGHT
 
 SYS_GXY1:
-        sw $t0, GLBVAR CURSOR
+        SYSINFO_S $t0, CURSOR
         and $v0, $zero, $zero
         jr $ra
 SYS_GXYERR:
@@ -29,8 +29,8 @@ SYS_GXYERR:
         jr $ra
 
 SYS_PUTC: #ch
-        lw $t0, GLBVAR SCR_BASE
-        lw $t1, GLBVAR CURSOR
+        SYSINFO_L $t0, SCR_BASE
+        SYSINFO_L $t1, CURSOR
 
         #write to disp mem
         add $t0, $t0, $t1
@@ -45,9 +45,9 @@ SYS_PUTC: #ch
         blt $t1, $t0, SYS_PTC1
         addi $t1, $t1, -4 * SCR_WIDTH * SCR_HEIGHT
 SYS_PTC1:
-        sw $t1, GLBVAR CURSOR
+        SYSINFO_S $t1, CURSOR
 
-        lw $t2, GLBVAR SCR_OFFSET
+        SYSINFO_L $t2, SCR_OFFSET
         bne $t1, $t2, SYS_PTC3
 
         #scroll
@@ -60,14 +60,14 @@ SYS_PTC1:
         addi $a2, $zero, 4 * SCR_WIDTH
         jal MEMSET
 SYS_PTC2:
-        sw $t2, GLBVAR SCR_OFFSET
+        SYSINFO_S $t2, SCR_OFFSET
 
 SYS_PTC3:
         jr $ra
 
 SYS_GETC:
-        lw $t0, GLBVAR INBUF_START
-        lw $t1, GLBVAR INBUF_END
+        SYSINFO_L $t0, INBUF_START
+        SYSINFO_L $t1, INBUF_END
         bne $t0, $t1, SYS_GTCAVL
         #return?
         addi $v0, $zero, -1
@@ -77,7 +77,7 @@ SYS_GETC:
         #j SYS_GETC
 
 SYS_GTCAVL:
-        lw $t1, GLBVAR INBUF_BASE
+        SYSINFO_L $t1, INBUF_BASE
         add $t1, $t0, $t1
         lbu $v0, 0($t1)
         addi $t0, $t0, 1
@@ -86,7 +86,7 @@ SYS_GTCAVL:
         addi $t0, $t0, -INBUF_SIZE
 
 SYS_GTC1:
-        sw $t0, GLBVAR INBUF_START
+        SYSINFO_S $t0, INBUF_START
         jr $ra
 
 .inc "string.s"

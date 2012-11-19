@@ -99,7 +99,7 @@ sub expandDef() {
 
 	my $i;
 	for $i (0 .. $argc - 1) {
-		$str =~ s/(^|[^\w])$macros{$cmd}->[$i + 1](^|[^\w])/$1$args[$i]$2/g;
+		$str =~ s/(^|[^\w])$macros{$cmd}->[$i + 1]($|[^\w])/$1$args[$i]$2/g;
 	}
 	$str = &defaultExpand($str);
 	#print("$str $ret\n");

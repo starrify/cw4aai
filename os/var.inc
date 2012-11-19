@@ -1,14 +1,20 @@
-.def GLBVAR symbol {symbol($zero)}
-.def STKVAR symbol {symbol($sp)}
+.inc "pseudo_inst.inc"
+.def OSVAR_S r1, var {sw r1, var($zero)}
+.def OSVAR_L r1, var {lw r1, var($zero)}
+.def STKVAR_S r1, var {sw r1, var($sp)}
+.def STKVAR_L r1, var {lw r1, var($sp)}
+.def SYSINFO_S r1, var {swia r1, 32768, var}
+.def SYSINFO_L r1, var {lwia r1, 32768, var}
 
-#var
-.def SCR_BASE {16432}
-.def SCR_OFFSET {16436}
-.def CURSOR {16440}
-.def INBUF_BASE {16448}
-.def INBUF_START {16456}
-.def INBUF_END {16460}
+#sysinfo
+.def SCR_BASE {48}
+.def SCR_OFFSET {52}
+.def CURSOR {56}
+.def INBUF_BASE {64}
+.def INBUF_START {68}
+.def INBUF_END {72}
 
+#os var
 .def LIB_INBUF_BASE {32752}
 .def LIB_INBUF_START {32756}
 .def LIB_INBUF_END {32760}
