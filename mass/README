@@ -1,0 +1,46 @@
+This is MASS: Mips ASSembler by Pengyu CHEN(cpy.prefers.you@gmail.com).
+COPYLEFT, ALL WRONGS RESERVED.
+
+To build this distribution of source code, you must have flex, bison and gcc
+installed. You can mail me to request a only-c-source distribution to get rid of
+flex and bison.
+
+For usage of MASS, use `mass -h' to check the help list.
+
+Enjoy it!
+
+To-do list:
+    TOADD: support of more pseudo instrucions 
+    TOADD: support of assembler directives 
+    TOADD: output to a ELF-compatilbe file
+
+ChangeLog:
+    // version 0.2.2
+    FIXED: renamed coprocessor to cp1
+    // version 0.2.1
+    FIXED: uncommented previously wrongly commented line of 
+        i_type_inst_assemble_rs_rt_label in mass.y
+    FIXED: now won't assemble INST_LUI when immediate uses only low 16 bits 
+        when expanding PSEUDO_INST_LI
+    ADDED: command line option -W to show warning messages
+    ADDED: warn when expand a peuso instruction to multi instructions
+    FIXED: no error msg shown when `make clean` encounters non-existing files
+    // version 0.2.0
+    ADDED: support of alias name $0~$31 of registers 
+    ADDED: support of pseudo instrucions move/li/ble/nop
+    REMOVED: some previous buggy debugging codes
+    // version 0.1.1
+    FIXED: fixed the line number reporting bug related to yylineno
+    FIXED: modified definition of statement format, multiple labels declared at
+        a same place is now         
+    // version 0.1.0
+    ADDED: initial commit of project 
+    ADDED: supports all instructions described in 
+        http://www.d.umn.edu/~gshute/spimsal/talref.html
+    ADDED: output pure binary
+    ADDED: support of constant expressions with 1) unary operators +, -, and ~, 
+        2) binary operators +, -, *, /, &, ~, ^, <<, and >>, 3) parenthesis 
+    ADDED: support of labels, branches, and jumps
+    ADDED: support of command line options includeing debuging/byteorder/
+        outputfile/version/help
+

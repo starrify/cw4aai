@@ -72,19 +72,26 @@ int mem_init()
 
     /* interrput vector table */
 
-    /* sysinfo and device mapping 0x00004000-0x007FFFFF */
-    unsigned int *sbase = membase + 0x00004000;
+    /* sysinfo and device mapping 0x00008000-0x007FFFFF */
+    unsigned int *sbase = membase + 0x00008000;
     *(sbase + 32) = 0;  //char mode
     *(sbase + 33) = 35; //screen x
     *(sbase + 34) = 80; //screen y
     *(sbase + 36) = 0x00080000; //framebuffer base
     *(sbase + 37) = 0;  //screen start offsite in framebuffer base
+    *(sbase + 38) = 0;  //cursor_off
     *(sbase + 64) = 0x00040000; //input buffer base
     *(sbase + 65) = 0x00020000; //input buffer size
     *(sbase + 66) = 0x00040000; //input queue head
     *(sbase + 67) = 0x00040000; //input queue tail
     *(sbase + 96) = 0;  //seconds since EPOCH
     *(sbase + 97) = 0;  //millisecond counter
+
+    unsigned int fbbase = *(sbase + 36);
+    int i;
+    for (i = 0; i < 35*80; i++)
+        *(unsigned int*)(membase + fbbase + i * 4) = (unsigned int)' ';
+        
 
     return ret;
 }

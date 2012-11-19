@@ -24,8 +24,8 @@ sysinfo and device mapping: 0x00008000 0x007FFFFF
 		1word: 35 screen x
 		1word: 80 screen y
 		1word: reserved
-		4word: RS base, scr_off, cursor_off, reserved of mode 0 
-			(35*80, zero based, 2bytes per block, upper byte: color info, lower byte: ascii)
+		4word: RS base, scr_off, cursor_off, reserved 
+			(35*80, zero based, 4bytes per char, upper byte: color info, lower byte: ascii)
 		4word: RS base, reserved, cursor, reserved of mode 1
 	keyboard io:  ->64
 		1word: input buffer base

@@ -6,6 +6,7 @@
 
 #include <ncurses.h>
 
+#include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,22 +23,32 @@ const int led_size  = 8;
 const u32_t led_offset[]    = { 0x18, 0x20, 0x28, 0x30, 0x38, 0x40, 0x48, 0x50 };
    
 void *membase;
-void *memsize;
-unsigned long *sbase;
+size_t memsize;
+unsigned int *sbase;
 
 void display_init()
 {
     get_dma_info(&membase, &memsize);
-    sbase = membase + 0x00004000;
-
+    sbase = membase + 0x00008000;
+    
     initscr();
-    printw("Hello, world!");
-    refresh();
-    getch();
-    printw("111111111111Hello, world!");
-    refresh();
-    getch();
-    endwin();
+    keypad(stdscr, TRUE);
+    cbreak();
+    echo();
+    int x;
+    for (x = 0; x < 8; x++)
+        printw("%x ", COLOR_PAIR(x));
+ 
+    start_color();
+    init_pair(7, COLOR_BLACK, COLOR_BLACK);
+    init_pair(6, COLOR_RED, COLOR_BLACK);
+    init_pair(5, COLOR_GREEN, COLOR_BLACK);
+    init_pair(4, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(3, COLOR_BLUE, COLOR_BLACK);
+    init_pair(2, COLOR_MAGENTA, COLOR_BLACK);
+    init_pair(1, COLOR_CYAN, COLOR_BLACK);
+    init_pair(0, COLOR_WHITE, COLOR_BLACK);
+
     return;
     /* scroll enough space for display */
     int i;
@@ -51,18 +62,36 @@ void display_init()
 
 void display_fini()
 {
+    endwin();
     return;
 }
 
 void *display_daemon(void *ptr)
 {
     assert(*(sbase + 32) == 0); //display mode
-    unsigned int scr_x = *(sbase + 33); //screen x
-    unsigned int scr_y = *(sbase + 34); //screen y
+    unsigned int scrx = *(sbase + 33); //screen x
+    unsigned int scry = *(sbase + 34); //screen y
     unsigned int fbbase = *(sbase + 36);    //fb base
     unsigned int fbhead = *(sbase + 37);    //fb head offset
+    int cursor_off = *(sbase + 38);   //cursor_off
+    int chrsz = 4;
+    int scrsize = scrx * scry * chrsz;
+    memcpy(membase + fbbase + scrsize, membase + fbbase, fbhead * chrsz);
 
-    initscr();
+    int i;
+    for (i = 0; i < scrx; i++)
+    {
+        int j;
+        for (j = 0; j < scry; j++)
+        {
+            int *p = membase + fbbase + fbhead;
+            mvaddch(i, j, *(p + i * scry + j));
+        }
+    }
+    move((cursor_off / 4) / scry, (cursor_off / 4) % scry);
+
+    refresh();
+
     return;
 
     while (1)

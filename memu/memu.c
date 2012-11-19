@@ -31,7 +31,7 @@ static void init()
     config.log_file = fopen(config.log_filename, "w");
     assert(config.log_file);
     
-//    pthread_create(&display_daemon_thread, NULL, display_daemon, NULL);
+    pthread_create(&display_daemon_thread, NULL, display_daemon, NULL);
 //    pthread_create(&iic_daemon_thread, NULL, iic_daemon, NULL);
     
     return;
@@ -39,7 +39,8 @@ static void init()
 
 static void fini()
 {
-//    pthread_join(display_daemon_thread, NULL);
+    while(1);
+    pthread_join(display_daemon_thread, NULL);
 //    pthread_join(iic_daemon_thread, NULL);
     display_fini();
     
