@@ -15,17 +15,20 @@ interrupt vector table: 0x00000000 size: 0x1000
 		fixed time at about 10ms?
 	syscall: 0x180
 
-os_var: 0x1000 to 0x7fff
+os_var: 0x1000 to 0x7fff    
         
-        lib buffer: -> 0x7ff0
-                1word: lib_buf_base
-                1word: lib_buf_start
-                1word: lib_buf_end
-                1word: reserved
+    lib buffer: -> 0x7ff0
+        1word: lib_buf_base
+        1word: lib_buf_start
+        1word: lib_buf_end
+          1word: reserved
 	
 sysinfo and device mapping: 0x00008000 0x007FFFFF
 	R for read W for write and S for static
-	32word: reserved
+    
+    misc: -> 0
+        1word: direct memory access offset RW
+
 	display: -> 32
 		1word: RW mode chr/rgba
 		1word: 35 screen x

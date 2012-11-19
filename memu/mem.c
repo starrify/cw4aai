@@ -58,6 +58,7 @@ int mem_init()
 
     /* sysinfo and device mapping 0x00008000-0x007FFFFF */
     unsigned int *sbase = membase + 0x00008000;
+    *(sbase + 0) = config.img_base; //DMA offset
     *(sbase + 32) = 0;  //char mode
     *(sbase + 33) = 35; //screen x
     *(sbase + 34) = 80; //screen y

@@ -62,6 +62,8 @@ void display_init()
 
 void display_fini()
 {
+    while (1)
+        refresh();
     endwin();
     return;
 }
