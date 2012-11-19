@@ -23,43 +23,60 @@ SYS_GOTOXY: #row, col
 SYS_GXY1:
         SYSINFO_S $t0, CURSOR
         and $v0, $zero, $zero
-        jr $ra
+        j SYS_GXYEND
+        
 SYS_GXYERR:
-        addi $v0, $zero, -1
+        addi $v0, $zero, -1        
+SYS_GXYEND:
         jr $ra
 
+SYS_CURSORNEXT:
+        addi $sp, $sp, -4
+        sw $ra, 0($sp)
+
+        SYSINFO_L $t1, CURSOR
+        #move cursor
+        addi $t1, $t1, 4
+        ori $t0, $zero, 4 * SCR_WIDTH * SCR_HEIGHT
+        blt $t1, $t0, SYS_CSNXT1
+        addi $t1, $t1, -4 * SCR_WIDTH * SCR_HEIGHT
+SYS_CSNXT1:
+        SYSINFO_S $t1, CURSOR
+
+        SYSINFO_L $t2, SCR_OFFSET
+        bne $t1, $t2, SYS_CSNXT3
+
+        #scroll
+        addi $t2, $t2, 4 * SCR_WIDTH
+        blt $t2, $t0, SYS_CSNXT2
+        addi $t2, $t2, -4 * SCR_WIDTH * SCR_HEIGHT
+SYS_CSNXT2:
+        SYSINFO_S $t2, SCR_OFFSET
+        #clear the new row
+        add $a0, $zero, $t2
+        ori $a1, $zero, 32
+        ori $a2, $zero, 4 * SCR_WIDTH
+        jal MEMSET
+
+SYS_CSNXT3:
+        lw $ra, 0($sp)
+        addi $sp, $sp, 4
+        jr $ra     
+
 SYS_PUTC: #ch
+        addi $sp, $sp, -4
+        sw $ra, 0($sp)
+        
         SYSINFO_L $t0, SCR_BASE
         SYSINFO_L $t1, CURSOR
 
         #write to disp mem
         add $t0, $t0, $t1
         sw $a0, 0($t0)
+        jal SYS_CURSORNEXT
 
-        #move cursor
-        addi $t1, $t1, 4
-        ori $t0, $zero, 4 * SCR_WIDTH * SCR_HEIGHT
-        blt $t1, $t0, SYS_PTC1
-        addi $t1, $t1, -4 * SCR_WIDTH * SCR_HEIGHT
-SYS_PTC1:
-        SYSINFO_S $t1, CURSOR
-
-        SYSINFO_L $t2, SCR_OFFSET
-        bne $t1, $t2, SYS_PTC3
-
-        #scroll
-        addi $t2, $t2, 4 * SCR_WIDTH
-        blt $t2, $t0, SYS_PTC2
-        addi $t2, $t2, -4 * SCR_WIDTH * SCR_HEIGHT
-        #clear the new row
-        add $a0, $zero, $t2
-        ori $a1, $zero, 32
-        ori $a2, $zero, 4 * SCR_WIDTH
-        jal MEMSET
-SYS_PTC2:
-        SYSINFO_S $t2, SCR_OFFSET
-
-SYS_PTC3:
+        lw $ra, 0($sp)
+        addi $sp, $sp, 4
         jr $ra
 
 SYS_GETC:
@@ -67,8 +84,8 @@ SYS_GETC:
         SYSINFO_L $t1, INBUF_END
         bne $t0, $t1, SYS_GTCAVL
         #return?
-        addi $v0, $zero, -1
-        jr $ra
+        and $v0, $zero, $zero
+        j SYS_GTCEND
 
         #block?
         #j SYS_GETC
@@ -84,6 +101,7 @@ SYS_GTCAVL:
 
 SYS_GTC1:
         SYSINFO_S $t0, INBUF_START
+SYS_GTCEND:
         jr $ra
 
 .inc "string.s"

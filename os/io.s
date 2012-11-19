@@ -28,7 +28,8 @@ GTC1:
         jr $ra
 
 PUTS: #pt
-        addi $sp, $sp, -4
+        addi $sp, $sp, -8
+        sw $ra, 4($sp)
         sw $s0, 0($sp)
         
 	add $s0, $zero, $a0
@@ -41,11 +42,13 @@ PTSLP:
 
 PTSEND:
         lw $s0, 0($sp)
-        addi $sp, $sp, 4
+        lw $ra, 4($sp)
+        addi $sp, $sp, 8
         jr $ra
 
 GETS: #pt
-        addi $sp, $sp, -4
+        addi $sp, $sp, -8
+        sw $ra, 4($sp)
         sw $s0, 0($sp)
         
         ori $t0, $zero, 10
@@ -63,5 +66,6 @@ GTSEND:
 
         add $v0, $zero, $s0
         lw $s0, 0($sp)
-        addi $sp, $sp, 4
+        lw $ra, 4($sp)
+        addi $sp, $sp, 8
         jr $ra

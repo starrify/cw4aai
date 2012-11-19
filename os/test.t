@@ -1,5 +1,25 @@
 
 INIT:
+        ori $sp, $zero, 0x8000
+        ori $a0, $zero, 34
+        ori $a1, $zero, 78
+        jal SYS_GOTOXY
+        sll $zero, $zero, 0
+        ori $a0, $zero, 104
+        jal SYS_PUTC
+        sll $zero, $zero, 0
+        ori $a0, $zero, 101
+        jal SYS_PUTC
+        sll $zero, $zero, 0
+        ori $a0, $zero, 108
+        jal SYS_PUTC
+        sll $zero, $zero, 0
+        ori $a0, $zero, 108
+        jal SYS_PUTC
+        sll $zero, $zero, 0
+        ori $a0, $zero, 111
+        jal SYS_PUTC
+        sll $zero, $zero, 0
         ori $a0, $zero, 34
         ori $a1, $zero, 78
         jal SYS_GOTOXY
@@ -53,13 +73,56 @@ SYS_GXY1:
         ori $at, $zero, 32768 & 0xffff
         sw $t0, 56($at)
         and $v0, $zero, $zero
-        jr $ra
+        j SYS_GXYEND
         sll $zero, $zero, 0
 SYS_GXYERR:
         addi $v0, $zero, -1
+SYS_GXYEND:
+        jr $ra
+        sll $zero, $zero, 0
+SYS_CURSORNEXT:
+        addi $sp, $sp, -4
+        sw $ra, 0($sp)
+        lui $at, (32768 >> 16) & 0xffff
+        ori $at, $zero, 32768 & 0xffff
+        lw $t1, 56($at)
+        addi $t1, $t1, 4
+        ori $t0, $zero, 4 * 80 * 35
+	slt $at, $t1, $t0
+        bne $at, $zero, SYS_CSNXT1
+        sll $zero, $zero, 0
+        addi $t1, $t1, -4 * 80 * 35
+SYS_CSNXT1:
+        lui $at, (32768 >> 16) & 0xffff
+        ori $at, $zero, 32768 & 0xffff
+        sw $t1, 56($at)
+        lui $at, (32768 >> 16) & 0xffff
+        ori $at, $zero, 32768 & 0xffff
+        lw $t2, 52($at)
+        bne $t1, $t2, SYS_CSNXT3
+        sll $zero, $zero, 0
+        addi $t2, $t2, 4 * 80
+	slt $at, $t2, $t0
+        bne $at, $zero, SYS_CSNXT2
+        sll $zero, $zero, 0
+        addi $t2, $t2, -4 * 80 * 35
+SYS_CSNXT2:
+        lui $at, (32768 >> 16) & 0xffff
+        ori $at, $zero, 32768 & 0xffff
+        sw $t2, 52($at)
+        add $a0, $zero, $t2
+        ori $a1, $zero, 32
+        ori $a2, $zero, 4 * 80
+        jal MEMSET
+        sll $zero, $zero, 0
+SYS_CSNXT3:
+        lw $ra, 0($sp)
+        addi $sp, $sp, 4
         jr $ra
         sll $zero, $zero, 0
 SYS_PUTC:
+        addi $sp, $sp, -4
+        sw $ra, 0($sp)
         lui $at, (32768 >> 16) & 0xffff
         ori $at, $zero, 32768 & 0xffff
         lw $t0, 48($at)
@@ -68,36 +131,10 @@ SYS_PUTC:
         lw $t1, 56($at)
         add $t0, $t0, $t1
         sw $a0, 0($t0)
-        addi $t1, $t1, 4
-        ori $t0, $zero, 4 * 80 * 35
-	slt $at, $t1, $t0
-        bne $at, $zero, SYS_PTC1
+        jal SYS_CURSORNEXT
         sll $zero, $zero, 0
-        addi $t1, $t1, -4 * 80 * 35
-SYS_PTC1:
-        lui $at, (32768 >> 16) & 0xffff
-        ori $at, $zero, 32768 & 0xffff
-        sw $t1, 56($at)
-        lui $at, (32768 >> 16) & 0xffff
-        ori $at, $zero, 32768 & 0xffff
-        lw $t2, 52($at)
-        bne $t1, $t2, SYS_PTC3
-        sll $zero, $zero, 0
-        addi $t2, $t2, 4 * 80
-	slt $at, $t2, $t0
-        bne $at, $zero, SYS_PTC2
-        sll $zero, $zero, 0
-        addi $t2, $t2, -4 * 80 * 35
-        add $a0, $zero, $t2
-        ori $a1, $zero, 32
-        ori $a2, $zero, 4 * 80
-        jal MEMSET
-        sll $zero, $zero, 0
-SYS_PTC2:
-        lui $at, (32768 >> 16) & 0xffff
-        ori $at, $zero, 32768 & 0xffff
-        sw $t2, 52($at)
-SYS_PTC3:
+        lw $ra, 0($sp)
+        addi $sp, $sp, 4
         jr $ra
         sll $zero, $zero, 0
 SYS_GETC:
@@ -109,8 +146,8 @@ SYS_GETC:
         lw $t1, 72($at)
         bne $t0, $t1, SYS_GTCAVL
         sll $zero, $zero, 0
-        addi $v0, $zero, -1
-        jr $ra
+        and $v0, $zero, $zero
+        j SYS_GTCEND
         sll $zero, $zero, 0
 SYS_GTCAVL:
         lui $at, (32768 >> 16) & 0xffff
@@ -128,6 +165,7 @@ SYS_GTC1:
         lui $at, (32768 >> 16) & 0xffff
         ori $at, $zero, 32768 & 0xffff
         sw $t0, 68($at)
+SYS_GTCEND:
         jr $ra
         sll $zero, $zero, 0
 MEMCPY:
@@ -139,7 +177,7 @@ MEMCPY:
         beq $t0, $zero, MCPCTN
         sll $zero, $zero, 0
         addi $v0, $zero, -1
-        jr $ra
+        j MCPEND
         sll $zero, $zero, 0
 MCPCTN:
         and $t0, $zero, $zero
@@ -153,6 +191,7 @@ MCPFOR:
         bne $at, $zero, MCPFOR
         sll $zero, $zero, 0
         add $v0, $zero, $zero
+MCPEND:
         jr $ra
         sll $zero, $zero, 0
 STRCPY:
@@ -181,8 +220,6 @@ MCMPLP:
         addi $a2, $a2, -1
         beq $t0, $t1, MCMPLP
         sll $zero, $zero, 0
-        j MCMPEND
-        sll $zero, $zero, 0
 MCMPEND:
         sub $v0, $t0, $t1
         jr $ra
@@ -200,19 +237,18 @@ SCMPLP:
 SCMP1:
         bne $t0, $zero, SCMPLP
         sll $zero, $zero, 0
-        j SCMPEND
-        sll $zero, $zero, 0
 SCMPEND:
         sub $v0, $t0, $t1
         jr $ra
         sll $zero, $zero, 0
 MEMSET:
+MEMSETLP:
         beq $a2, $zero, MSTEND
         sll $zero, $zero, 0
         sb $a1, 0($a0)
         addi $a0, $a0, 1
         addi $a2, $a2, -1
-        j MEMSET
+        j MEMSETLP
         sll $zero, $zero, 0
 MSTEND:
         jr $ra

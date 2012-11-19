@@ -5,6 +5,20 @@
 INIT:
         #addiu $t0, $zero, 1000
         #SYSINFO_S $t0, SCR_BASE
+        ori $sp, $zero, OS_STACK_INIT
+        ori $a0, $zero, 34
+        ori $a1, $zero, 78
+        jal SYS_GOTOXY
+        ori $a0, $zero, 104
+        jal SYS_PUTC
+        ori $a0, $zero, 101
+        jal SYS_PUTC
+        ori $a0, $zero, 108
+        jal SYS_PUTC
+        ori $a0, $zero, 108
+        jal SYS_PUTC
+        ori $a0, $zero, 111
+        jal SYS_PUTC
         ori $a0, $zero, 34
         ori $a1, $zero, 78
         jal SYS_GOTOXY

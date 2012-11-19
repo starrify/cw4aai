@@ -1,3 +1,4 @@
+#TODO: memory operations optimized by word operations
 MEMCPY: #dst, src, size
         #check if overlap
         add $t1, $a0, $a2
@@ -8,7 +9,7 @@ MEMCPY: #dst, src, size
         #jump to MCPCTN if (a0 + a2 > a1 and a1 + a2 > a0) == 0
         beq $t0, $zero, MCPCTN
         addi $v0, $zero, -1
-        jr $ra
+        j MCPEND
 
 MCPCTN:
         and $t0, $zero, $zero
@@ -21,6 +22,7 @@ MCPFOR:
         blt $t0, $a2, MCPFOR
 
         add $v0, $zero, $zero
+MCPEND:
         jr $ra
 
 STRCPY: #dst, src
@@ -46,7 +48,6 @@ MCMPLP:
         addi $a1, $a1, 1
         addi $a2, $a2, -1
         beq $t0, $t1, MCMPLP
-        j MCMPEND
 
 MCMPEND:
         sub $v0, $t0, $t1
@@ -63,16 +64,16 @@ SCMPLP:
         j SCMPEND
 SCMP1:
         bne $t0, $zero, SCMPLP
-        j SCMPEND
 SCMPEND:
         sub $v0, $t0, $t1
         jr $ra
 
 MEMSET: #pt, value, size
+MEMSETLP:
         beq $a2, $zero, MSTEND
         sb $a1, 0($a0)
         addi $a0, $a0, 1
         addi $a2, $a2, -1
-        j MEMSET
+        j MEMSETLP
 MSTEND:
         jr $ra
