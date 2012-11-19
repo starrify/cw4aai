@@ -17,6 +17,8 @@ TEST:
         jal SYS_PUTC
         addi $a0, $zero, 111
         jal SYS_PUTC
+        addi $a0, $zero, 10
+        jal SYS_PUTC
         j TEST
 END:
         j END
