@@ -1,5 +1,6 @@
 .inc "pseudo_inst.inc"
 .inc "var.inc"
+.inc "jmp_fix.inc"
 
 INIT:
         #addiu $t0, $zero, 1000
