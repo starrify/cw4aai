@@ -2,8 +2,8 @@
 .inc "var.inc"
 
 INIT:
-        addiu $t0, $zero, 63536
-        SYSINFO_S $t0, SCR_BASE
+        #addiu $t0, $zero, 1000
+        #SYSINFO_S $t0, SCR_BASE
 
 TEST:
         addi $a0, $zero, 104
