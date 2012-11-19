@@ -35,9 +35,6 @@ SYS_PUTC: #ch
         #write to disp mem
         add $t0, $t0, $t1
         sw $a0, 0($t0)
-        #sb $a0, 0($t0)
-        #srl $a0, $a0, 8
-        #sb $a0, 1($t0)
 
         #move cursor
         addi $t1, $t1, 4
@@ -56,7 +53,7 @@ SYS_PTC1:
         addi $t2, $t2, -4 * SCR_WIDTH * SCR_HEIGHT
         #clear the new row
         add $a0, $zero, $t2
-        andi $a1, $zero, 32
+        ori $a1, $zero, 32
         ori $a2, $zero, 4 * SCR_WIDTH
         jal MEMSET
 SYS_PTC2:

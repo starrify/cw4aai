@@ -79,7 +79,7 @@ void *display_daemon(void *ptr)
         int cursor_off = *(sbase + 14);   //cursor_off
         int chrsz = 4;
         int scrsize = scrx * scry * chrsz;
-        //memcpy(membase + fbbase + scrsize, membase + fbbase, fbhead * chrsz);
+        memcpy(membase + fbbase + scrsize, membase + fbbase, fbhead * chrsz);
 
         int i;
         for (i = 0; i < scrx; i++)

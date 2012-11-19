@@ -1070,7 +1070,7 @@ static int inst_exec_slt(u32_t code)
     reg_gpr_read(rs, &regdata1);
     i32_t regdata2;
     reg_gpr_read(rt, &regdata2);
-    reg_gpr_write(rd, regdata1 <= regdata2);
+    reg_gpr_write(rd, regdata1 < regdata2);
 #if DUMP_INST
     fprintf(LOG_FILE, "Instruction: SLT: rs=%d, rt=%d, rd=%d\n", rs, rt, rd);
 #endif    
