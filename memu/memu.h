@@ -1,0 +1,53 @@
+/* 
+ * This source file is part of MEMU: Mips EMUlator
+ * by Pengyu CHEN(cpy.prefers.you@gmail.com)
+ * COPYLEFT, ALL WRONGS RESERVED.
+ */
+
+#ifndef MEMU_H
+#define MEMU_H
+
+#ifndef NULL
+# define NULL   (void*)0
+#endif
+
+#define RELEASE "dev"
+#define VERSION "0.2.1"
+#define NAME    "MEMU: Mips EMUlator"
+#define AUTHOR  "Pengyu CHEN(cpy.prefers.you@gmail.com)"
+
+#define MASK(n, a, b)   ((n) & ((u32_t)(-1) >> (31 - (a))) & (- (1 << (b))))
+#define MASKSHR(n, a, b)    ((u32_t)MASK((n), (a), (b)) >> (b))
+#define MASKSHRSIGNEXT(n, a, b) ((i32_t)((u32_t)MASK((n), (a), (b)) << (31 - (a))) >> (31 - (a) + (b)))
+
+#define MASK64(n, a, b) ((n) & ((u64_t)(-1ll) >> (63 - (a))) & (- (1llu << (b))))
+#define MASK64SHR(n, a, b)  ((u64_t)MASK64((n), (a), (b)) >> (b))
+
+#define SINGLE_STEP 0
+
+#define DUMP_INST   1
+#define DUMP_MEM    1
+#define DUMP_REG_CPR    1
+#define DUMP_FETCH  1
+#define DUMP_IIC    0
+#define LOG_FILE    config.log_file
+
+typedef unsigned long long  u64_t;
+typedef unsigned int   u32_t;
+typedef int i32_t;
+typedef short   i16_t;
+typedef char    i8_t;
+
+enum _memu_status 
+{
+    MEMU_SUCCESS,
+    MEMU_FAILURE,
+};
+
+enum _memu_bool
+{
+    MEMU_FALSE,
+    MEMU_TRUE,
+};
+
+#endif // MEMU_H

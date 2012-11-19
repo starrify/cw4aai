@@ -1,0 +1,23 @@
+This is MEMU: Mips EMUlator by Pengyu CHEN(cpy.prefers.you@gmail.com).
+COPYLEFT, ALL WRONGS RESERVED.
+
+Planned to boot a Linux2.26 kernel for MIPS Malta, currently working on 
+booting the bootloader(YAMON).
+
+/* For usage of MEMU, use `memu -h' to check the help list. */
+
+Enjoy it!
+
+ChangeLog:
+    TODO: memory lock
+    TODO: simulation of IIC 
+    // version 0.2.1
+    FIXED: bugs with instruction interpreting
+    ADDED: simulation of the on-board LEDs
+    ADDED: simulation of the on-board system controller
+    // version 0.2.0
+    ADDED: more instruction support
+    ADDED: coprocessor register support
+    ADDED: a basic mmu support
+    // version 0.1.0
+    ADDED: initial commit of project 
