@@ -14,6 +14,6 @@
 #define INTERRUPT_ENTRY_TIMER   0x00000100
 #define INTERRUPT_ENTRY_SYSCALL 0x00000180
 
-extern int interrupt(u32_t entry);
+extern int try_interrupt(u32_t entry);
 
 #endif /* INTERRUPT_H */

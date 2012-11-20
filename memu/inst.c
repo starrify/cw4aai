@@ -755,7 +755,9 @@ static int inst_exec_eret(u32_t code)
     }
     u32_t epc;
     reg_cpr_read(FKREG_CPR_EPC, 0, &epc);
-
+    reg_special_write(REG_SPECIAL_PC_ADVANCE1, epc);
+    reg_special_write(REG_SPECIAL_PC_ADVANCE2, epc + 4);
+    reg_cpr_write(FKREG_CPR_EXL, 0, MEMU_FALSE);
 #if DUMP_INST
     fprintf(LOG_FILE, "Instruction: ERET: EOC=%.8X\n", epc);
 #endif 
