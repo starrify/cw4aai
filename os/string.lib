@@ -100,7 +100,40 @@ SCMPEND:
 
 .decl func #not finished
 MEMSET: #pt, value, size
-    srl $t0, $a2, 2
+    addi $sp, $sp, -16
+    sw $ra, 0($sp)
+    
+    beq $a2, $zero, MSTEND
+    #align
+    srl $t0, $a0, 2
+    sll $t0, $t0, 2
+    beq $t0, $a0, MST2
+    sub $t0, $t0, $a0
+    addi $t0, $t0, 4
+MST1:
+    sb $a1, 0($a0)
+    addi $a0, $a0, 1
+    addi $a2, $a2, -1
+    beq $a0, $t0, MST2
+    beq $a2, $zero, MSTEND
+    j MST1
+    
+    #set words
+MST2:
+    sw $a0, 4($sp)
+    sw $a1, 8($sp)
+    sw $a2, 12($sp)
+    sll $t0, $a1, 8
+    or $t0, $t0, $a1
+    sll $a1, $t0, 16
+    or $a1, $a1, $t0
+    srl $a2, $a2, 2
+    jal MEMWORDSET
+    lw $a0, 4($sp)
+    lw $a1, 8($sp)
+    lw $a2, 12($sp)
+    
+    #set remain
 MST3:
     beq $a2, $zero, MSTEND
     sb $a1, 0($a0)
@@ -108,17 +141,19 @@ MST3:
     addi $a2, $a2, -1
     j MST3
 MSTEND:
+    lw $ra, 0($sp)
+    addi $sp, $sp, 16
     jr $ra
 .end_decl
 
 .decl func
 MEMWORDSET: #dst, value, words
-MST1:
-    beq $a2, $zero, MSTEND
+MWST1:
+    beq $a2, $zero, MWSTEND
     sw $a1, 0($a0)
     addi $a0, $a0, 4
     addi $a2, $a2, -1
-    j MST1
-MSTEND:
+    j MWST1
+MWSTEND:
     jr $ra
 .end_decl
