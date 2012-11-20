@@ -1,3 +1,4 @@
+.inc "io."
 
 SYS:
     jal INIT
@@ -31,6 +32,3 @@ SHLLP:
     
     addi $sp, $sp, 80
     jr $ra
-
-.inc "io.s"
-.inc "lib.s"
