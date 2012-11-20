@@ -15,7 +15,6 @@
 .def INBUF_END {72}
 
 #os var
-.def 
 #.def LIB_INBUF_BASE {0x1000}
 #.def LIB_INBUF_START {0x1004}
 #.def LIB_INBUF_END {0x1008}
