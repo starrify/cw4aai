@@ -137,6 +137,7 @@ void *display_daemon(void *ptr)
 
 void *keyboard_daemon(void *ptr)
 {
+    return NULL;
     unsigned int fbbase = *(sbase + 12); 
     while(1)
     {
