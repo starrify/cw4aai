@@ -181,6 +181,7 @@ $31 return yylval.int_t = REG_RA;
 \(  return yylval.int_t = L_PARENTHESIS;
 \)  return yylval.int_t = R_PARENTHESIS;
 \,  return yylval.int_t = COMMA;
+\.  return yylval.int_t = DOT;
 \:  return yylval.int_t = COLON;  
 \;  return yylval.int_t = SEMICOLON;
 

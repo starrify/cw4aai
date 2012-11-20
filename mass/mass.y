@@ -29,7 +29,7 @@ static inline void warn_expand_to_multi_inst(char *file, int lineno);
 %token <int_t>
     /* misc */
     INTEGER L_PARENTHESIS R_PARENTHESIS COMMA COLON SEMICOLON COMMENT WHITESPACE 
-    EOLN
+    EOLN DOT
     
     /* operator */
     OP_ADD OP_SUB OP_MUL OP_DIV OP_MOD OP_AND OP_OR OP_XOR OP_NOT OP_LSHIFT 
@@ -76,6 +76,7 @@ static inline void warn_expand_to_multi_inst(char *file, int lineno);
     
 %type <int_t>
     /* type declearations of these sub token */
+    rawcode
     immediate
     expr
     label_declare
@@ -115,6 +116,11 @@ statement:
     /* empty statement */
     | instruct_statement
     | label_declare statement
+    | rawcode
+    ;
+
+rawcode:
+    DOT immediate { write_code($2); }
     ;
     
 instruct_statement: 

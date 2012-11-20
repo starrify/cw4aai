@@ -62,13 +62,13 @@ int mem_init()
     *(sbase + 8) = 0;  //char mode
     *(sbase + 9) = 35; //screen x
     *(sbase + 10) = 80; //screen y
-    *(sbase + 12) = 0x00080000; //framebuffer base
+    *(sbase + 12) = 0x00040000; //framebuffer base
     *(sbase + 13) = 0;  //screen start offsite in framebuffer base
     *(sbase + 14) = 0;  //cursor_off
-    *(sbase + 16) = 0x00040000; //input buffer base
-    *(sbase + 17) = 0x00020000; //input buffer size
-    *(sbase + 18) = 0x00040000; //input queue head
-    *(sbase + 19) = 0x00040000; //input queue tail
+    *(sbase + 16) = 0x00020000; //input buffer base
+    *(sbase + 17) = 0x00010000; //input buffer size
+    *(sbase + 18) = 0x00020000; //input queue head
+    *(sbase + 19) = 0x00020000; //input queue tail
     *(sbase + 24) = 0;  //seconds since EPOCH
     *(sbase + 25) = 0;  //millisecond counter
 
