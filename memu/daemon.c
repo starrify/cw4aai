@@ -13,6 +13,7 @@
 #include <string.h>
 #include <time.h>
 
+#include "interrupt.h"
 #include "reg.h"
 #include "daemon.h"
 #include "config.h"
@@ -45,7 +46,8 @@ void display_init()
     init_pair(0, COLOR_WHITE, COLOR_BLACK);
 
     return;
-    /* scroll enough space for display */
+    /*
+    // scroll enough space for display 
     int i;
     for (i = 0; i < config.status_display_size; i++)
         printf("\x1b%c", 'D');
@@ -53,6 +55,7 @@ void display_init()
         printf("\x1b%c", 'M');
    
     return;
+    */
 }
 
 void display_fini()
@@ -137,14 +140,39 @@ void *display_daemon(void *ptr)
 
 void *keyboard_daemon(void *ptr)
 {
-    return NULL;
-    unsigned int fbbase = *(sbase + 12); 
+    //iq for input queue
+    u32_t iq_base = *(sbase + 16);
+    u32_t iq_size = *(sbase + 17);
+    u32_t iq_head = *(sbase + 18);
+    u32_t iq_tail = *(sbase + 19);
     while(1)
     {
-        int c = getch();
-        u32_t *p = membase + fbbase;
-        if (c != ERR)
-            *p = c;
+        int c = getch();    //blocked input since timeout(-1);
+#if DUMP_KEYBOARD
+        fprintf(LOG_FILE, "Keyboard: getch()= %d", c);
+#endif
+#define _X(x)   (*(u32_t*)(membase + (x)))
+        _X(_X(iq_tail)) = c;
+        if (_X(iq_tail) != _X(iq_head)) // input queue not full
+        {
+#if DUMP_KEYBOARD
+            fprintf(LOG_FILE, "Keyboard: iq_tail advanced. iqhead=0x%.8X, iqtail=0x%.8X\n", 
+                _X(iq_head), _X(iq_tail));
+#endif
+            _X(iq_tail) += 4;
+        }
+        else if (_X(iq_tail) == _X(iq_base) + _X(iq_size))
+        {
+#if DUMP_KEYBOARD
+            fprintf(LOG_FILE, "Keyboard: iq_queue full. iqhead=0x%.8X, iqtail=0x%.8X\n", 
+                _X(iq_head), _X(iq_tail));
+#endif
+            _X(iq_tail) = _X(iq_base);
+        }
+#undef _X
+        while (1)
+            if (try_interrupt(INTERRUPT_ENTRY_KEYBOARD_INPUT) == MEMU_SUCCESS)
+                break;
     }
     return NULL;
 }

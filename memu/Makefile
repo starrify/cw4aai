@@ -20,7 +20,7 @@ memu: $(OBJS)
 	$(CC) $(CFLAG) $(LFLAG) $(OBJS) -o memu
 
 memu.o: memu.c memu.h config.h decode.h exception.h mem.h mmu.h reg.h \
-        daemon.h iic.h fancyterm.h
+        daemon.h fancyterm.h interrupt.h
 	$(CC) $(CFLAG) -c memu.c -o memu.o
 
 config.o: config.c config.h
@@ -44,7 +44,7 @@ mmu.o: mmu.c mmu.h exception.h memu.h mem.h config.h
 reg.o: reg.c reg.h config.h memu.h
 	$(CC) $(CFLAG) -c reg.c -o reg.o
 
-daemon.o: daemon.c daemon.h config.h mem.h reg.h
+daemon.o: daemon.c daemon.h config.h mem.h reg.h interrupt.h
 	$(CC) $(CFLAG) -c daemon.c -o daemon.o
 
 interrupt.o: interrupt.c interrupt.h exception.h reg.h config.h

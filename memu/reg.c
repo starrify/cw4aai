@@ -92,6 +92,13 @@ i32_t reg_cpr_read(unsigned int reg, unsigned int sel, i32_t *word)
     //if (regsel >= NUMBER_OF_REG_CPRS)
     //    return MEMU_FAILURE;
     regsel %= NUMBER_OF_REG_CPRS;
+
+    *word = reg_cpr[regsel];
+#if DUMP_REG_CPR
+    fprintf(LOG_FILE, "Reg: CPR: Read: reg=%d, sel=%d, word=%.8X\n", reg, sel, *word);
+#endif
+    return MEMU_SUCCESS;
+
     switch (regsel)
     {
     case REG_CPR_STATUS:
@@ -111,7 +118,7 @@ i32_t reg_cpr_read(unsigned int reg, unsigned int sel, i32_t *word)
     }
     *word = reg_cpr[regsel] & reg_cpr_read_mask[regsel];
 #if DUMP_REG_CPR
-    fprintf(LOG_FILE, "Reg: CPR: Read: reg=%d, sel=%d, word=%.8X\n", reg, sel, word);
+    fprintf(LOG_FILE, "Reg: CPR: Read: reg=%d, sel=%d, word=%.8X\n", reg, sel, *word);
 #endif
     return MEMU_SUCCESS;
 }
@@ -122,6 +129,13 @@ i32_t reg_cpr_write(unsigned int reg, unsigned int sel, i32_t word)
     //if (regsel >= NUMBER_OF_REG_CPRS)
     //    return MEMU_FAILURE;
     regsel %= NUMBER_OF_REG_CPRS;
+    
+    reg_cpr[regsel] = word;
+#if DUMP_REG_CPR
+    fprintf(LOG_FILE, "Reg: CPR: Write: reg=%d, sel=%d, word=%.8X\n", reg, sel, word);
+#endif
+    return MEMU_SUCCESS;
+
     switch (regsel)
     {
     case REG_CPR_STATUS:
@@ -133,6 +147,7 @@ i32_t reg_cpr_write(unsigned int reg, unsigned int sel, i32_t word)
     case REG_CPR_WATCHHI:
         break;
     default:
+        break;
 #if DUMP_REG_CPR
         fprintf(LOG_FILE, "Error: access to CPR not implemented: reg %d, sel %d\n", reg, sel);
         fprintf(LOG_FILE, " -- Wdata: %.8X\n", word);

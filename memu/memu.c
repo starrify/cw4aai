@@ -25,8 +25,8 @@ static pthread_t keyboard_daemon_thread;
 static void init()
 {
     mem_create(config.memsize);
-    mem_init();
     mem_loadimg(config.img_file, config.img_base);
+    mem_init();
     reg_init();
     display_init();
     
@@ -72,11 +72,11 @@ int main()
         step_count--;
         if (!step_count)
         {
-            while(getch() != 'p')
-                ;
+            sleep(1);
+            //while(getch() != 'p')
+            //    ;
             step_count = step;
         }
-
 #endif
         u32_t code;
         u32_t paddr;

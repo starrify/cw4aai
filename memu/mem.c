@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "interrupt.h"
 #include "config.h"
 #include "exception.h"
 #include "memu.h"
@@ -55,6 +56,10 @@ int mem_init()
     int ret = 0;
 
     /* interrput vector table */
+    *(u32_t*)(membase + 0) = 0x42000018;    //ERET as an empty exception handler
+    *(u32_t*)(membase + INTERRUPT_ENTRY_KEYBOARD_INPUT) = 0x42000018;    //ERET as an empty exception handler
+    *(u32_t*)(membase + INTERRUPT_ENTRY_TIMER) = 0x42000018;    //ERET as an empty exception handler
+    *(u32_t*)(membase + INTERRUPT_ENTRY_SYSCALL) = 0x42000018;    //ERET as an empty exception handler
 
     /* sysinfo and device mapping 0x00008000-0x007FFFFF */
     unsigned int *sbase = membase + config.sbase_offset;

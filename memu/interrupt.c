@@ -40,7 +40,7 @@ int try_interrupt(u32_t entry)
 
     reg_cpr_write(FKREG_CPR_EXL, 0, MEMU_TRUE);
 #if DUMP_INTERRUPT
-    fprintf(LOG_FILE, "INTERRUPT: set EPC=%.8X\n", pcadv1);
+    fprintf(LOG_FILE, "Interrupt: set EPC=%.8X\n", pcadv1);
 #endif 
     return MEMU_SUCCESS;
 
