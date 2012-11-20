@@ -14,7 +14,12 @@
 # 	features:
 # 		nested include supported
 # 		avoid multiple includes
-#
+# declare:
+# 	format: .decl <type> .end_decl
+# 	supported types:
+# 		func:
+# 			function being declared will not be integrated 
+# 			unless it is called by other integrated code
 
 use strict;
 use warnings;
@@ -22,9 +27,10 @@ use utf8;
 use 5.010;
 
 my $keystr = '\.\w+';
-my %macros = (), my %included = ();
+my %macros = (), my %included = (), my %func = ();
 my $label_cnt = 0;
 my $error_len = 30;
+my $supported_decl = "func";
 
 sub readSrc() {
 	$/ = undef;
@@ -120,6 +126,31 @@ sub include() {
 	($out, $leftover);
 }
 
+sub addFunc() {
+	my $leftover = $_[0];
+	$leftover =~ /^\s*((\w+):.*?)\.end_decl/s or die "invalid function declare format \"" . &getline($leftover) . '"';
+	$leftover = $';
+	$func{$2} = &process($1);
+	("", $leftover);
+}
+
+sub addDecl() {
+	my $out = "", my $leftover = $_[0];
+	my $tmp;
+	$leftover =~ /^\s*($supported_decl)($|[^\w])/ or die "Declaration \"" . &getline($leftover) . "\" not supported";
+	$leftover = $';
+	given($1) {
+		when('func') {
+			($tmp, $leftover) = &addFunc($leftover);
+			$out .= $tmp;
+		}
+		default {
+			die "Unexpected error";
+		}
+	}
+	($out, $leftover);
+}
+
 sub processCmd() {
 	my ($cmd, $leftover) = @_;
 	my $out = "", my $tmp;
@@ -130,6 +161,10 @@ sub processCmd() {
 		}
 		when('.inc') {
 			($tmp, $leftover) = &include($leftover);
+			$out .= $tmp;
+		}
+		when('.decl') {
+			($tmp, $leftover) = &addDecl($leftover);
 			$out .= $tmp;
 		}
 		when(/\.\w+/) {
@@ -156,6 +191,24 @@ sub process() {
 	$out .= $src;
 }
 
+sub addDepend() {
+	my $buf = $_[0], my $out = "";
+	my $tmp, my $key;
+	while($buf) {
+		$tmp = "";
+		for $key (keys %func) {
+#			print("$key\n");
+			if(index($buf, $key) != -1) {
+				$tmp .= $func{$key};
+				delete $func{$key};	# do not delete cause it maybe used again?
+			}
+		}
+		$out .= $buf;
+		$buf = $tmp;
+	}
+	$out;
+}
+
 sub format() {
 	$_[0] =~ s/(\s*\n)+/\n/g;
 	$_[0];
@@ -163,6 +216,7 @@ sub format() {
 
 my $src = &readSrc();
 my $res = &process($src);
+$res = &addDepend($res);
 $res = &format($res);
 print($res);
 0;

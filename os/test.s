@@ -1,6 +1,7 @@
 .inc "pseudo_inst.inc"
 .inc "var.inc"
 .inc "jmp_fix.inc"
+.inc "syscall.lib"
 
 INIT:
     #addiu $t0, $zero, 1000
@@ -37,7 +38,6 @@ TEST:
 END:
     j END
 
-.inc "syscall.s"
 
 #TEST:
 #    addi $t0, $zero, 3000

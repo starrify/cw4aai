@@ -1,5 +1,6 @@
 .inc "pseudo_inst.inc"
 
+.decl func
 MEMCPY: #dst, src, size
     #check if overlap
     add $t1, $a0, $a2
@@ -34,8 +35,9 @@ MCPEND:
 MCPERR:
     addi $v0, $zero, -1
     j MCPEND
-    
+.end_decl
 
+.decl func
 STRCPY: #dst, src
 SCPLP:
     lb $t0, 0($a1)
@@ -47,7 +49,9 @@ SCPLP:
 
 SCPEND:
     jr $ra
+.end_decl
 
+.decl func
 MEMCMP: #str1, str2, size
     and $t0, $zero, $zero
     and $t1, $zero, $zero
@@ -75,7 +79,9 @@ MCMP3:
 MCMPEND:
     sub $v0, $t0, $t1
     jr $ra
+.end_decl
 
+.decl func
 STRCMP: #str1, str2
     
 SCMPLP:
@@ -90,7 +96,9 @@ SCMP1:
 SCMPEND:
     sub $v0, $t0, $t1
     jr $ra
+.end_decl
 
+.decl func
 MEMSET: #pt, value, size
     #eliminate non-zeros in msbs
     sll $a1, $a1, 24
@@ -117,3 +125,4 @@ MST3:
     j MST3
 MSTEND:
     jr $ra
+.end_decl
