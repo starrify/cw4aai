@@ -10,56 +10,52 @@ entry point:
     0x00001000
 
 interrupt vector table: 0x00000000 size: 0x1000
-	keyboard input: 0x80
-	timer: 0x100
-		fixed time at about 10ms?
-	syscall: 0x180
+    keyboard input: 0x80
+    timer: 0x100
+        fixed time at about 10ms?
+    syscall: 0x180
 
-os_var: 0x1000 to 0x5fff
-        lib buffer: -> 0x4ff0
-                1word: lib_buf_base
-                1word: lib_buf_start
-                1word: lib_buf_end
-                1word: reserved
+os variables: 0x1000 to 0x5fff
+    lib buffer: -> 0x4ff0
+        1word: lib_buf_base
+        1word: lib_buf_start
+        1word: lib_buf_end
+        1word: reserved
 
-os_stack: 0x6000 to 0x7fff
+os stack: 0x6000 to 0x7fff
 	
 sysinfo and device mapping: 0x00008000 0x007FFFFF
-	R for read W for write and S for static
+    R for read W for write and S for static
     
     misc: -> 0
-        1word: direct memory access offset RW
+    1word: direct memory access offset RW
 
-	display: -> 32
-		1word: RW mode chr      #/rgba
-		1word: 35 screen x
-		1word: 80 screen y
-		1word: reserved
-		4word: RS base, scr_off, cursor_off, reserved 
-			(35*80, zero based, 4bytes per char, upper byte: color info, lower byte: ascii)
-#		4word: RS base, reserved, cursor, reserved of mode 1
-	keyboard io:  ->64
-		1word: input buffer base
-                1word: 10000, fixed size 4kB, round buffer
-		1word: RW start_off R
-		1word: R end_off RW
-	linux_timestamp: ->96
-		1word: R seconds since EPOCH
-		1word: R millisecons counter 
+    display: -> 32
+        1word: RW mode chr      #/rgba
+        1word: 35 screen x
+        1word: 80 screen y
+        1word: reserved
+        4word: RS base, scr_off, cursor_off, reserved 
+            (35*80, zero based, 4bytes per char, upper byte: color info, lower byte: ascii)
+#       4word: RS base, reserved, cursor, reserved of mode 1
+    keyboard io:  ->64
+        1word: input buffer base
+        1word: 0x10000, fixed size 4kB, round buffer
+        1word: RW start_off R
+        1word: R end_off RW
+    linux_timestamp: ->96
+        1word: R seconds since EPOCH
+        1word: R millisecons counter
+    
 
-os_mem: 0x00800000 to 0x01ffffff
-        lib_in_buffer -> 0
+os memory: 0x00800000 to 0x01ffffff
+    lib_in_buffer -> 0
         1024word: buffer
 		
 user memory: 0x02000000 to 0x0FFFFFFF
-		
+                
 	
 		
-		
-display memory:
-	char: 0x1cf0000 to 0x1cf15df (dos like, 80 * 35, 2bytes/pix)
-	vga: 0x1d00000 to 0x1ffffff (1024 * 768, RGBA)	
-        
 
         void add(WORD inst);
         void addu(WORD inst);
