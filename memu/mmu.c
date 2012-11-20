@@ -8,10 +8,15 @@
 #include "malta_mem.h"
 #include "memu.h"
 #include "exception.h"
+#include "config.h"
 
 int mmu_addr_trans(u32_t vaddr, int access_type, u32_t *paddr, u32_t *attr)
 {   
-    *paddr = vaddr;
+    void *membase;
+    size_t memsize;
+    get_dma_info(&membase, &memsize);
+    unsigned int *sbase = membase + config.sbase_offset;
+    *paddr = vaddr + *(sbase + 0);
     return EXCEPTION_NONE;
 
     /* only kernel mode implemented for now */

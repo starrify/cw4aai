@@ -29,7 +29,7 @@ static inline void warn_expand_to_multi_inst(char *file, int lineno);
 %token <int_t>
     /* misc */
     INTEGER L_PARENTHESIS R_PARENTHESIS COMMA COLON SEMICOLON COMMENT WHITESPACE 
-    EOLN DOT
+    EOLN DOT DUP
     
     /* operator */
     OP_ADD OP_SUB OP_MUL OP_DIV OP_MOD OP_AND OP_OR OP_XOR OP_NOT OP_LSHIFT 
@@ -121,6 +121,12 @@ statement:
 
 rawcode:
     DOT immediate { write_code($2); }
+    | DOT immediate DUP immediate
+    { 
+        int i; 
+        for (i = 0; i < $4; i++) 
+            write_code($2);
+    }
     ;
     
 instruct_statement: 

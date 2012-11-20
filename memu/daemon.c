@@ -26,7 +26,7 @@ unsigned int *sbase;
 void display_init()
 {
     get_dma_info(&membase, &memsize);
-    sbase = membase + 0x00008000;
+    sbase = membase + config.sbase_offset;
     
     initscr();
     keypad(stdscr, TRUE);

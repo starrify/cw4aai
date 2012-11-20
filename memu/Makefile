@@ -10,9 +10,9 @@ LFLAG   = -lpthread -lncurses
 OBJS    = memu.o config.o decode.o inst.o mem.o mmu.o reg.o \
             daemon.o fancyterm.o interrupt.o
 SOURCES = memu.c config.c decode.c inst.c mem.c mmu.c reg.c \
-            daemon.c fancyterm.c  interrupt.c\
+			daemon.c fancyterm.c  interrupt.c\
 		  memu.h config.h decode.h exception.h inst.h mem.h mmu.h reg.h \
-		    daemon.h fancyterm.h interrupt.h
+			daemon.h fancyterm.h interrupt.h
             
 all: memu
 
@@ -38,7 +38,7 @@ inst.o: inst.c inst.h config.h exception.h memu.h decode.h reg.h mem.h mmu.h
 mem.o: mem.c mem.h config.h exception.h memu.h
 	$(CC) $(CFLAG) -c mem.c -o mem.o
 
-mmu.o: mmu.c mmu.h exception.h memu.h mem.h
+mmu.o: mmu.c mmu.h exception.h memu.h mem.h config.h
 	$(CC) $(CFLAG) -c mmu.c -o mmu.o
 
 reg.o: reg.c reg.h config.h memu.h
