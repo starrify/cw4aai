@@ -121,11 +121,11 @@ statement:
 
 rawcode:
     DOT immediate { write_code($2); }
-    | DOT immediate DUP immediate
+    | DUP immediate DOT immediate
     { 
         int i; 
-        for (i = 0; i < $4; i++) 
-            write_code($2);
+        for (i = 0; i < $2; i++) 
+            write_code($4);
     }
     ;
     
