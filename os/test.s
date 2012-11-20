@@ -3,7 +3,7 @@
 .inc "jmp_fix.inc"
 .inc "syscall.lib"
 
-. 0 dup 250
+.dup 0x1000 >> 2 .0
 
 INIT:
     #addiu $t0, $zero, 1000
