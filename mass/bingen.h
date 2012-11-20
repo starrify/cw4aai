@@ -22,6 +22,7 @@ extern void buf_dump_to_file(FILE *fout);
 extern void buf_fini();
 extern unsigned int getpcount();
 extern int getlineno();
+extern void write_code(unsigned int code);
 
 extern void r_type_inst_assemble(int inst, int rs, int rt, int rd, int sa);
 extern void i_type_inst_assemble_immediate(int inst, int rs, int rt, int immediate);

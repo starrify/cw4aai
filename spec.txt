@@ -6,8 +6,27 @@ system image filename:
     "sys.img"
 system image load base:
     0x00001000
-entry point:
+system image entry point:
     0x00001000
+
+Redefined CP0 registers: (we use selection 0 only):
+    Use MFC0/MTC0 to access them. see the instruction set. Notice we have selection 0 only
+    0: reserved
+    1: EPC
+        Desc: EPC, stores the address of the instruction to be resumed during
+            an interrupt. stores back to PC at ERET
+        Perm: R/W for software
+        Init Value: undefined
+    2: EXL
+        Desc: Exception level, indicating the current running mode. 
+            0 for normal level, 1 for exception level
+        Perm: R for software
+        Init Value: 0
+    3: IE
+        Desc: Interrupt enabled.
+        Perm: R/W for software
+        Init Value: 0
+    4: reserved
 
 interrupt vector table: 0x00000000 size: 0x1000
     keyboard input: 0x80

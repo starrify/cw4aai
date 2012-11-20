@@ -250,6 +250,12 @@ static void inline write_to_buf(unsigned int code)
     return;
 }
 
+void write_code(unsigned int code)
+{
+    write_to_buf(code);
+    return;
+}
+
 /* get current program count */
 unsigned int getpcount()
 {
