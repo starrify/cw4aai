@@ -1,4 +1,5 @@
 
+. 0 dup 250
 INIT:
     ori $sp, $zero, 0x8000
     ori $a0, $zero, 34

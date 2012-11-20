@@ -30,6 +30,7 @@
 #define DUMP_REG_CPR    1
 #define DUMP_FETCH  1
 #define DUMP_DISPLAY    0
+#define DUMP_INTERRUPT  1
 #define DUMP_IIC    0
 #define LOG_FILE    config.log_file
 

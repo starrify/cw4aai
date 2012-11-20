@@ -7,12 +7,12 @@
 CC  = gcc
 CFLAG   = -O2
 LFLAG   = -lpthread -lncurses
-OBJS    = memu.o config.o decode.o exception.o inst.o mem.o mmu.o reg.o \
-            display.o fancyterm.o
-SOURCES = memu.c config.c decode.c exception.c inst.c mem.c mmu.c reg.c \
-            display.c fancyterm.c \
+OBJS    = memu.o config.o decode.o inst.o mem.o mmu.o reg.o \
+            daemon.o fancyterm.o interrupt.o
+SOURCES = memu.c config.c decode.c inst.c mem.c mmu.c reg.c \
+			daemon.c fancyterm.c  interrupt.c\
 		  memu.h config.h decode.h exception.h inst.h mem.h mmu.h reg.h \
-		    display.h fancyterm.h
+			daemon.h fancyterm.h interrupt.h
             
 all: memu
 
@@ -20,7 +20,7 @@ memu: $(OBJS)
 	$(CC) $(CFLAG) $(LFLAG) $(OBJS) -o memu
 
 memu.o: memu.c memu.h config.h decode.h exception.h mem.h mmu.h reg.h \
-        display.h iic.h fancyterm.h
+        daemon.h iic.h fancyterm.h
 	$(CC) $(CFLAG) -c memu.c -o memu.o
 
 config.o: config.c config.h
@@ -29,8 +29,8 @@ config.o: config.c config.h
 decode.o: decode.c decode.h memu.h
 	$(CC) $(CFLAG) -c decode.c -o decode.o
 	
-exception.o: exception.c exception.h
-	$(CC) $(CFLAG) -c exception.c -o exception.o
+#exception.o: exception.c exception.h
+#	$(CC) $(CFLAG) -c exception.c -o exception.o
 	
 inst.o: inst.c inst.h config.h exception.h memu.h decode.h reg.h mem.h mmu.h
 	$(CC) $(CFLAG) -c inst.c -o inst.o
@@ -38,14 +38,17 @@ inst.o: inst.c inst.h config.h exception.h memu.h decode.h reg.h mem.h mmu.h
 mem.o: mem.c mem.h config.h exception.h memu.h
 	$(CC) $(CFLAG) -c mem.c -o mem.o
 
-mmu.o: mmu.c mmu.h exception.h memu.h mem.h
+mmu.o: mmu.c mmu.h exception.h memu.h mem.h config.h
 	$(CC) $(CFLAG) -c mmu.c -o mmu.o
 
 reg.o: reg.c reg.h config.h memu.h
 	$(CC) $(CFLAG) -c reg.c -o reg.o
 
-display.o: display.c display.h config.h mem.h reg.h
-	$(CC) $(CFLAG) -c display.c -o display.o
+daemon.o: daemon.c daemon.h config.h mem.h reg.h
+	$(CC) $(CFLAG) -c daemon.c -o daemon.o
+
+interrupt.o: interrupt.c interrupt.h exception.h reg.h config.h
+	$(CC) $(CFLAG) -c interrupt.c -o interrupt.o
 	
 gt64120.o: gt64120.c gt64120.h memu.h malta_mem.h
 	$(CC) $(CFLAG) -c gt64120.c -o gt64120.o
@@ -60,5 +63,5 @@ wc:
 	wc $(SOURCES)
 
 clean:
-	rm -f $(OBJS) memu
+	rm -f $(OBJS) memu *~ .*.swp
 

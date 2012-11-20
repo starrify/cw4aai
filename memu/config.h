@@ -24,6 +24,7 @@ struct config_t
     char *flash_file;
     char *img_file;
     u32_t img_base;
+    u32_t sbase_offset;
     int endianess;
     int display_refresh_rate;
     int iic_check_rate;

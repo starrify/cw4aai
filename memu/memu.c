@@ -14,11 +14,12 @@
 #include "mem.h"
 #include "mmu.h"
 #include "reg.h"
-#include "display.h"
+#include "daemon.h"
 //#include "iic.h"
 #include "fancyterm.h"
 
 static pthread_t display_daemon_thread;
+static pthread_t keyboard_daemon_thread;
 //static pthread_t iic_daemon_thread;
 
 static void init()
@@ -33,6 +34,7 @@ static void init()
     assert(config.log_file);
     
     pthread_create(&display_daemon_thread, NULL, display_daemon, NULL);
+    pthread_create(&keyboard_daemon_thread, NULL, keyboard_daemon, NULL);
 //    pthread_create(&iic_daemon_thread, NULL, iic_daemon, NULL);
     
     return;
@@ -41,6 +43,7 @@ static void init()
 static void fini()
 {
     pthread_join(display_daemon_thread, NULL);
+    pthread_join(keyboard_daemon_thread, NULL);
 //    pthread_join(iic_daemon_thread, NULL);
     display_fini();
     
@@ -55,15 +58,11 @@ int main()
     reg_special_write(REG_SPECIAL_PC_ADVANCE1, config.entry_offset);
     reg_special_write(REG_SPECIAL_PC_ADVANCE2, config.entry_offset + 4);
    
-    //TODO: remove this line after ZLK's fix
-    reg_special_write(REG_SPECIAL_PC_ADVANCE2, 0);
-
     u32_t reg_pc = reg_advance_pc();
     
     void *membase;
     size_t memsize;
     get_dma_info(&membase, &memsize);
-    unsigned int *sbase = membase + 0x00008000;
     
     while (1)
     {
@@ -82,7 +81,6 @@ int main()
         u32_t code;
         u32_t paddr;
         u32_t attr;
-        reg_pc += *(sbase + 0); //dma access offset. for dynamic loading..
         mmu_addr_trans(reg_pc, MEM_ACCESS_INST | MEM_ACCESS_READ, &paddr, &attr);
         mem_read(paddr, reg_pc, attr, MEM_ACCESS_LEN_4 | MEM_ACCESS_INST | MEM_ACCESS_READ, &code);
 #if DUMP_FETCH

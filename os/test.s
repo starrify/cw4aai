@@ -3,6 +3,8 @@
 .inc "jmp_fix.inc"
 .inc "syscall.lib"
 
+. 0 dup 250
+
 INIT:
     #addiu $t0, $zero, 1000
     #SYSINFO_S $t0, SCR_BASE

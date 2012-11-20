@@ -310,7 +310,7 @@ static int (* const inst_callback[])(u32_t) =
     [INST_DIV]          = inst_not_implemented,
     [INST_DIVU]         = inst_not_implemented,
     [INST_DIV_FMT]      = inst_not_implemented,
-    [INST_ERET]         = inst_not_implemented,
+    [INST_ERET]         = inst_exec_eret,
     [INST_EXT]          = inst_not_implemented,
     [INST_FLOOR_L_FMT]  = inst_not_implemented,
     [INST_FLOOR_W_FMT]  = inst_not_implemented,
@@ -488,9 +488,7 @@ static inline void link_pc_ra()
 {
     u32_t pcdata;
     reg_special_read(REG_SPECIAL_PC, &pcdata);
-    //reg_gpr_write(REG_GPR_RA, pcdata + 8);
-    //TODO: remove this line after ZLK finish his fix
-    reg_gpr_write(REG_GPR_RA, pcdata + 4);
+    reg_gpr_write(REG_GPR_RA, pcdata + 8);
 #if DUMP_INST
     //fprintf(LOG_FILE, "Link: ra=%.8X\n", pcdata + 8);
     fprintf(LOG_FILE, "Link: ra=%.8X\n", pcdata + 4);
@@ -742,7 +740,28 @@ static int inst_exec_deret(u32_t code);
 static int inst_exec_div(u32_t code);
 static int inst_exec_divu(u32_t code);
 static int inst_exec_div_fmt(u32_t code);
-static int inst_exec_eret(u32_t code);
+
+static int inst_exec_eret(u32_t code)
+{
+    u32_t exl;
+    reg_cpr_read(FKREG_CPR_EXL, 0, &exl);   //EXL bit
+    if (!exl)
+    {
+#if DUMP_INTERRUPT
+        fprintf(LOG_FILE, "Interrupt: ERET failed: EXL=%d\n", exl);
+#endif
+        //TODO: handle this.
+        return EXCEPTION_NONE; 
+    }
+    u32_t epc;
+    reg_cpr_read(FKREG_CPR_EPC, 0, &epc);
+
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: ERET: EOC=%.8X\n", epc);
+#endif 
+    return EXCEPTION_NONE;
+}
+
 static int inst_exec_ext(u32_t code);
 static int inst_exec_floor_l_fmt(u32_t code);
 static int inst_exec_floor_w_fmt(u32_t code);

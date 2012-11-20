@@ -87,6 +87,15 @@ enum _reg_cpr
     NUMBER_OF_REG_CPRS  = 32 * 8, /* 32 registers * 8 selections */
 };
 
+enum _fake_reg_cpr
+{
+    FKREG_CPR_SEGBASE = 0,
+    FKREG_CPR_EPC,
+    FKREG_CPR_EXL,
+    FKREG_CPR_IE,
+    FKREG_CPR_RESERVED,
+};
+
 extern i32_t reg_init();
 extern i32_t reg_gpr_read(unsigned int reg, i32_t *word);
 extern i32_t reg_gpr_write(unsigned int reg, i32_t word);

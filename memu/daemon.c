@@ -14,15 +14,11 @@
 #include <time.h>
 
 #include "reg.h"
-#include "display.h"
+#include "daemon.h"
 #include "config.h"
 #include "mem.h"
 #include "memu.h"
 
-const u32_t led_base    = 0x1F000400;
-const int led_size  = 8;
-const u32_t led_offset[]    = { 0x18, 0x20, 0x28, 0x30, 0x38, 0x40, 0x48, 0x50 };
-   
 void *membase;
 size_t memsize;
 unsigned int *sbase;
@@ -30,16 +26,14 @@ unsigned int *sbase;
 void display_init()
 {
     get_dma_info(&membase, &memsize);
-    sbase = membase + 0x00008000;
+    sbase = membase + config.sbase_offset;
     
     initscr();
     keypad(stdscr, TRUE);
     cbreak();
-    echo();
-    int x;
-    for (x = 0; x < 8; x++)
-        printw("%x ", COLOR_PAIR(x));
- 
+    noecho();
+    timeout(-1);
+
     start_color();
     init_pair(7, COLOR_BLACK, COLOR_BLACK);
     init_pair(6, COLOR_RED, COLOR_BLACK);
@@ -101,12 +95,12 @@ void *display_daemon(void *ptr)
     }
 
     return;
-
+    /*
     while (1)
     {
         struct timespec rqtp = { .tv_sec = 0, .tv_nsec = config.display_refresh_rate };
         nanosleep(&rqtp, NULL);
-        printf("\x1b%c", '7');  /* saves cursor position */
+        printf("\x1b%c", '7');  // saves cursor position 
 
         printf("MEMU(Mips EMUlator) of a MIPS Malta board with MIPS32 4K LV core.\n");
         printf("\n");
@@ -135,7 +129,24 @@ void *display_daemon(void *ptr)
             printf("REG_SPECIAL_%s: 0x%.8X\n", reg_special_name[i], regdata);
         }
 
-        printf("\x1b%c", '8');  /* restores cursor position */   
+        printf("\x1b%c", '8');  // restores cursor position 
+    }
+    */
+    return NULL;
+}
+
+void *keyboard_daemon(void *ptr)
+{
+    return NULL;
+    unsigned int fbbase = *(sbase + 12); 
+    while(1)
+    {
+        int c = getch();
+        u32_t *p = membase + fbbase;
+        if (c != ERR)
+            *p = c;
     }
     return NULL;
 }
+
+

@@ -100,23 +100,7 @@ SCMPEND:
 
 .decl func
 MEMSET: #pt, value, size
-    #eliminate non-zeros in msbs
-    sll $a1, $a1, 24
-    srl $a1, $a1, 24
-    #calculate 4bytes a1a1a1a1
-    or $t0, $zero, $a1
-    sll $t0, $t0, 8
-    or $t1, $t0, $a1
-    sll $t0, $t1, 16
-    or $t0, $t0, $t1
-MST1:
-    addi $a2, $a2, -4
-    blt $a2, $zero, MST2
-    sw $t0, 0($a0)
-    addi $a0, $a0, 4
-    j MST1
-MST2:
-    addi $a2, $a2, 4
+    srl $t0, $a2, 2
 MST3:
     beq $a2, $zero, MSTEND
     sb $a1, 0($a0)

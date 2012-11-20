@@ -11,7 +11,10 @@ system image entry point:
 
 Redefined CP0 registers: (we use selection 0 only):
     Use MFC0/MTC0 to access them. see the instruction set. Notice we have selection 0 only
-    0: reserved
+    0: SEGBASEa
+        Desc: Segment base address
+        Perm: R/W for software
+        Init Value: 0x00000000
     1: EPC
         Desc: EPC, stores the address of the instruction to be resumed during
             an interrupt. stores back to PC at ERET
