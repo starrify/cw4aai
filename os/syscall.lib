@@ -51,13 +51,13 @@ SYS_CSNXT1:
     SYSINFO_L $t2, SCR_OFFSET
     bne $t1, $t2, SYS_CSNXT3
 
-    #scroll
-    addi $t2, $t2, 4 * SCR_WIDTH
-    blt $t2, $t0, SYS_CSNXT2
-    addi $t2, $t2, -4 * SCR_WIDTH * SCR_HEIGHT
+    #scroll, t1 is the new starting row and t2 is the old
+    addi $t1, $t2, 4 * SCR_WIDTH
+    blt $t1, $t0, SYS_CSNXT2
+    addi $t1, $t1, -4 * SCR_WIDTH * SCR_HEIGHT
 SYS_CSNXT2:
-    SYSINFO_S $t2, SCR_OFFSET
-    #clear the new row
+    SYSINFO_S $t1, SCR_OFFSET
+    #clear the last row
     SYSINFO_L $t0, SCR_BASE
     add $a0, $t0, $t2
     ori $a1, $zero, 0x20

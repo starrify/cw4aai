@@ -1,6 +1,6 @@
 .inc "pseudo_inst.inc"
 
-.decl func
+.decl func #not finished
 MEMCPY: #dst, src, size
     #check if overlap
     add $t1, $a0, $a2
@@ -98,7 +98,7 @@ SCMPEND:
     jr $ra
 .end_decl
 
-.decl func
+.decl func #not finished
 MEMSET: #pt, value, size
     srl $t0, $a2, 2
 MST3:
