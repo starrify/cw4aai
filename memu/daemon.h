@@ -4,15 +4,12 @@
  * COPYLEFT, ALL WRONGS RESERVED.
  */
 
-#ifndef DISPLAY_H
-#define DISPLAY_H
-
-extern const u32_t led_base;
-extern const int led_size;
-extern const u32_t led_offset[8];
+#ifndef DAEMON_H
+#define DAEMON_H
 
 extern void display_init();
 extern void display_fini();
 extern void *display_daemon(void *ptr);
+extern void *keyboard_daemon(void *ptr);
 
-#endif /* DISPLAY_H */
+#endif /* DAEMON_H */

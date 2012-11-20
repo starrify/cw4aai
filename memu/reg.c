@@ -169,12 +169,6 @@ i32_t reg_special_write(unsigned int reg, i32_t word)
 
 i32_t reg_advance_pc()
 {
-    //TODO: remove the following lines after ZLK'fix
-    reg_special[REG_SPECIAL_PC_PREV] = reg_special[REG_SPECIAL_PC];
-    reg_special[REG_SPECIAL_PC] = reg_special[REG_SPECIAL_PC_ADVANCE2];
-    reg_special[REG_SPECIAL_PC_ADVANCE2] += 4;
-    return reg_special[REG_SPECIAL_PC];
-    
     reg_special[REG_SPECIAL_PC_PREV] = reg_special[REG_SPECIAL_PC];
     reg_special[REG_SPECIAL_PC] = reg_special[REG_SPECIAL_PC_ADVANCE1];
     reg_special[REG_SPECIAL_PC_ADVANCE1] = reg_special[REG_SPECIAL_PC_ADVANCE2];

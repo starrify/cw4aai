@@ -14,11 +14,12 @@
 #include "mem.h"
 #include "mmu.h"
 #include "reg.h"
-#include "display.h"
+#include "daemon.h"
 //#include "iic.h"
 #include "fancyterm.h"
 
 static pthread_t display_daemon_thread;
+static pthread_t keyboard_daemon_thread;
 //static pthread_t iic_daemon_thread;
 
 static void init()
@@ -33,6 +34,7 @@ static void init()
     assert(config.log_file);
     
     pthread_create(&display_daemon_thread, NULL, display_daemon, NULL);
+    pthread_create(&keyboard_daemon_thread, NULL, keyboard_daemon, NULL);
 //    pthread_create(&iic_daemon_thread, NULL, iic_daemon, NULL);
     
     return;
@@ -41,6 +43,7 @@ static void init()
 static void fini()
 {
     pthread_join(display_daemon_thread, NULL);
+    pthread_join(keyboard_daemon_thread, NULL);
 //    pthread_join(iic_daemon_thread, NULL);
     display_fini();
     
@@ -52,12 +55,9 @@ int main()
 {
     init();
     
-    reg_special_write(REG_SPECIAL_PC_ADVANCE1, config.entry_offset);
-    reg_special_write(REG_SPECIAL_PC_ADVANCE2, config.entry_offset + 4);
+    reg_special_write(REG_SPECIAL_PC_ADVANCE1, 0);
+    reg_special_write(REG_SPECIAL_PC_ADVANCE2, 4);
    
-    //TODO: remove this line after ZLK's fix
-    reg_special_write(REG_SPECIAL_PC_ADVANCE2, 0);
-
     u32_t reg_pc = reg_advance_pc();
     
     void *membase;
