@@ -184,11 +184,11 @@ $31 return yylval.int_t = REG_RA;
 \.  return yylval.int_t = DOT;
 \:  return yylval.int_t = COLON;  
 \;  return yylval.int_t = SEMICOLON;
-dup return yylval.int_t = DUP;
+\.dup return yylval.int_t = DUP;
 
 \n+  return yylval.int_t = EOLN;
 [ \t]+  /* WHITESPACE(not including EOLN), do nothing */
 #[^\n]* /* COMMENT, do nothing */
-[^\+\-\*\/\%\&\|\^\~\<\>\(\)\,\:\; \n\t]+   { yyerror("unexpected token"); exit(0); }
+[^\+\-\*\/\%\&\|\^\~\<\>\(\)\.\,\:\; \n\t]+   { yyerror("unexpected token"); exit(0); }
 
 %%
