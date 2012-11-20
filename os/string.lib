@@ -126,3 +126,15 @@ MST3:
 MSTEND:
     jr $ra
 .end_decl
+
+.decl func
+MEMWORDSET: #dst, value, words
+MST1:
+    beq $a2, $zero, MSTEND
+    sw $a1, 0($a0)
+    addi $a0, $a0, 4
+    addi $a2, $a2, -1
+    j MST1
+MSTEND:
+    jr $ra
+.end_decl

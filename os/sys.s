@@ -1,4 +1,4 @@
-.inc "io."
+.inc "io.lib"
 
 SYS:
     jal INIT
@@ -6,14 +6,14 @@ SYS:
     #syscall exit
 
 INIT:
-    addi $sp, $sp, -4
-    sw $ra, 0($sp)
+    #addi $sp, $sp, -4
+    #sw $ra, 0($sp)
     #register input function
     #initialize library
-    jal LIB_INIT
+    #jal LIB_INIT
 
-    lw $ra, 0($sp)
-    addi $sp, $sp, 4
+    #lw $ra, 0($sp)
+    #addi $sp, $sp, 4
     jr $ra
 
 SHELL:

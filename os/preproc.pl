@@ -18,19 +18,21 @@
 # 	format: .decl <type> .end_decl
 # 	supported types:
 # 		func:
-# 			function being declared will not be integrated 
-# 			unless it is called by other integrated code
+# 			function being declared will not be coded until it is called
+# 		var:
+# 			static variables being declared will be moved to the end of the code
 
 use strict;
 use warnings;
 use utf8;
 use 5.010;
 
-my $keystr = '\.\w+';
 my %macros = (), my %included = (), my %func = ();
+my $var = "";
 my $label_cnt = 0;
 my $error_len = 30;
-my $supported_decl = "func";
+my $supported_decl = "func|var";
+my $keystr = '\.\w+';
 
 sub readSrc() {
 	$/ = undef;
@@ -126,12 +128,20 @@ sub include() {
 	($out, $leftover);
 }
 
-sub addFunc() {
+sub addFuncDecl() {
 	my $leftover = $_[0];
-	$leftover =~ /^\s*((\w+):.*?)\.end_decl/s or die "invalid function declare format \"" . &getline($leftover) . '"';
+	$leftover =~ /^\s*((\w+):.*?)\.end_decl/s or die "invalid function declaration format \"" . &getline($leftover) . '"';
 	$leftover = $';
 	$func{$2} = &process($1);
 	("", $leftover);
+}
+
+sub addVarDecl() {
+	my $leftover = $_[0];
+	$leftover =~ /^(.*?)\.end_decl/s or die "invalid static variable declaration format \"" . &getline($leftover) . '"';
+	$leftover = $';
+	$var .= &process($1);
+	("", $leftover)
 }
 
 sub addDecl() {
@@ -141,7 +151,11 @@ sub addDecl() {
 	$leftover = $';
 	given($1) {
 		when('func') {
-			($tmp, $leftover) = &addFunc($leftover);
+			($tmp, $leftover) = &addFuncDecl($leftover);
+			$out .= $tmp;
+		}
+		when('var') {
+			($tmp, $leftover) = &addVarDecl($leftover);
 			$out .= $tmp;
 		}
 		default {
@@ -209,6 +223,10 @@ sub addDepend() {
 	$out;
 }
 
+sub addVar() {
+	$_[0] . $var;
+}
+
 sub format() {
 	$_[0] =~ s/(\s*\n)+/\n/g;
 	$_[0];
@@ -217,6 +235,7 @@ sub format() {
 my $src = &readSrc();
 my $res = &process($src);
 $res = &addDepend($res);
+$res = &addVar($res);
 $res = &format($res);
 print($res);
 0;

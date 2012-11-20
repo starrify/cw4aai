@@ -119,42 +119,26 @@ SYS_CSNXT1:
 SYS_CSNXT2:
     ori $at, $zero, 32768
     sw $t2, 52($at)
-    add $a0, $zero, $t2
-    ori $a1, $zero, 32
-    ori $a2, $zero, 4 * 80
-    jal MEMSET
+    ori $at, $zero, 32768
+    lw $t0, 48($at)
+    add $a0, $t0, $t2
+    ori $a1, $zero, 0x20
+    ori $a2, $zero, 80
+    jal MEMWORDSET
     sll $zero, $zero, 0
 SYS_CSNXT3:
     lw $ra, 0($sp)
     addi $sp, $sp, 4
     jr $ra
     sll $zero, $zero, 0
-MEMSET:
-    sll $a1, $a1, 24
-    srl $a1, $a1, 24
-    or $t0, $zero, $a1
-    sll $t0, $t0, 8
-    or $t1, $t0, $a1
-    sll $t0, $t1, 16
-    or $t0, $t0, $t1
+MEMWORDSET:
 MST1:
-    addi $a2, $a2, -4
-    slt $at, $a2, $zero
-    bne $at, $zero, MST2
-    sll $zero, $zero, 0
-    sw $t0, 0($a0)
-    addi $a0, $a0, 4
-    j MST1
-    sll $zero, $zero, 0
-MST2:
-    addi $a2, $a2, 4
-MST3:
     beq $a2, $zero, MSTEND
     sll $zero, $zero, 0
-    sb $a1, 0($a0)
-    addi $a0, $a0, 1
+    sw $a1, 0($a0)
+    addi $a0, $a0, 4
     addi $a2, $a2, -1
-    j MST3
+    j MST1
     sll $zero, $zero, 0
 MSTEND:
     jr $ra

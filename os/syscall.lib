@@ -58,10 +58,11 @@ SYS_CSNXT1:
 SYS_CSNXT2:
     SYSINFO_S $t2, SCR_OFFSET
     #clear the new row
-    add $a0, $zero, $t2
-    ori $a1, $zero, 32
-    ori $a2, $zero, 4 * SCR_WIDTH
-    jal MEMSET
+    SYSINFO_L $t0, SCR_BASE
+    add $a0, $t0, $t2
+    ori $a1, $zero, 0x20
+    ori $a2, $zero, 80
+    jal MEMWORDSET
 
 SYS_CSNXT3:
     lw $ra, 0($sp)
