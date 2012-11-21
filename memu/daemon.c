@@ -73,7 +73,7 @@ void *display_daemon(void *ptr)
         unsigned int scry = *(sbase + 10); //screen y
         unsigned int fbbase = *(sbase + 12);    //fb base
         unsigned int fbhead = *(sbase + 13);    //fb head offset
-        int cursor_off = *(sbase + 14);   //cursor_off
+        int cursor_off = (*(sbase + 14) + fbhead - fbbase) / 4;   //cursor_off
         int chrsz = 4;
         int scrsize = scrx * scry * chrsz;
         memcpy(membase + fbbase + scrsize, membase + fbbase, fbhead * chrsz);
@@ -92,7 +92,7 @@ void *display_daemon(void *ptr)
 #endif
             }
         }
-        move((cursor_off / 4) / scry, (cursor_off / 4) % scry);
+        move(cursor_off / scry, cursor_off % scry);
 
         refresh();
     }
