@@ -63,7 +63,7 @@ int mem_init()
 
     /* sysinfo and device mapping 0x00008000-0x007FFFFF */
     unsigned int *sbase = membase + config.sbase_offset;
-    *(sbase + 0) = 0;  //segment offset
+    //*(sbase + 0) = 0;  //segment offset // moved to register
     *(sbase + 8) = 0;  //char mode
     *(sbase + 9) = 35; //screen x
     *(sbase + 10) = 80; //screen y

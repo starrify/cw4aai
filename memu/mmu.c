@@ -4,6 +4,7 @@
  * COPYLEFT, ALL WRONGS RESERVED.
  */
 
+#include "reg.h"
 #include "mmu.h"
 #include "malta_mem.h"
 #include "memu.h"
@@ -11,12 +12,10 @@
 #include "config.h"
 
 int mmu_addr_trans(u32_t vaddr, int access_type, u32_t *paddr, u32_t *attr)
-{   
-    void *membase;
-    size_t memsize;
-    get_dma_info(&membase, &memsize);
-    unsigned int *sbase = membase + config.sbase_offset;
-    *paddr = vaddr + *(sbase + 0);
+{  
+    u32_t segbase;
+    reg_cpr_read(FKREG_CPR_SEGBASE, 0, &segbase);
+    *paddr = vaddr + segbase;
     return EXCEPTION_NONE;
 
     /* only kernel mode implemented for now */

@@ -38,7 +38,7 @@ inst.o: inst.c inst.h config.h exception.h memu.h decode.h reg.h mem.h mmu.h
 mem.o: mem.c mem.h config.h exception.h memu.h
 	$(CC) $(CFLAG) -c mem.c -o mem.o
 
-mmu.o: mmu.c mmu.h exception.h memu.h mem.h config.h
+mmu.o: mmu.c mmu.h exception.h memu.h mem.h config.h reg.h
 	$(CC) $(CFLAG) -c mmu.c -o mmu.o
 
 reg.o: reg.c reg.h config.h memu.h
