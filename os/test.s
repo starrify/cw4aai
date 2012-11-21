@@ -1,4 +1,4 @@
-vi.inc "pseudo_inst.inc"
+.inc "pseudo_inst.inc"
 .inc "var.inc"
 .inc "jmp_fix.inc"
 .inc "syscall.lib"
