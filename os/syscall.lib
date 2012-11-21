@@ -94,7 +94,7 @@ SYS_GETC:
     SYSINFO_L $t1, INBUF_END
     bne $t0, $t1, SYS_GTCAVL
     #return?
-    and $v0, $zero, $zero
+    addi $v0, $zero, -1
     j SYS_GTCEND
 
     #block?
@@ -103,8 +103,9 @@ SYS_GETC:
 SYS_GTCAVL:
     SYSINFO_L $t1, INBUF_BASE
     add $t1, $t0, $t1
-    lbu $v0, 0($t1)
-    addi $t0, $t0, 1
+    lw $v0, 0($t1)
+    andi $v0, $v0, 0xff
+    addi $t0, $t0, 4
     ori $t1, $zero, INBUF_SIZE
     blt $t0, $t1, SYS_GTC1
     addi $t0, $t0, -INBUF_SIZE
