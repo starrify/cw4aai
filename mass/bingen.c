@@ -88,8 +88,8 @@ static unsigned int opcode[] =
     [INST_J]    = 0b000010,
     [INST_JAL]  = 0b000011
 
-    /* all opcodes for cp1 instructions are 0b010010 */
-
+    /* all opcodes for cp0 instructions are 0b010000 */
+    /* all opcodes for cp1 instructions are 0b010001 */
 };
 
 static unsigned int function[] = 
@@ -126,7 +126,13 @@ static unsigned int function[] =
 
     /* no function for i/j-type instructions */
 
-    /* coprecessor instructions */
+    /* cp0 instructions*/
+    [INST_MFC0] = 0b000000,
+    [INST_MTC0] = 0b000000,
+    [INST_ERET] = 0b011000,
+    [INST_WAIT] = 0b100000,
+
+    /* cp1 instructions */
     [INST_ADD_S]    = 0b000000,
     [INST_CVT_S_W]  = 0b100000,
     [INST_CVT_W_S]  = 0b100100,
@@ -135,12 +141,19 @@ static unsigned int function[] =
     [INST_MOV_S]    =0b000110,
     [INST_MTC1] = 0b000000,
     [INST_MUL_S]    = 0b000010,
-    [INST_SUB_S]    = 0b000001
+    [INST_SUB_S]    = 0b000001,
+
 };
 
 static unsigned int format[] =
 {
-    /* no format for r/i/j-type instructions */  
+    /* for c0 instructions */
+    [INST_ERET] = 0b10000,
+    [INST_MFC0] = 0b00000,
+    [INST_MTC0] = 0b00100,
+    [INST_WAIT] = 0b10000,
+
+    /* for c1 instructions */
     [INST_ADD_S]    = 0b10000,
     [INST_CVT_S_W]  = 0b10100,
     [INST_CVT_W_S]  = 0b10000,
@@ -149,7 +162,7 @@ static unsigned int format[] =
     [INST_MOV_S]    =0b10000,
     [INST_MTC1] = 0b00100,
     [INST_MUL_S]    = 0b10000,
-    [INST_SUB_S]    = 0b10000
+    [INST_SUB_S]    = 0b10000,
 };
 
 static unsigned int *buf;
@@ -325,6 +338,23 @@ void j_type_inst_assemble(int inst, const char *label)
     return;
 }
 
+void cp0_inst_assemble(int inst, int rt, int rd)
+{
+    /*
+     * binary layout of cp0_inst_assemble:
+     *  opcode(6) rs(5) rt(5) rd(5) misc(6) function(5)
+     */
+    unsigned int code = 0;
+    code |= (0b010000 & MASK_LOW6) << 26; /* opcode */
+    code |= (format[inst] & MASK_LOW5) << 21; /* format */
+    code |= (reg[rt] & MASK_LOW5) << 16; /* rt */
+    code |= (reg[rd] & MASK_LOW5) << 11; /* rd */
+    code |= (0b000000 & MASK_LOW6) << 5; /* misc */
+    code |= (function[inst] & MASK_LOW5) << 0; /* function */
+    write_to_buf(code);
+    return;
+}
+
 void cp1_inst_assemble(int inst, int ft, int fs, int fd)
 {
     /*
@@ -333,7 +363,7 @@ void cp1_inst_assemble(int inst, int ft, int fs, int fd)
      */
     unsigned int code = 0;
     code |= (0b010001 & MASK_LOW6) << 26; /* opcode */
-    code |= (format[inst] & MASK_LOW5) << 21; /* function */
+    code |= (format[inst] & MASK_LOW5) << 21; /* format */
     code |= (reg[ft] & MASK_LOW5) << 16; /* ft */
     code |= (reg[fs] & MASK_LOW5) << 11; /* fs */
     code |= (reg[fd] & MASK_LOW5) << 6; /* fd */

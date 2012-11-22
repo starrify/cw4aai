@@ -74,7 +74,13 @@ xori    return yylval.int_t = INST_XORI;
 j       return yylval.int_t = INST_J;
 jal     return yylval.int_t = INST_JAL;
 
- /* coprocessor instructions */
+ /* cp0 instructions */
+eret    return yylval.int_t = INST_ERET;
+mfc0    return yylval.int_t = INST_MFC0;
+mtc0    return yylval.int_t = INST_MTC0;
+wait    return yylval.int_t = INST_WAIT;
+
+ /* cp1 instructions */
 add.s   return yylval.int_t = INST_ADD_S;
 cvt.s.w return yylval.int_t = INST_CVT_S_W;
 cvt.w.s return yylval.int_t = INST_CVT_W_S;
