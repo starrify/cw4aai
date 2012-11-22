@@ -141,10 +141,10 @@ void *display_daemon(void *ptr)
 void *keyboard_daemon(void *ptr)
 {
     //iq for input queue
-    u32_t *iq_base = (sbase + 16);
+    u32_t iq_base = *(sbase + 16);
     u32_t iq_size = *(sbase + 17);
-    u32_t *iq_head = (sbase + 18) + *iq_base;
-    u32_t *iq_tail = (sbase + 19) + *iq_base;
+    u32_t *iq_head = *(sbase + 18) + membase + iq_base;
+    u32_t *iq_tail = *(sbase + 19) + membase + iq_base;
     while(1)
     {
         int c = getch();    //blocked input since timeout(-1);
@@ -166,13 +166,13 @@ void *keyboard_daemon(void *ptr)
             fprintf(LOG_FILE, "Keyboard: iq_tail full. iqhead=0x%.8X, iqtail=0x%.8X\n", 
                 *iq_head, *iq_tail);
 #endif
-            if (*iq_tail == *iq_base + iq_size)
+            if (*iq_tail == iq_base + iq_size)
             {
 #if DUMP_KEYBOARD
                 fprintf(LOG_FILE, "Keyboard: iq_queue wrapped. iqhead=0x%.8X, iqtail=0x%.8X\n", 
                     *iq_head, *iq_tail);
 #endif
-               *iq_tail = *iq_base;
+               *iq_tail = iq_base;
             }
             while (1)
                 if (try_interrupt(INTERRUPT_ENTRY_KEYBOARD_INPUT) == MEMU_SUCCESS)
