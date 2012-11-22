@@ -140,6 +140,7 @@ void *display_daemon(void *ptr)
 
 void *keyboard_daemon(void *ptr)
 {
+#define _(x)   (*(u32_t*)(membase + (x)))
     //iq for input queue
     u32_t iq_base = *(sbase + 16);
     u32_t iq_size = *(sbase + 17);
@@ -149,31 +150,37 @@ void *keyboard_daemon(void *ptr)
     {
         int c = getch();    //blocked input since timeout(-1);
 #if DUMP_KEYBOARD
-        fprintf(LOG_FILE, "Keyboard: getch()= %d", c);
+        fprintf(LOG_FILE, "Keyboard: getch()= %d\n", c);
 #endif
-#define _X(x)   (*(u32_t*)(membase + (x)))
-        _X(_X(iq_tail)) = c;
-        if (_X(iq_tail) != _X(iq_head)) // input queue not full
+        if ((_(iq_tail) - _(iq_head) + 4) % iq_size != 0) // input queue not full
         {
 #if DUMP_KEYBOARD
             fprintf(LOG_FILE, "Keyboard: iq_tail advanced. iqhead=0x%.8X, iqtail=0x%.8X\n", 
-                _X(iq_head), _X(iq_tail));
+                _(iq_head), _(iq_tail));
 #endif
-            _X(iq_tail) += 4;
+            _(_(iq_tail)) = c;
+            _(iq_tail) += 4;
         }
-        else if (_X(iq_tail) == _X(iq_base) + _X(iq_size))
+        else
         {
 #if DUMP_KEYBOARD
-            fprintf(LOG_FILE, "Keyboard: iq_queue full. iqhead=0x%.8X, iqtail=0x%.8X\n", 
-                _X(iq_head), _X(iq_tail));
+            fprintf(LOG_FILE, "Keyboard: iq_tail full. iqhead=0x%.8X, iqtail=0x%.8X\n", 
+                _(iq_head), _(iq_tail));
 #endif
-            _X(iq_tail) = _X(iq_base);
+            if (_(iq_tail) == _(iq_base) + _(iq_size))
+            {
+#if DUMP_KEYBOARD
+                fprintf(LOG_FILE, "Keyboard: iq_queue wrapped. iqhead=0x%.8X, iqtail=0x%.8X\n", 
+                    _(iq_head), _(iq_tail));
+#endif
+               _(iq_tail) = _(iq_base);
+            }
+            while (1)
+                if (try_interrupt(INTERRUPT_ENTRY_KEYBOARD_INPUT) == MEMU_SUCCESS)
+                    break;
         }
-#undef _X
-        while (1)
-            if (try_interrupt(INTERRUPT_ENTRY_KEYBOARD_INPUT) == MEMU_SUCCESS)
-                break;
     }
+#undef _
     return NULL;
 }
 
