@@ -72,8 +72,8 @@ int mem_init()
     *(sbase + 14) = 0;  //cursor_off
     *(sbase + 16) = 0x00020000; //input buffer base
     *(sbase + 17) = 0x00010000; //input buffer size
-    *(sbase + 18) = 0x00020000; //input queue head
-    *(sbase + 19) = 0x00020000; //input queue tail
+    *(sbase + 18) = 0x00000000; //input queue head
+    *(sbase + 19) = 0x00000000; //input queue tail
     *(sbase + 24) = 0;  //seconds since EPOCH
     *(sbase + 25) = 0;  //millisecond counter
 
