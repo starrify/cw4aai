@@ -50,6 +50,9 @@ static inline void warn_expand_to_multi_inst(char *file, int lineno);
     /* j-type instructions */
     INST_J INST_JAL
 
+    /* cp0 instructions */
+    INST_ERET INST_MFC0 INST_MTC0 INST_WAIT
+
     /* cp1 instructions */
     INST_ADD_S INST_CVT_S_W INST_CVT_W_S INST_DIV_S INST_MFC1 INST_MOV_S 
     INST_MTC1 INST_MUL_S INST_SUB_S 
@@ -95,6 +98,8 @@ static inline void warn_expand_to_multi_inst(char *file, int lineno);
     i_type_inst_rt_im_rs
     i_type_inst_rt_im
     j_type_inst_label
+    cp0_inst
+    cp0_inst_rt_rd
     cp1_inst_fd_fs_ft
     cp1_inst_ft_fs
     cp1_inst_fd_fs
@@ -133,6 +138,7 @@ instruct_statement:
     r_type_statement
     | i_type_statement
     | j_type_statement
+    | cp0_statement
     | cp1_statement
     | pseudo_statement
     ;    
@@ -165,6 +171,11 @@ i_type_statement:
     
 j_type_statement: 
     j_type_statement_label ;
+
+cp0_statement:
+    cp0_statement_null
+    | cp0_statement_rt_rd
+    ;
     
 cp1_statement: 
     cp1_statement_fd_fs_ft
@@ -292,6 +303,18 @@ j_type_statement_label:
     {
         j_type_inst_assemble($1, $2);
     };
+
+cp0_statement_null:
+    cp0_inst
+    {
+        cp0_inst_assemble($1, REG_NULL, REG_NULL);
+    };
+
+cp0_statement_rt_rd:
+    cp0_inst_rt_rd register COMMA register
+    {
+        cp0_inst_assemble($1, $2, $4);
+    };
     
 cp1_statement_fd_fs_ft:
     cp1_inst_fd_fs_ft register COMMA register COMMA register
@@ -392,6 +415,12 @@ i_type_inst_rt_im:
     
 j_type_inst_label:  
     INST_J | INST_JAL ;
+
+cp0_inst:
+    INST_ERET | INST_WAIT;
+
+cp0_inst_rt_rd:
+    INST_MFC0 | INST_MTC0 ;
     
 cp1_inst_fd_fs_ft:
     INST_ADD_S | INST_CVT_S_W | INST_CVT_W_S | INST_DIV_S | INST_MUL_S 

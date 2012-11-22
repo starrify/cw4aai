@@ -156,12 +156,12 @@ void *keyboard_daemon(void *ptr)
 #endif
         if ((iq_tail - iq_head + 4) % iq_size != 0) // input queue not full
         {
-#if DUMP_KEYBOARD
+           *(u32_t*)(membase + iq_base + *iq_tail) = c;
+            *iq_tail += 4;
+ #if DUMP_KEYBOARD
             fprintf(LOG_FILE, "Keyboard: iq_tail advanced. iqhead=0x%.8X, iqtail=0x%.8X\n", 
                 *iq_head, *iq_tail);
 #endif
-            *(u32_t*)(membase + *iq_tail) = c;
-            *iq_tail += 4;
             if (*iq_tail == iq_size)
             {
 #if DUMP_KEYBOARD
