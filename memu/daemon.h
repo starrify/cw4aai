@@ -7,8 +7,8 @@
 #ifndef DAEMON_H
 #define DAEMON_H
 
-extern void display_init();
-extern void display_fini();
+extern void daemon_init();
+extern void daemon_fini();
 extern void *display_daemon(void *ptr);
 extern void *keyboard_daemon(void *ptr);
 

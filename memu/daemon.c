@@ -24,7 +24,7 @@ void *membase;
 size_t memsize;
 unsigned int *sbase;
 
-void display_init()
+void daemon_init()
 {
     get_dma_info(&membase, &memsize);
     sbase = membase + config.sbase_offset;
@@ -58,7 +58,7 @@ void display_init()
     */
 }
 
-void display_fini()
+void daemon_fini()
 {
     endwin();
     return;
@@ -66,8 +66,10 @@ void display_fini()
 
 void *display_daemon(void *ptr)
 {
+    struct timespec rqtp = { .tv_sec = 0, .tv_nsec = 10000000, };
     while (1)
     {
+        nanosleep(&rqtp, NULL);
         assert(*(sbase + 8) == 0); //display mode
         unsigned int scrx = *(sbase + 9); //screen x
         unsigned int scry = *(sbase + 10); //screen y
@@ -140,18 +142,19 @@ void *display_daemon(void *ptr)
 
 void *keyboard_daemon(void *ptr)
 {
-    //iq for input queue
-    u32_t iq_base = *(sbase + 16);
-    u32_t iq_size = *(sbase + 17);
-    u32_t *iq_head = *(sbase + 18) + membase + iq_base;
-    u32_t *iq_tail = *(sbase + 19) + membase + iq_base;
     while(1)
     {
+        //iq for input queue
+        u32_t iq_base = *(sbase + 16);
+        u32_t iq_size = *(sbase + 17);
+        u32_t *iq_head = (sbase + 18);
+        u32_t *iq_tail = (sbase + 19);
+        
         int c = getch();    //blocked input since timeout(-1);
 #if DUMP_KEYBOARD
         fprintf(LOG_FILE, "Keyboard: getch()= %d\n", c);
 #endif
-        if ((*iq_tail - *iq_head + 4) % iq_size != 0) // input queue not full
+        if ((iq_tail - iq_head + 4) % iq_size != 0) // input queue not full
         {
 #if DUMP_KEYBOARD
             fprintf(LOG_FILE, "Keyboard: iq_tail advanced. iqhead=0x%.8X, iqtail=0x%.8X\n", 
@@ -159,6 +162,22 @@ void *keyboard_daemon(void *ptr)
 #endif
             *(u32_t*)(membase + *iq_tail) = c;
             *iq_tail += 4;
+            if (*iq_tail == iq_size)
+            {
+#if DUMP_KEYBOARD
+                fprintf(LOG_FILE, "Keyboard: iq_queue wrapped. iqhead=0x%.8X, iqtail=0x%.8X\n", 
+                    *iq_head, *iq_tail);
+#endif
+               *iq_tail = 0;
+            }
+            while (1)
+            {
+                if (try_interrupt(INTERRUPT_ENTRY_KEYBOARD_INPUT) == MEMU_SUCCESS)
+                    break;
+                struct timespec rqtp = { .tv_sec = 0, .tv_nsec = 10000000, };
+                nanosleep(&rqtp, NULL);
+            }
+ 
         }
         else
         {
@@ -166,18 +185,7 @@ void *keyboard_daemon(void *ptr)
             fprintf(LOG_FILE, "Keyboard: iq_tail full. iqhead=0x%.8X, iqtail=0x%.8X\n", 
                 *iq_head, *iq_tail);
 #endif
-            if (*iq_tail == iq_base + iq_size)
-            {
-#if DUMP_KEYBOARD
-                fprintf(LOG_FILE, "Keyboard: iq_queue wrapped. iqhead=0x%.8X, iqtail=0x%.8X\n", 
-                    *iq_head, *iq_tail);
-#endif
-               *iq_tail = iq_base;
-            }
-            while (1)
-                if (try_interrupt(INTERRUPT_ENTRY_KEYBOARD_INPUT) == MEMU_SUCCESS)
-                    break;
-        }
+       }
     }
     return NULL;
 }

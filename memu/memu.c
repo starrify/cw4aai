@@ -28,7 +28,7 @@ static void init()
     mem_loadimg(config.img_file, config.img_base);
     mem_init();
     reg_init();
-    display_init();
+    daemon_init();
     
     config.log_file = fopen(config.log_filename, "w");
     assert(config.log_file);
@@ -45,7 +45,7 @@ static void fini()
     pthread_join(display_daemon_thread, NULL);
     pthread_join(keyboard_daemon_thread, NULL);
 //    pthread_join(iic_daemon_thread, NULL);
-    display_fini();
+    daemon_fini();
     
     mem_destroy();
     return;
