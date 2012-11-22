@@ -63,8 +63,8 @@ sysinfo and device mapping: 0x00008000 0x007FFFFF
     keyboard io:  ->64
         1word: input buffer base
         1word: 0x10000, fixed size 4kB, round buffer
-        1word: RW start_off R
-        1word: R end_off RW
+        1word: RW start_off_from_base R
+        1word: R end_off_from_base RW
     linux_timestamp: ->96
         1word: R seconds since EPOCH
         1word: R millisecons counter

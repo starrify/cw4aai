@@ -95,10 +95,6 @@ int mem_destroy()
 int mem_read(u32_t paddr, u32_t vaddr, u32_t attr, int access_type, i32_t *word)
 {
     int len = MEM_ACCESS_LEN(access_type);
-#if DUMP_MEM
-    if (access_type & MEM_ACCESS_DATA)
-        fprintf(LOG_FILE, "MEM: Read: paddr=%.8X, len=%d, word=%.8X\n", paddr, len, *word);
-#endif
     //assert(!(access_type & MEM_ACCESS_WRITE));
     if (paddr > memsize - len)
         return EXCEPTION_ADDRESS_ERROR;
@@ -117,16 +113,16 @@ int mem_read(u32_t paddr, u32_t vaddr, u32_t attr, int access_type, i32_t *word)
         assert(0);
         break;
     }
-   return EXCEPTION_NONE;
+#if DUMP_MEM
+    if (access_type & MEM_ACCESS_DATA)
+        fprintf(LOG_FILE, "MEM: Read: paddr=%.8X, len=%d, word=%.8X\n", paddr, len, *word);
+#endif
+    return EXCEPTION_NONE;
 }
 
 int mem_write(u32_t paddr, u32_t vaddr, u32_t attr, int access_type, i32_t word)
 {
     int len = MEM_ACCESS_LEN(access_type);
-#if DUMP_MEM
-    if (access_type & MEM_ACCESS_DATA)
-       fprintf(LOG_FILE, "MEM: Write: paddr=%.8X, len=%d, word=%.8X\n", paddr, len, word);
-#endif
     //assert(!(access_type & MEM_ACCESS_READ));
     if (paddr > memsize - len)
         return EXCEPTION_ADDRESS_ERROR;
@@ -145,6 +141,10 @@ int mem_write(u32_t paddr, u32_t vaddr, u32_t attr, int access_type, i32_t word)
         assert(0);
         break;
     }
-   return EXCEPTION_NONE;
+#if DUMP_MEM
+    if (access_type & MEM_ACCESS_DATA)
+       fprintf(LOG_FILE, "MEM: Write: paddr=%.8X, len=%d, word=%.8X\n", paddr, len, word);
+#endif
+    return EXCEPTION_NONE;
 }
 

@@ -11,8 +11,8 @@
 .def SCR_OFFSET {52}
 .def CURSOR {56}
 .def INBUF_BASE {64}
-.def INBUF_START {68}
-.def INBUF_END {72}
+.def INBUF_START {72}
+.def INBUF_END {76}
 
 #os var
 #.def LIB_INBUF_BASE {0x1000}
