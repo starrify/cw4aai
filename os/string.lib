@@ -1,14 +1,55 @@
 .inc "pseudo_inst.inc"
 
+#.decl func
+#MEMOVERLAP:
+#    add $t1, $a0, $a2
+#    sltu $t0, $a1, $t1
+#    add $t1, $a1, $a2
+#    sltu $t2, $a0, $t1
+    #is overlap if (a0 + a2 > a1 and a1 + a2 > a0) != 0
+#    and $v0, $t0, $t2
+#    jr $ra
+#.end_decl
+
+.decl func
+MEMWORDCPY: #dst, src, word_cnt: must be aligned
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+    #check if aligned
+    bnaln $a0, MWCPERR
+    bnaln $a1, MWCPERR
+    #check if overlap
+    sll $t0, $a2, 2
+    sovlp $t1, $a0, $a1, $t0
+    bne $t1, $zero, MWCPERR
+MWCP1:
+    beq $a2, $zero, MWCPSUCC
+    lw $t0, 0($a1)
+    sw $t0, 0($a0)
+    addi $a0, $a0, 4
+    addi $a1, $a1, 4
+    addi $a2, $a2, -1
+    j MWCP1
+MWCPSUCC:
+    and $v0, $zero, $zero
+    j MWCPEND
+MWCPERR:
+    addi $v0, $zero, -1
+MWCPEND:
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+    jr $ra
+.end_decl
+
 .decl func #not finished
-MEMCPY: #dst, src, size
+MEMCPY: #dst, src, byte_cnt
     #check if overlap
     add $t1, $a0, $a2
     sltu $t0, $a1, $t1
     add $t1, $a1, $a2
     sltu $t2, $a0, $t1
     and $t0, $t0, $t2
-    #jump to MCPCTN if (a0 + a2 > a1 and a1 + a2 > a0) == 0
+    #jump to MCP1 if (a0 + a2 > a1 and a1 + a2 > a0) == 0
     beq $t0, $zero, MCP1
     j MCPERR
 MCP1:
@@ -98,7 +139,20 @@ SCMPEND:
     jr $ra
 .end_decl
 
-.decl func #not finished
+.decl func
+MEMWORDSET: #dst, value, words
+MWST1:
+    #check align
+    beq $a2, $zero, MWSTEND
+    sw $a1, 0($a0)
+    addi $a0, $a0, 4
+    addi $a2, $a2, -1
+    j MWST1
+MWSTEND:
+    jr $ra
+.end_decl
+
+.decl func
 MEMSET: #pt, value, size
     addi $sp, $sp, -16
     sw $ra, 0($sp)
@@ -146,14 +200,3 @@ MSTEND:
     jr $ra
 .end_decl
 
-.decl func
-MEMWORDSET: #dst, value, words
-MWST1:
-    beq $a2, $zero, MWSTEND
-    sw $a1, 0($a0)
-    addi $a0, $a0, 4
-    addi $a2, $a2, -1
-    j MWST1
-MWSTEND:
-    jr $ra
-.end_decl
