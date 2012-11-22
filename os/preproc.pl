@@ -17,8 +17,9 @@
 # declare:
 # 	format: .decl <type> .end_decl
 # 	supported types:
-# 		func:
+# 		func:(local|global)
 # 			function being declared will not be coded until it is called
+# 			local functions must be called within the file where it is declared
 # 		var:
 # 			static variables being declared will be moved to the end of the code
 
@@ -27,12 +28,14 @@ use warnings;
 use utf8;
 use 5.010;
 
-my %macros = (), my %included = (), my %func = ();
+my %macros = (), my %included = ();
+my %func = ();	#func[0]: filename, func[1]: code, func[2]: local?
 my $var = "";
 my $label_cnt = 0;
 my $error_len = 30;
 my $supported_decl = "func|var";
 my $keystr = '\.\w+';
+my $curfile = "main_file";
 
 sub readSrc() {
 	$/ = undef;
@@ -122,7 +125,11 @@ sub include() {
 		$included{$1} = 1;
 		open INC, $1 or die "Cannot open file $1";
 		my $src = <INC>;
+		#change and restore curfile info
+		my $orifile = $curfile;
+		$curfile = $1;
 		$out .= &process($src);
+		$curfile = $orifile;
 		close INC;
 	} 
 	($out, $leftover);
@@ -130,9 +137,12 @@ sub include() {
 
 sub addFuncDecl() {
 	my $leftover = $_[0];
-	$leftover =~ /^\s*((\w+):.*?)\.end_decl/s or die "invalid function declaration format \"" . &getline($leftover) . '"';
+	my $func_type = "global|local";
+	$leftover =~ /^\s*(?:($func_type)\s+)?((\w+):.*?)\.end_decl/s 
+		or die "invalid function declaration format \"" . &getline($leftover) . '"';
 	$leftover = $';
-	$func{$2} = &process($1);
+	$func{$3} = [$curfile, &process($2), (defined($1) ? ($1 eq "local") : 0)];
+	#print("$3: " . (defined($1) ? ($1 eq "local") : 0) . "\n");
 	("", $leftover);
 }
 
@@ -213,7 +223,9 @@ sub addDepend() {
 		for $key (keys %func) {
 #			print("$key\n");
 			if(index($buf, $key) != -1) {
-				$tmp .= $func{$key};
+				die "local function $key(in $func{$key}->[0]) called in $curfile"
+					if $func{$key}->[2] == 1 && $curfile ne $func{$key}->[0]; 
+				$tmp .= $func{$key}->[1];
 				delete $func{$key};	# do not delete cause it maybe used again?
 			}
 		}

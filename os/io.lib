@@ -4,7 +4,8 @@
 
 .decl func
 PUTC: #ch
-    syscall SC_PUTC
+    ori $k0, SC_PUTC
+    syscall
     jr $ra
 .end_decl
 
