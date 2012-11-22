@@ -140,47 +140,45 @@ void *display_daemon(void *ptr)
 
 void *keyboard_daemon(void *ptr)
 {
-#define _(x)   (*(u32_t*)(membase + (x)))
     //iq for input queue
-    u32_t iq_base = *(sbase + 16);
+    u32_t *iq_base = (sbase + 16);
     u32_t iq_size = *(sbase + 17);
-    u32_t iq_head = *(sbase + 18);
-    u32_t iq_tail = *(sbase + 19);
+    u32_t *iq_head = (sbase + 18);
+    u32_t *iq_tail = (sbase + 19);
     while(1)
     {
         int c = getch();    //blocked input since timeout(-1);
 #if DUMP_KEYBOARD
         fprintf(LOG_FILE, "Keyboard: getch()= %d\n", c);
 #endif
-        if ((_(iq_tail) - _(iq_head) + 4) % iq_size != 0) // input queue not full
+        if ((*iq_tail - *iq_head + 4) % iq_size != 0) // input queue not full
         {
 #if DUMP_KEYBOARD
             fprintf(LOG_FILE, "Keyboard: iq_tail advanced. iqhead=0x%.8X, iqtail=0x%.8X\n", 
-                _(iq_head), _(iq_tail));
+                *iq_head, *iq_tail);
 #endif
-            _(_(iq_tail)) = c;
-            _(iq_tail) += 4;
+            *(u32_t*)(membase + *iq_tail) = c;
+            *iq_tail += 4;
         }
         else
         {
 #if DUMP_KEYBOARD
             fprintf(LOG_FILE, "Keyboard: iq_tail full. iqhead=0x%.8X, iqtail=0x%.8X\n", 
-                _(iq_head), _(iq_tail));
+                *iq_head, *iq_tail);
 #endif
-            if (_(iq_tail) == _(iq_base) + _(iq_size))
+            if (*iq_tail == *iq_base + iq_size)
             {
 #if DUMP_KEYBOARD
                 fprintf(LOG_FILE, "Keyboard: iq_queue wrapped. iqhead=0x%.8X, iqtail=0x%.8X\n", 
-                    _(iq_head), _(iq_tail));
+                    *iq_head, *iq_tail);
 #endif
-               _(iq_tail) = _(iq_base);
+               *iq_tail = *iq_base;
             }
             while (1)
                 if (try_interrupt(INTERRUPT_ENTRY_KEYBOARD_INPUT) == MEMU_SUCCESS)
                     break;
         }
     }
-#undef _
     return NULL;
 }
 
