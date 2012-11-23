@@ -59,6 +59,7 @@ static inline void warn_expand_to_multi_inst(char *file, int lineno);
 
     /* pseudo instructions */
     PSEUDO_INST_MOVE PSEUDO_INST_NOP PSEUDO_INST_BLT PSEUDO_INST_LI
+    PSEUDO_INST_LLA
 
     /* registers without dollar sign */
     REG_ZERO REG_AT REG_V0 REG_V1 REG_A0 REG_A1 REG_A2 REG_A3 REG_T0 REG_T1
@@ -188,6 +189,7 @@ pseudo_statement:
     | pseudo_statement_nop
     | pseudo_statement_blt
     | pseudo_statement_li
+    | pseudo_statement_lla
     ;
     
 immediate: 
@@ -337,14 +339,14 @@ cp1_statement_fd_fs:
 pseudo_statement_move:
     PSEUDO_INST_MOVE register COMMA register
     {
-        r_type_inst_assemble(INST_ADDU, $4, REG_NULL, $2, 0);
+        r_type_inst_assemble(INST_OR, $4, REG_ZERO, $2, 0);
     }
     ;
 
 pseudo_statement_nop:
     PSEUDO_INST_NOP 
     {
-        r_type_inst_assemble(INST_ADDU, REG_NULL, REG_NULL, REG_NULL, 0);
+        r_type_inst_assemble(INST_SLL, REG_NULL, REG_ZERO, REG_ZERO, 0);
     }
     ;
 
@@ -363,11 +365,25 @@ pseudo_statement_li:
         if (($4 >> 16) & MASK_LOW16) /* multiple insttructions needed */
         {
             warn_expand_to_multi_inst(option_input_file, yyget_lineno());
-            i_type_inst_assemble_immediate(INST_LUI, REG_NULL, $2, ($4 >> 16) & MASK_LOW16);
-            i_type_inst_assemble_immediate(INST_ADDIU, $2, $2, $4 & MASK_LOW16);
+            i_type_inst_assemble_immediate(INST_LUI, REG_ZERO, $2, ($4 >> 16) & MASK_LOW16);
+            i_type_inst_assemble_immediate(INST_ORI, $2, $2, $4 & MASK_LOW16);
         }
         else /* a single instruction would do */
             i_type_inst_assemble_immediate(INST_ADDIU, REG_ZERO, $2, $4 & MASK_LOW16);
+    }
+    ;
+
+pseudo_statement_lla:
+    PSEUDO_INST_LLA register COMMA label
+    {
+        warn_expand_to_multi_inst(option_input_file, yyget_lineno());
+        unsigned int pc = getpcount();
+        unsigned int lineno = yyget_lineno();
+        register_label($4, pc, LABEL_ABSOLUTE | LABEL_H16_BIT | LABEL_REFERENCE, lineno);
+        i_type_inst_assemble_immediate(INST_LUI, REG_ZERO, $2, 0);
+        pc = getpcount();
+        register_label($4, pc, LABEL_ABSOLUTE | LABEL_L16_BIT | LABEL_REFERENCE, lineno);
+        i_type_inst_assemble_immediate(INST_ORI, $2, $2, 0);
     }
     ;
 
@@ -444,7 +460,7 @@ static inline void warn_expand_to_multi_inst(char *file, int lineno)
 {
     if (option_warning)
         errmsg(
-            "%s: %d: Warning: Macro instruction expanded into multiple instructions",
+            "%s: %d: Warning: Macro instruction expanded into multiple instructions\n",
             file, lineno
             );
     return;

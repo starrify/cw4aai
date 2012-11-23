@@ -161,6 +161,10 @@ static inline void write_back_label_addr(symbol_t *symbol)
             unsigned int code = buf_load_word(label_ref_list->addr);
             if (label_ref_list->mode & LABEL_16_BIT)
                 code = (code & ~MASK_LOW16) | ((target_addr >> 2) & MASK_LOW16);
+            else if (label_ref_list->mode & LABEL_H16_BIT)
+                code = (code & ~MASK_LOW16) | ((target_addr >> 16) & MASK_LOW16);
+            else if (label_ref_list->mode & LABEL_L16_BIT)
+                code = (code & ~MASK_LOW16) | (target_addr & MASK_LOW16);
             else if (label_ref_list->mode & LABEL_26_BIT)
                 code = (code & ~MASK_LOW26) | ((target_addr >> 2) & MASK_LOW26);
             buf_save_word(label_ref_list->addr, code);

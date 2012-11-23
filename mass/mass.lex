@@ -95,7 +95,8 @@ sub.s   return yylval.int_t = INST_SUB_S;
 move    return yylval.int_t = PSEUDO_INST_MOVE;
 blt     return yylval.int_t = PSEUDO_INST_BLT;
 nop     return yylval.int_t = PSEUDO_INST_NOP;
-li      return yylval.int_t = PSEUDO_INST_LI;
+li      return yylval.int_t = PSEUDO_INST_LI; 
+lla     return yylval.int_t = PSEUDO_INST_LLA; 
 
  /* registers */
 $zero return yylval.int_t = REG_ZERO;
