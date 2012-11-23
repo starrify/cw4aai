@@ -29,20 +29,23 @@ use utf8;
 use 5.010;
 
 my %macros = (), my %included = ();
-my %func = ();	#func[0]: filename, func[1]: code, func[2]: local?
+my ($func_name, $func_filename, $func_code, $func_islocal, $func_depends) = (0, 1, 2, 3, 4);
+my %func = ();
 my $var = "";
 my $label_cnt = 0;
 my $error_len = 30;
 my $supported_decl = "func|var";
 my $keystr = '\.\w+';
-my $curfile = "main_file";
+my $curfile = "main file";
 
+#key proc
 sub readSrc() {
 	$/ = undef;
 	chomp(my $src = <STDIN>);
 	$src;
 }
 
+#tools
 sub rmComm() {
 	$_[0] =~ s/#.*?(\n|$)/\n/g;
 	$_[0];
@@ -53,6 +56,45 @@ sub getline() {
 	$&;
 }
 
+sub format() {
+    $_[0] =~ s/(\s*\n)+/\n/g;
+    $_[0];
+}
+
+sub calcDep() {
+    my $funcinfo = $_[0], my $key;
+    my @dep = ();
+    for $key (keys %func) {
+        if(index($funcinfo->[$func_code], $key) != -1) {
+            if($func{$key}->[$func_islocal] == 1 && $curfile ne $func{$key}->[$func_filename]) {
+                push @dep, "__error__ '$func{$key}->[$func_name]' '$funcinfo->[$func_name]' '$curfile'";
+            } else {
+                push @dep, $key;
+            }
+        }
+    }
+    \@dep;
+}
+
+sub genDepByArr() {
+    my $depname, my $out = "", my $tmp;
+    for $depname (@{$_[0]}) {
+        if(index($depname, "__error__") != -1) {
+			$depname =~ /__error__\s*'(.*)'\s*'(.*)'\s*'(.*)'\s*$/
+				or die "internal error info mismatch";
+        	die "call of local function '$1' in function '$2' in file '$3'"
+		}
+        if(exists($func{$depname})) {
+            $out .= $func{$depname}->[$func_code];
+            $tmp = $func{$depname}->[$func_depends];
+            delete $func{$depname};
+            $out .= &genDepByArr($tmp);
+        }
+    }
+    $out;
+}
+
+#.def subroutines
 sub addDef() {
 	my $leftover = $_[0];
 
@@ -115,24 +157,36 @@ sub expandDef() {
 	($out, $leftover);
 }
 
+#.inc subroutines
 sub include() {
-	my $leftover, my $out = "";
+	my $leftover, my $out = "", my $localout;
 	$_[0] =~ /\s*"(.*?)"/ 
 		or die 'Invalid include format: ".inc ' . &getline($_[0]) . '"';
-	#my $filename = $1;
 	$leftover = $';
+
 	if(!exists($included{$1})) {
+		#change curfile info
+		my $orifile = $curfile;
+		$curfile = $1;
+		
 		$included{$1} = 1;
 		open INC, $1 or die "Cannot open file $1";
 		my $src = <INC>;
-		#change and restore curfile info
-		my $orifile = $curfile;
-		$curfile = $1;
-		$out .= &process($src);
-		$curfile = $orifile;
+		($out, $localout) = &process($src);
+		$out .= &localDep($localout);
 		close INC;
-	} 
+		
+		#restore curfile info
+		$curfile = $orifile;
+	}
 	($out, $leftover);
+}
+
+#.decl subroutines
+sub localDep() {
+    my $funcinfo = ["main chunk", $curfile, $_[0], 0];
+    my $curdep = &calcDep($funcinfo);
+    &genDepByArr($curdep);
 }
 
 sub addFuncDecl() {
@@ -141,8 +195,10 @@ sub addFuncDecl() {
 	$leftover =~ /^\s*(?:($func_type)\s+)?((\w+):.*?)\.end_decl/s 
 		or die "invalid function declaration format \"" . &getline($leftover) . '"';
 	$leftover = $';
-	$func{$3} = [$curfile, &process($2), (defined($1) ? ($1 eq "local") : 0)];
-	#print("$3: " . (defined($1) ? ($1 eq "local") : 0) . "\n");
+	my ($processed) = &process($2);
+	my $funcinfo = [$3, $curfile, $processed, (defined($1) ? ($1 eq "local") : 0)];
+	push @{$funcinfo}, &calcDep($funcinfo);
+	$func{$funcinfo->[$func_name]} = $funcinfo;
 	("", $leftover);
 }
 
@@ -177,79 +233,65 @@ sub addDecl() {
 
 sub processCmd() {
 	my ($cmd, $leftover) = @_;
-	my $out = "", my $tmp;
+	my $out, my $tmp;
+	my $localout; #without .inc
 	given($cmd) {
 		when('.def') {
 			($tmp, $leftover) = &addDef($leftover);
-			$out .= $tmp;
+			$out = $tmp;
+			$localout = $tmp;
 		}
 		when('.inc') {
 			($tmp, $leftover) = &include($leftover);
-			$out .= $tmp;
+			$out = $tmp;
+			$localout = "";
 		}
 		when('.decl') {
 			($tmp, $leftover) = &addDecl($leftover);
-			$out .= $tmp;
+			$out = $tmp;
+			$localout = $tmp;
 		}
 		when(/\.\w+/) {
-			$out .= $cmd;
+			$out = $cmd;
+			$localout = $cmd;
 		}
 		default {
 			($tmp, $leftover) = &expandDef($cmd, $leftover);
-			$out .= $tmp;
+			$out = $tmp;
+			$localout = $tmp;
 		}
 	}
-	($out, $leftover);
+	($out, $leftover, $localout);
 }
 
 sub process() {
 	my $src = $_[0];
-	my $out = "", my $tmp;
+	my $out = "";
+	my $localout = ""; #without .inc
+	my $tmpout, my $tmplocal;
 	$src = &rmComm($src);
 
 	while($src =~ /(^|[^\w])($keystr)($|[^\w])/) {
 		$out .= ($` . $1);
-		($tmp, $src) = &processCmd($2, $3 . $');
-		$out .= $tmp;
+		$localout .= ($` . $1);
+		($tmpout, $src, $tmplocal) = &processCmd($2, $3 . $');
+		$out .= $tmpout;
+		$localout .= $tmplocal;
 	}
 	$out .= $src;
-}
-
-sub addDepend() {
-	my $buf = $_[0], my $out = "";
-	my $tmp, my $key;
-	while($buf) {
-		$tmp = "";
-		for $key (keys %func) {
-#			print("$key\n");
-			if(index($buf, $key) != -1) {
-				die "local function $key(in $func{$key}->[0]) called in $curfile"
-					if $func{$key}->[2] == 1 && $curfile ne $func{$key}->[0]; 
-				$tmp .= $func{$key}->[1];
-				delete $func{$key};	# do not delete cause it maybe used again?
-			}
-		}
-		$out .= $buf;
-		$buf = $tmp;
-	}
-	$out;
+	$localout .= $src;
+	($out, $localout);
 }
 
 sub addVar() {
 	$_[0] . $var;
 }
 
-sub format() {
-	$_[0] =~ s/(\s*\n)+/\n/g;
-	$_[0];
-}
-
 my $src = &readSrc();
-my $res = &process($src);
-$res = &addDepend($res);
+my ($res, $localout) = &process($src);
+$res .= &localDep($localout);
 $res = &addVar($res);
 $res = &format($res);
 print($res);
 0;
-
 
