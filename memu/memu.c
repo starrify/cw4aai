@@ -11,6 +11,7 @@
 #include "config.h" 
 #include "decode.h"
 #include "exception.h"
+#include "interrupt.h"
 #include "mem.h"
 #include "mmu.h"
 #include "reg.h"
@@ -57,8 +58,6 @@ int main()
     
     reg_special_write(REG_SPECIAL_PC_ADVANCE1, config.entry_offset);
     reg_special_write(REG_SPECIAL_PC_ADVANCE2, config.entry_offset + 4);
-   
-    u32_t reg_pc = reg_advance_pc();
     
     void *membase;
     size_t memsize;
@@ -78,6 +77,25 @@ int main()
             step_count = step;
         }
 #endif
+        if (interrupt_test())
+        {
+            u32_t entry = interrupt_entry();
+            if (entry)
+            {
+                 u32_t pcadv1;
+                 reg_special_read(REG_SPECIAL_PC_ADVANCE1, &pcadv1);
+                 reg_cpr_write(FKREG_CPR_EPC, 0, pcadv1);
+                 reg_special_write(REG_SPECIAL_PC_ADVANCE1, entry);
+                 reg_special_write(REG_SPECIAL_PC_ADVANCE2, entry + 4);
+                       
+                 reg_cpr_write(FKREG_CPR_EXL, 0, MEMU_TRUE);
+#if DUMP_INTERRUPT
+                 fprintf(LOG_FILE, "Interrupt: set EPC=%.8X\n", pcadv1);
+#endif
+            }
+        }
+
+        u32_t reg_pc = reg_advance_pc();
         u32_t code;
         u32_t paddr;
         u32_t attr;
@@ -96,7 +114,6 @@ int main()
             break;
         }
         
-        reg_pc = reg_advance_pc();
     }
     
     fini();
