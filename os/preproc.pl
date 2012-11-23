@@ -14,14 +14,15 @@
 # 	features:
 # 		nested include supported
 # 		avoid multiple includes
+# static:
+# 	format: .static {<BODY>}
+# 		static data will be moved to the end of the code
 # declare:
-# 	format: .decl <type> .end_decl
+# 	format: .decl <type> {BODY}
 # 	supported types:
 # 		func:(local|global)
 # 			function being declared will not be coded until it is called
 # 			local functions must be called within the file where it is declared
-# 		var:
-# 			static variables being declared will be moved to the end of the code
 
 use strict;
 use warnings;
@@ -31,10 +32,10 @@ use 5.010;
 my %macros = (), my %included = ();
 my ($func_name, $func_filename, $func_code, $func_islocal, $func_depends) = (0, 1, 2, 3, 4);
 my %func = ();
-my $var = "";
+my $static = "";
 my $label_cnt = 0;
 my $error_len = 30;
-my $supported_decl = "func|var";
+my $supported_decl = "func";
 my $keystr = '\.\w+';
 my $curfile = "main file";
 
@@ -192,7 +193,7 @@ sub localDep() {
 sub addFuncDecl() {
 	my $leftover = $_[0];
 	my $func_type = "global|local";
-	$leftover =~ /^\s*(?:($func_type)\s+)?((\w+):.*?)\.end_decl/s 
+	$leftover =~ /^\s*(?:($func_type)\s+)?{\s*((\w+):.*?)}/s 
 		or die "invalid function declaration format \"" . &getline($leftover) . '"';
 	$leftover = $';
 	my ($processed) = &process($2);
@@ -200,14 +201,6 @@ sub addFuncDecl() {
 	push @{$funcinfo}, &calcDep($funcinfo);
 	$func{$funcinfo->[$func_name]} = $funcinfo;
 	("", $leftover);
-}
-
-sub addVarDecl() {
-	my $leftover = $_[0];
-	$leftover =~ /^(.*?)\.end_decl/s or die "invalid static variable declaration format \"" . &getline($leftover) . '"';
-	$leftover = $';
-	$var .= &process($1);
-	("", $leftover)
 }
 
 sub addDecl() {
@@ -220,16 +213,22 @@ sub addDecl() {
 			($tmp, $leftover) = &addFuncDecl($leftover);
 			$out .= $tmp;
 		}
-		when('var') {
-			($tmp, $leftover) = &addVarDecl($leftover);
-			$out .= $tmp;
-		}
 		default {
 			die "Unexpected error";
 		}
 	}
 	($out, $leftover);
 }
+
+#.static subroutines
+sub addStatic() {
+	my $leftover = $_[0];
+	$leftover =~ /^\s*{(.*?)}/s or die "invalid static variable declaration format \"" . &getline($leftover) . '"';
+	$leftover = $';
+	$static .= &process($1);
+	("", $leftover)
+}
+
 
 sub processCmd() {
 	my ($cmd, $leftover) = @_;
@@ -248,6 +247,11 @@ sub processCmd() {
 		}
 		when('.decl') {
 			($tmp, $leftover) = &addDecl($leftover);
+			$out = $tmp;
+			$localout = $tmp;
+		}
+		when('.static') {
+			($tmp, $leftover) = &addStatic($leftover);
 			$out = $tmp;
 			$localout = $tmp;
 		}
@@ -283,14 +287,10 @@ sub process() {
 	($out, $localout);
 }
 
-sub addVar() {
-	$_[0] . $var;
-}
-
 my $src = &readSrc();
 my ($res, $localout) = &process($src);
 $res .= &localDep($localout);
-$res = &addVar($res);
+$res .= "STATIC_HERE:\n$static";
 $res = &format($res);
 print($res);
 0;

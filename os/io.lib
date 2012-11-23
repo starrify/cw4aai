@@ -2,14 +2,19 @@
 .inc "var.inc"
 .inc "pseudo_inst.inc"
 
-.decl func
+.static {
+LIB_INBUF: #1word start_offset, 1word end_offset, 998words buffer
+    .dup 1000 .0
+}
+
+.decl func {
 PUTC: #ch
     ori $k0, SC_PUTC
     syscall
     jr $ra
-.end_decl
+}
 
-.decl func
+.decl func {
 GETC:
 GTCBLK:
     OSVAR_L $t0, LIB_INBUF_START
@@ -30,9 +35,9 @@ GTC1:
     OSVAR_S $t0, LIB_INBUF_START
 
     jr $ra
-.end_decl
+}
 
-.decl func
+.decl func {
 PUTS: #pt
     addi $sp, $sp, -8
     sw $ra, 4($sp)
@@ -51,9 +56,9 @@ PTSEND:
     lw $ra, 4($sp)
     addi $sp, $sp, 8
     jr $ra
-.end_decl
+}
 
-.decl func
+.decl func {
 GETS: #pt
     addi $sp, $sp, -8
     sw $ra, 4($sp)
@@ -77,4 +82,5 @@ GTSEND:
     lw $ra, 4($sp)
     addi $sp, $sp, 8
     jr $ra
-.end_decl
+}
+

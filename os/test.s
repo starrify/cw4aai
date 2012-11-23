@@ -1,16 +1,21 @@
 .inc "pseudo_inst.inc"
 .inc "var.inc"
 .inc "jmp_fix.inc"
+.inc "syscall.inc"
 .inc "syscall.lib"
+.inc "io.lib"
 
 .dup 0x1000 >> 2 .0
 INIT:
     ori $sp, $zero, 0x8000
+    #interrupt table
 LOOP:
-    jal SYS_GETC
+    ori $k0, $zero, SC_GETC
+    syscall
     blt $v0, $zero, LOOP
     or $a0, $zero, $v0
-    jal SYS_PUTC
+    ori $k0, $zero, SC_PUTC
+    syscall
     j LOOP
 
 #INIT:
