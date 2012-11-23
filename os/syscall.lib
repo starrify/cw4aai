@@ -1,6 +1,6 @@
 .inc "string.lib"
 
-.decl func
+.decl func local
 SYS_GOTOXY: #row, col
     #boundary check
     ori $t0, $zero, SCR_HEIGHT
@@ -34,7 +34,7 @@ SYS_GXYEND:
     jr $ra
 .end_decl
 
-.decl func
+.decl func local
 SYS_CURSORNEXT:
     addi $sp, $sp, -4
     sw $ra, 0($sp)
@@ -70,7 +70,7 @@ SYS_CSNXT3:
     jr $ra
 .end_decl
 
-.decl func
+.decl func local
 SYS_PUTC: #ch
     addi $sp, $sp, -4
     sw $ra, 0($sp)
@@ -88,7 +88,7 @@ SYS_PUTC: #ch
     jr $ra
 .end_decl
 
-.decl func
+.decl func local
 SYS_GETC:
     SYSINFO_L $t0, INBUF_START
     SYSINFO_L $t1, INBUF_END
@@ -113,5 +113,31 @@ SYS_GTCAVL:
 SYS_GTC1:
     SYSINFO_S $t0, INBUF_START
 SYS_GTCEND:
+    jr $ra
+.end_decl
+
+.decl func
+SYS_SYSCALL:
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+    #at most 2 instructions for each block
+    sll $k0, $k0, 3
+    addi $k0, $k0, 4 + LABEL
+LABEL:
+    jr $k0
+    #case 0
+    .dup 2 .0
+    #case 1: gotoxy
+    jal SYS_GOTOXY
+    j SYSCLEND
+    #case 2: putc
+    jal SYS_PUTC
+    j SYSCLEND
+    #case 3: getc
+    jal SYS_GETC
+    j SYSCLEND
+SYSCLEND:
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
     jr $ra
 .end_decl
