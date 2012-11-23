@@ -7,16 +7,16 @@
 all: mass/mass memu/memu os/sys.img
 	
 
-mass/mass:
+mass/mass: mass/
 	make -C mass/
 
-memu/memu: os/sys.img
+memu/memu: memu/ os/sys.img
 	cp os/sys.img memu/
 	make -C memu
 	# for zlk..
 	cp memu/memu os/
 
-os/sys.img: mass/mass
+os/sys.img: os/ mass/mass
 	cp mass/mass os/
 	make -C os
 
