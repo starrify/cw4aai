@@ -1,6 +1,6 @@
 .inc "string.lib"
 
-.decl func local
+.decl func local {
 SYS_GOTOXY: #row, col
     #boundary check
     ori $t0, $zero, SCR_HEIGHT
@@ -17,14 +17,15 @@ SYS_GOTOXY: #row, col
     sll $t0, $t0, 2
 
     #decide real offset
-    SYSINFO_L $t1, SCR_OFFSET
+    SETFRM_SYSINFO
+    lw $t1, SCR_OFFSET($fp)
     add $t0, $t0, $t1
     ori $t1, $zero, 4 * SCR_WIDTH * SCR_HEIGHT
     blt $t0, $t1, SYS_GXY1
     addi $t0, $t0, -4 * SCR_WIDTH * SCR_HEIGHT
 
 SYS_GXY1:
-    SYSINFO_S $t0, CURSOR
+    sw $t0, CURSOR($fp)
     and $v0, $zero, $zero
     j SYS_GXYEND
     
@@ -32,23 +33,24 @@ SYS_GXYERR:
     addi $v0, $zero, -1
 SYS_GXYEND:
     jr $ra
-.end_decl
+}
 
-.decl func local
+.decl func local {
 SYS_CURSORNEXT:
     addi $sp, $sp, -4
     sw $ra, 0($sp)
 
-    SYSINFO_L $t1, CURSOR
+    SETFRM_SYSINFO
+    lw $t1, CURSOR($fp)
     #move cursor
     addi $t1, $t1, 4
     ori $t0, $zero, 4 * SCR_WIDTH * SCR_HEIGHT
     blt $t1, $t0, SYS_CSNXT1
     addi $t1, $t1, -4 * SCR_WIDTH * SCR_HEIGHT
 SYS_CSNXT1:
-    SYSINFO_S $t1, CURSOR
+    sw $t1, CURSOR($fp)
 
-    SYSINFO_L $t2, SCR_OFFSET
+    lw $t2, SCR_OFFSET($fp)
     bne $t1, $t2, SYS_CSNXT3
 
     #scroll, t1 is the new starting row and t2 is the old
@@ -56,9 +58,9 @@ SYS_CSNXT1:
     blt $t1, $t0, SYS_CSNXT2
     addi $t1, $t1, -4 * SCR_WIDTH * SCR_HEIGHT
 SYS_CSNXT2:
-    SYSINFO_S $t1, SCR_OFFSET
+    sw $t1, SCR_OFFSET($fp)
     #clear the last row
-    SYSINFO_L $t0, SCR_BASE
+    lw $t0, SCR_BASE($fp)
     add $a0, $t0, $t2
     ori $a1, $zero, 0x20
     ori $a2, $zero, 80
@@ -68,15 +70,16 @@ SYS_CSNXT3:
     lw $ra, 0($sp)
     addi $sp, $sp, 4
     jr $ra
-.end_decl
+}
 
-.decl func local
+.decl func local {
 SYS_PUTC: #ch
     addi $sp, $sp, -4
     sw $ra, 0($sp)
-    
-    SYSINFO_L $t0, SCR_BASE
-    SYSINFO_L $t1, CURSOR
+
+    SETFRM_SYSINFO
+    lw $t0, SCR_BASE($fp)
+    lw $t1, CURSOR($fp)
 
     #write to disp mem
     add $t0, $t0, $t1
@@ -86,12 +89,13 @@ SYS_PUTC: #ch
     lw $ra, 0($sp)
     addi $sp, $sp, 4
     jr $ra
-.end_decl
+}
 
-.decl func local
+.decl func local {
 SYS_GETC:
-    SYSINFO_L $t0, INBUF_START
-    SYSINFO_L $t1, INBUF_END
+    SETFRM_SYSINFO
+    lw $t0, INBUF_START($fp)
+    lw $t1, INBUF_END($fp)
     bne $t0, $t1, SYS_GTCAVL
     #return?
     addi $v0, $zero, -1
@@ -101,7 +105,7 @@ SYS_GETC:
     #j SYS_GETC
 
 SYS_GTCAVL:
-    SYSINFO_L $t1, INBUF_BASE
+    lw $t1, INBUF_BASE($fp)
     add $t1, $t0, $t1
     lw $v0, 0($t1)
     andi $v0, $v0, 0xff
@@ -111,33 +115,35 @@ SYS_GTCAVL:
     addi $t0, $t0, -INBUF_SIZE
 
 SYS_GTC1:
-    SYSINFO_S $t0, INBUF_START
+    sw $t0, INBUF_START($fp)
 SYS_GTCEND:
     jr $ra
-.end_decl
+}
 
-.decl func
+.decl func {
 SYS_SYSCALL:
     addi $sp, $sp, -4
     sw $ra, 0($sp)
-    #at most 2 instructions for each block
-    sll $k0, $k0, 3
-    addi $k0, $k0, 4 + LABEL
-LABEL:
+    #at most 4 instructions for each block
+    sll $k0, $k0, 4
+    addi $k0, $k0, 4
+    lla $t0, SYS_SSC1
+    add $k0, $k0, $t0
+SYS_SSC1:
     jr $k0
     #case 0
-    .dup 2 .0
+    .dup 4 .0
     #case 1: gotoxy
-    jal SYS_GOTOXY
-    j SYSCLEND
+    jal SYS_GOTOXY #sll 0, 0, 0
+    j SYSCLEND #sll 0, 0, 0
     #case 2: putc
     jal SYS_PUTC
     j SYSCLEND
     #case 3: getc
-    jal SYS_GETC
-    j SYSCLEND
+    jal SYS_GETC #sll 0, 0, 0
+    j SYSCLEND #sll 0, 0, 0
 SYSCLEND:
     lw $ra, 0($sp)
     addi $sp, $sp, 4
     jr $ra
-.end_decl
+}

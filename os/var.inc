@@ -1,10 +1,11 @@
 .inc "pseudo_inst.inc"
-.def OSVAR_S r1, var {sw r1, var($zero)}
-.def OSVAR_L r1, var {lw r1, var($zero)}
 .def STKVAR_S r1, var {sw r1, var($sp)}
 .def STKVAR_L r1, var {lw r1, var($sp)}
-.def SYSINFO_S r1, var {swia r1, 32768, var}
-.def SYSINFO_L r1, var {lwia r1, 32768, var}
+
+.def SETFRM pos {ori $fp, $zero, pos}
+.def SETFRML pos {lil $fp, $zero, pos}
+.def SETFRM_SYSINFO {SETFRM 32768}
+.def SETFRM_STATIC {SETFRML STATIC_HERE}
 
 #sysinfo
 .def SCR_BASE {48}

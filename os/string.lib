@@ -1,18 +1,10 @@
 .inc "pseudo_inst.inc"
 
-#.decl func
-#MEMOVERLAP:
-#    add $t1, $a0, $a2
-#    sltu $t0, $a1, $t1
-#    add $t1, $a1, $a2
-#    sltu $t2, $a0, $t1
-    #is overlap if (a0 + a2 > a1 and a1 + a2 > a0) != 0
-#    and $v0, $t0, $t2
-#    jr $ra
-#.end_decl
-
-.decl func
-MEMWORDCPY: #dst, src, word_cnt: must be aligned
+#arg: dst, src, word_cnt
+#ret: dst mem address, -1 on failed
+#note: dst and src must be aligned and should not overlap
+.decl func {
+MEMWORDCPY:
     addi $sp, $sp, -4
     sw $ra, 0($sp)
     #check if aligned
@@ -39,9 +31,9 @@ MWCPEND:
     lw $ra, 0($sp)
     addi $sp, $sp, 4
     jr $ra
-.end_decl
+}
 
-.decl func #not finished
+.decl func { #not finished
 MEMCPY: #dst, src, byte_cnt
     #check if overlap
     add $t1, $a0, $a2
@@ -76,9 +68,9 @@ MCPEND:
 MCPERR:
     addi $v0, $zero, -1
     j MCPEND
-.end_decl
+}
 
-.decl func
+.decl func {
 STRCPY: #dst, src
 SCPLP:
     lb $t0, 0($a1)
@@ -90,9 +82,9 @@ SCPLP:
 
 SCPEND:
     jr $ra
-.end_decl
+}
 
-.decl func
+.decl func {
 MEMCMP: #str1, str2, size
     and $t0, $zero, $zero
     and $t1, $zero, $zero
@@ -120,9 +112,9 @@ MCMP3:
 MCMPEND:
     sub $v0, $t0, $t1
     jr $ra
-.end_decl
+}
 
-.decl func
+.decl func {
 STRCMP: #str1, str2
     
 SCMPLP:
@@ -137,9 +129,9 @@ SCMP1:
 SCMPEND:
     sub $v0, $t0, $t1
     jr $ra
-.end_decl
+}
 
-.decl func
+.decl func {
 MEMWORDSET: #dst, value, words
 MWST1:
     #check align
@@ -150,9 +142,9 @@ MWST1:
     j MWST1
 MWSTEND:
     jr $ra
-.end_decl
+}
 
-.decl func
+.decl func {
 MEMSET: #pt, value, size
     addi $sp, $sp, -16
     sw $ra, 0($sp)
@@ -198,5 +190,5 @@ MSTEND:
     lw $ra, 0($sp)
     addi $sp, $sp, 16
     jr $ra
-.end_decl
+}
 
