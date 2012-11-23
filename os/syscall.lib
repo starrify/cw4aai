@@ -124,22 +124,24 @@ SYS_GTCEND:
 SYS_SYSCALL:
     addi $sp, $sp, -4
     sw $ra, 0($sp)
-    #at most 2 instructions for each block
-    sll $k0, $k0, 3
-    addi $k0, $k0, 4 + LABEL
-LABEL:
+    #at most 4 instructions for each block
+    sll $k0, $k0, 4
+    addi $k0, $k0, 4
+    lla $t0, SYS_SSC1
+    add $k0, $k0, $t0
+SYS_SSC1:
     jr $k0
     #case 0
-    .dup 2 .0
+    .dup 4 .0
     #case 1: gotoxy
-    jal SYS_GOTOXY
-    j SYSCLEND
+    jal SYS_GOTOXY #sll 0, 0, 0
+    j SYSCLEND #sll 0, 0, 0
     #case 2: putc
     jal SYS_PUTC
     j SYSCLEND
     #case 3: getc
-    jal SYS_GETC
-    j SYSCLEND
+    jal SYS_GETC #sll 0, 0, 0
+    j SYSCLEND #sll 0, 0, 0
 SYSCLEND:
     lw $ra, 0($sp)
     addi $sp, $sp, 4

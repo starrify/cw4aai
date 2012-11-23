@@ -140,10 +140,10 @@ sub expandDef() {
 		$leftover =~ /^\s*([\w\$\+-]+(\s*,\s*[\w\$\+-]+){$tmp})/ 
 			or die "Invalid macro format: \"$leftover " . &getline($leftover) . '"';
 		$leftover = $';
-		@args = defined($1) ? (grep { $_ } split(/\s|,/, $1)) : ();
+		@args = defined($1) ? (grep { $_ ne "" } split(/\s|,/, $1)) : ();
 
 	}
-
+	#print("argc: $argc, args: @args\n");
 	my $i;
 	for $i (0 .. $argc - 1) {
 		$str =~ s/(^|[^\w])$macros{$cmd}->[$i + 1]($|[^\w])/$1$args[$i]$2/g;

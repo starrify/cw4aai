@@ -6,18 +6,25 @@
 .inc "io.lib"
 
 .dup 0x1000 >> 2 .0
+
 INIT:
     ori $sp, $zero, 0x8000
+    lla $t0, WTF
+    swia $t0, 0x80, 0
+    ori $t0, $zero, 1
+    #ori $t1, $zero, 3
+    mtc0 $t0, $3
     #interrupt table
 LOOP:
     ori $k0, $zero, SC_GETC
-    syscall
+    jal SYS_SYSCALL
     blt $v0, $zero, LOOP
     or $a0, $zero, $v0
     ori $k0, $zero, SC_PUTC
-    syscall
+    jal SYS_SYSCALL
     j LOOP
-
+WTF:
+    eret
 #INIT:
     #addiu $t0, $zero, 1000
     #SYSINFO_S $t0, SCR_BASE
