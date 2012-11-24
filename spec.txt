@@ -5,9 +5,9 @@ system reserved memory(shell included): from 0x0 to 0x1ffffff
 system image filename:
     "sys.img"
 system image load base:
-    0x00001000
+    0x00800000
 system image entry point:
-    0x00001000
+    0x00800000
 
 Redefined CP0 registers: (we use selection 0 only):
     Use MFC0/MTC0 to access them. see the instruction set. Notice we have selection 0 only
@@ -36,17 +36,7 @@ interrupt vector table: 0x00000000 size: 0x1000
     timer: 0x100
         fixed time at about 10ms?
     syscall: 0x180
-    
 
-os variables: 0x1000 to 0x5fff
-    lib buffer: -> 0x4ff0
-        1word: lib_buf_base
-        1word: lib_buf_start
-        1word: lib_buf_end
-        1word: reserved
-
-os stack: 0x6000 to 0x7fff
-	
 sysinfo and device mapping: 0x00008000 0x007FFFFF
     R for read W for write and S for static
     
@@ -64,23 +54,18 @@ sysinfo and device mapping: 0x00008000 0x007FFFFF
 #       4word: RS base, reserved, cursor, reserved of mode 1
     keyboard io:  ->64
         1word: input buffer base
-        1word: 0x10000, fixed size 4kB, round buffer
+        1word: 0x1000, round buffer
         1word: RW start_off_from_base R
         1word: R end_off_from_base RW
     linux_timestamp: ->96
         1word: R seconds since EPOCH
         1word: R millisecons counter
-    
-
+ 
 os memory: 0x00800000 to 0x01ffffff
     lib_in_buffer -> 0
         1024word: buffer
 		
 user memory: 0x02000000 to 0x0FFFFFFF
-                
-	
-		
-
         void add(WORD inst);
         void addu(WORD inst);
         void sub(WORD inst);
