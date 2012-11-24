@@ -15,6 +15,8 @@
 #define MASK_LOW16  0xffff
 #define MASK_LOW26  0x3ffffff
 
+extern unsigned int buf_offset;
+
 extern void buf_init();
 extern unsigned int buf_load_word(unsigned int pcount);
 extern void buf_save_word(unsigned int pcount, unsigned int code);

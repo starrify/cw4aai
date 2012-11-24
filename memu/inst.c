@@ -490,8 +490,8 @@ static inline void link_pc_ra()
     reg_special_read(REG_SPECIAL_PC, &pcdata);
     reg_gpr_write(REG_GPR_RA, pcdata + 8);
 #if DUMP_INST
-    //fprintf(LOG_FILE, "Link: ra=%.8X\n", pcdata + 8);
-    fprintf(LOG_FILE, "Link: ra=%.8X\n", pcdata + 4);
+    fprintf(LOG_FILE, "Link: ra=%.8X\n", pcdata + 8);
+    //fprintf(LOG_FILE, "Link: ra=%.8X\n", pcdata + 4);
 #endif
     return;
 }
