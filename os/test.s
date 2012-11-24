@@ -10,6 +10,9 @@
 INIT:
     ori $sp, $zero, 0x8000
     lla $t0, WTF
+    srl $t0, $t0, 2
+    lui $t1, 0x0800
+    or $t0, $t0, $t1
     swia $t0, 0x80, 0
     ori $t0, $zero, 1
     #ori $t1, $zero, 3

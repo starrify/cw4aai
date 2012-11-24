@@ -89,6 +89,7 @@ int main()
                  reg_special_write(REG_SPECIAL_PC_ADVANCE2, entry + 4);
                        
                  reg_cpr_write(FKREG_CPR_EXL, 0, MEMU_TRUE);
+		 interrupt_reset(entry);
 #if DUMP_INTERRUPT
                  fprintf(LOG_FILE, "Interrupt: set EPC=%.8X\n", pcadv1);
 #endif

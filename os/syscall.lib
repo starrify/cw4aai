@@ -126,11 +126,10 @@ SYS_SYSCALL:
     sw $ra, 0($sp)
     #at most 4 instructions for each block
     sll $k0, $k0, 4
-    addi $k0, $k0, 4
     lla $t0, SYS_SSC1
     add $k0, $k0, $t0
-SYS_SSC1:
     jr $k0
+SYS_SSC1:    
     #case 0
     .dup 4 .0
     #case 1: gotoxy
