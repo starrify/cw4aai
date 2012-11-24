@@ -18,6 +18,9 @@
 
 #define INIT_BUFSIZE    0x100
 
+/* for those wants to be assembed from a base address other than 0.. */
+unsigned int buf_offset = 0;
+
 static unsigned int reg[] = 
 {
     [REG_ZERO] = 0x0,
@@ -212,7 +215,7 @@ void buf_dump_to_file(FILE *fout)
     }
     else
         ; /* assuming this program runs on a little endian machine */
-    fwrite(buf, pcount, 1, fout);
+    fwrite((void*)buf + buf_offset, pcount - buf_offset, 1, fout);
     
     if (option_output_binary)
     {

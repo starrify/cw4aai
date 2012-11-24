@@ -191,7 +191,8 @@ $31 return yylval.int_t = REG_RA;
 \.  return yylval.int_t = DOT;
 \:  return yylval.int_t = COLON;  
 \;  return yylval.int_t = SEMICOLON;
-\.dup return yylval.int_t = DUP;
+\.dup return yylval.int_t = AD_DUP;
+\.offset    return yylval.int_t = AD_OFFSET;
 
 \n+  return yylval.int_t = EOLN;
 [ \t]+  /* WHITESPACE(not including EOLN), do nothing */

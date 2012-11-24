@@ -30,6 +30,7 @@ int mem_loadimg(char const *filename, u32_t offset)
     fseek(fin, 0, SEEK_SET);
     fread(membase + offset, fsz, 1, fin);
     fclose(fin);
+
     return MEMU_SUCCESS;
 }
 
@@ -98,6 +99,7 @@ int mem_read(u32_t paddr, u32_t vaddr, u32_t attr, int access_type, i32_t *word)
     //assert(!(access_type & MEM_ACCESS_WRITE));
     if (paddr > memsize - len)
         return EXCEPTION_ADDRESS_ERROR;
+
     switch (len)
     {
     case 4:

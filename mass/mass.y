@@ -29,7 +29,10 @@ static inline void warn_expand_to_multi_inst(char *file, int lineno);
 %token <int_t>
     /* misc */
     INTEGER L_PARENTHESIS R_PARENTHESIS COMMA COLON SEMICOLON COMMENT WHITESPACE 
-    EOLN DOT DUP
+    EOLN DOT 
+
+    /* assembler directives */
+    AD_DUP AD_OFFSET
     
     /* operator */
     OP_ADD OP_SUB OP_MUL OP_DIV OP_MOD OP_AND OP_OR OP_XOR OP_NOT OP_LSHIFT 
@@ -123,17 +126,32 @@ statement:
     | instruct_statement
     | label_declare statement
     | rawcode
+    | offset
     ;
 
 rawcode:
     DOT immediate { write_code($2); }
-    | DUP immediate DOT immediate
+    | AD_DUP immediate DOT immediate
     { 
         int i; 
         for (i = 0; i < $2; i++) 
             write_code($4);
     }
     ;
+
+offset:
+    AD_OFFSET immediate
+    {
+        if ($2 & 3)
+        {
+            errmsg("offset %X must align to 4 byte!\n", $2);
+            exit(1);
+        }
+        buf_offset = $2;    
+        int i; 
+        for (i = 0; i < $2 / 4; i++) 
+            write_code(0);
+    }
     
 instruct_statement: 
     r_type_statement
