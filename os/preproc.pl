@@ -20,9 +20,9 @@
 # declare:
 # 	format: .decl <type> {BODY}
 # 	supported types:
-# 		func:(local|global)
+# 		func:(scope|global)
 # 			function being declared will not be coded until it is called
-# 			local functions must be called within the file where it is declared
+# 			scope decides the scope in which functions can be called
 
 use strict;
 use warnings;
@@ -30,7 +30,7 @@ use utf8;
 use 5.010;
 
 my %macros = (), my %included = ();
-my ($func_name, $func_filename, $func_code, $func_islocal, $func_depends) = (0, 1, 2, 3, 4);
+my ($func_name, $func_filename, $func_code, $func_scope, $func_depends) = (0, 1, 2, 3, 4);
 my %func = ();
 my $static = "";
 my $label_cnt = 0;
@@ -67,7 +67,9 @@ sub calcDep() {
     my @dep = ();
     for $key (keys %func) {
         if(index($funcinfo->[$func_code], $key) != -1) {
-            if($func{$key}->[$func_islocal] == 1 && $curfile ne $func{$key}->[$func_filename]) {
+			#if($key eq "SYS_PUTC") {print($func{$key}->[$func_scope]);}
+            if($func{$key}->[$func_scope] ne "__global__" 
+				&& !($func{$key}->[$func_scope] =~ /(^|[^\w])$curfile($|[^\w])/)) {
                 push @dep, "__error__ '$func{$key}->[$func_name]' '$funcinfo->[$func_name]' '$curfile'";
             } else {
                 push @dep, $key;
@@ -192,12 +194,14 @@ sub localDep() {
 
 sub addFuncDecl() {
 	my $leftover = $_[0];
-	my $func_type = "global|local";
-	$leftover =~ /^\s*(?:($func_type)\s+)?{\s*((\w+):.*?)}/s 
+	my $func_type = "global|scope";
+	$leftover =~ /^\s*(?:($func_type)(?:\s*\((.*?)\)?)\s+)?{\s*((\w+):.*?)}/s 
 		or die "invalid function declaration format \"" . &getline($leftover) . '"';
 	$leftover = $';
-	my ($processed) = &process($2);
-	my $funcinfo = [$3, $curfile, $processed, (defined($1) ? ($1 eq "local") : 0)];
+	my ($processed) = &process($3);
+	my $scope = (defined($1) && $1 eq "scope") ? ("$curfile, " . (defined($2) ? $2 : "")) : "__global__";
+	#if($4 eq "SYS_PUTC") {print($scope."\n");}
+	my $funcinfo = [$4, $curfile, $processed, $scope];
 	push @{$funcinfo}, &calcDep($funcinfo);
 	$func{$funcinfo->[$func_name]} = $funcinfo;
 	("", $leftover);

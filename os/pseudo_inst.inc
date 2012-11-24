@@ -50,7 +50,7 @@
 .def lli r1, imm
 {
     lui r1, (imm >> 16) & 0xffff
-    ori r1, $zero, inst & 0xffff
+    ori r1, $zero, imm & 0xffff
 }
 #store word by immediate address
 .def swia r1, base_addr, offset

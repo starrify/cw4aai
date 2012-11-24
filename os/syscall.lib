@@ -1,6 +1,7 @@
+.inc "pseudo_inst.inc"
 .inc "string.lib"
 
-.decl func local {
+.decl func scope(io.lib) {
 SYS_GOTOXY: #row, col
     #boundary check
     ori $t0, $zero, SCR_HEIGHT
@@ -35,7 +36,35 @@ SYS_GXYEND:
     jr $ra
 }
 
-.decl func local {
+.decl func {
+SYS_TEST_AND_SCROLL:
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+    
+    SETFRM_SYSINFO
+    lw $t1, CURSOR($fp)
+    lw $t2, SCR_OFFSET($fp)
+    bne $t1, $t2, SYS_TASEND
+
+    #scroll, t1 is the new starting row and t2 is the old
+    addi $t1, $t2, 4 * SCR_WIDTH
+    blt $t1, $t0, SYS_TAS1
+    addi $t1, $t1, -4 * SCR_WIDTH * SCR_HEIGHT
+SYS_TAS1:
+    sw $t1, SCR_OFFSET($fp)
+    #clear the last row
+    lw $t0, SCR_BASE($fp)
+    add $a0, $t0, $t2
+    ori $a1, $zero, 0x20
+    ori $a2, $zero, 80
+    jal MEMWORDSET
+SYS_TASEND:
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+    jr $ra
+}
+
+.decl func {
 SYS_CURSORNEXT:
     addi $sp, $sp, -4
     sw $ra, 0($sp)
@@ -50,29 +79,15 @@ SYS_CURSORNEXT:
 SYS_CSNXT1:
     sw $t1, CURSOR($fp)
 
-    lw $t2, SCR_OFFSET($fp)
-    bne $t1, $t2, SYS_CSNXT3
+    #test and scroll
+    jal SYS_TEST_AND_SCROLL
 
-    #scroll, t1 is the new starting row and t2 is the old
-    addi $t1, $t2, 4 * SCR_WIDTH
-    blt $t1, $t0, SYS_CSNXT2
-    addi $t1, $t1, -4 * SCR_WIDTH * SCR_HEIGHT
-SYS_CSNXT2:
-    sw $t1, SCR_OFFSET($fp)
-    #clear the last row
-    lw $t0, SCR_BASE($fp)
-    add $a0, $t0, $t2
-    ori $a1, $zero, 0x20
-    ori $a2, $zero, 80
-    jal MEMWORDSET
-
-SYS_CSNXT3:
     lw $ra, 0($sp)
     addi $sp, $sp, 4
     jr $ra
 }
 
-.decl func local {
+.decl func scope(io.lib) {
 SYS_PUTC: #ch
     addi $sp, $sp, -4
     sw $ra, 0($sp)
@@ -91,7 +106,7 @@ SYS_PUTC: #ch
     jr $ra
 }
 
-.decl func local {
+.decl func scope(io.lib) {
 SYS_GETC:
     SETFRM_SYSINFO
     lw $t0, INBUF_START($fp)
