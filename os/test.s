@@ -2,10 +2,9 @@
 .inc "var.inc"
 .inc "jmp_fix.inc"
 .inc "syscall.inc"
-.inc "syscall.lib"
 .inc "io.lib"
 
-.dup 0x1000 >> 2 .0
+.offset 0x800000
 
 INIT:
     ori $sp, $zero, 0x8000
@@ -18,13 +17,18 @@ INIT:
     #ori $t1, $zero, 3
     mtc0 $t0, $3
     #interrupt table
+    ori $a0, $zero, 34
+    and $a1, $zero, $zero
+    ori $k0, $zero, SC_GOTOXY
+    jal SYS_SYSCALL
 LOOP:
     ori $k0, $zero, SC_GETC
     jal SYS_SYSCALL
     blt $v0, $zero, LOOP
     or $a0, $zero, $v0
-    ori $k0, $zero, SC_PUTC
-    jal SYS_SYSCALL
+    jal PUTC
+    #ori $k0, $zero, SC_PUTC
+    #jal SYS_SYSCALL
     j LOOP
 WTF:
     eret

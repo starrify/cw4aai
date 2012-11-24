@@ -10,32 +10,22 @@ LIB_INBUF: #1word start_offset, 1word end_offset, 998words buffer
 
 .decl func {
 PUTC: #ch
-    addi $sp, $sp, 4
+    addi $sp, $sp, -4
     sw $ra, 0($sp)
     
     ori $t0, $zero, 10
     beq $a0, $t0, PTC_NL
 
     jal SYS_PUTC
+    j PTCEND
 PTC_NL:
-    SETFRM_SYSINFO
-    lw $t0, CURSOR($fp)
-    #calc bytes per line
-    ori $t1, $zero, SCR_WIDTH
-    sll $t1, $t1, 2
-    #get cur line
-    divu $t0, $t1
-    mflo $t0
+    jal SYS_GETXY
     #move to next line and wrap
-    addi $a0, $t0, 1
-    ori $t0, $zero, SCR_HEIGHT
-    bne $a0, $t0, PTC1
-    and $a0, $zero, $zero
-PTC1:
-    and $a1, $zero, $zero
+    or $a0, $zero, $v0
+    ori $a1, $zero, SCR_WIDTH - 1
     jal SYS_GOTOXY
-    jal SYS_TEST_AND_SCROLL
-    
+    jal SYS_CURSORNEXT
+    j PTCEND
 PTCEND:
     lw $ra, 0($sp)
     addi $sp, $sp, 4

@@ -6,7 +6,7 @@ SYS_GOTOXY: #row, col
     #boundary check
     ori $t0, $zero, SCR_HEIGHT
     bgeu $a0, $t0, SYS_GXYERR
-    ori $t0, $zero, SCR_WIDTH
+    ori $t0, $zero, SCR_WIDTH * SCR_UNIT_SIZE
     bgeu $a1, $t0, SYS_GXYERR
 
     #calculate cursor position
@@ -21,9 +21,9 @@ SYS_GOTOXY: #row, col
     SETFRM_SYSINFO
     lw $t1, SCR_OFFSET($fp)
     add $t0, $t0, $t1
-    ori $t1, $zero, 4 * SCR_WIDTH * SCR_HEIGHT
+    ori $t1, $zero, SCR_UNIT_SIZE * SCR_WIDTH * SCR_HEIGHT
     blt $t0, $t1, SYS_GXY1
-    addi $t0, $t0, -4 * SCR_WIDTH * SCR_HEIGHT
+    addi $t0, $t0, -SCR_UNIT_SIZE * SCR_WIDTH * SCR_HEIGHT
 
 SYS_GXY1:
     sw $t0, CURSOR($fp)
@@ -36,33 +36,55 @@ SYS_GXYEND:
     jr $ra
 }
 
-.decl func {
-SYS_TEST_AND_SCROLL:
-    addi $sp, $sp, -4
-    sw $ra, 0($sp)
-    
+.decl func scope(io.lib) {
+SYS_GETXY:
     SETFRM_SYSINFO
-    lw $t1, CURSOR($fp)
-    lw $t2, SCR_OFFSET($fp)
-    bne $t1, $t2, SYS_TASEND
-
-    #scroll, t1 is the new starting row and t2 is the old
-    addi $t1, $t2, 4 * SCR_WIDTH
-    blt $t1, $t0, SYS_TAS1
-    addi $t1, $t1, -4 * SCR_WIDTH * SCR_HEIGHT
-SYS_TAS1:
-    sw $t1, SCR_OFFSET($fp)
-    #clear the last row
-    lw $t0, SCR_BASE($fp)
-    add $a0, $t0, $t2
-    ori $a1, $zero, 0x20
-    ori $a2, $zero, 80
-    jal MEMWORDSET
-SYS_TASEND:
-    lw $ra, 0($sp)
-    addi $sp, $sp, 4
+    #calculate reletive cursor
+    lw $t0, CURSOR($fp)
+    lw $t1, SCR_OFFSET($fp)
+    sub $t0, $t0, $t1
+    bge $t0, $zero, SYS_GTXY1
+    addi $t0, $t0, SCR_UNIT_SIZE * SCR_WIDTH * SCR_HEIGHT
+SYS_GTXY1:
+    ori $t1, $zero, SCR_UNIT_SIZE * SCR_WIDTH
+    divu $t0, $t1
+    #row = quotient
+    mfhi $v0
+    #colomn = remainder / 4
+    mflo $v1
+    srl $v1, $v1, 2
+SYS_GTXYEND:
     jr $ra
 }
+
+#.decl func {
+#SYS_TEST_AND_SCROLL:
+#    addi $sp, $sp, -4
+#    sw $ra, 0($sp)
+    
+#    SETFRM_SYSINFO
+#    lw $t1, CURSOR($fp)
+#    lw $t2, SCR_OFFSET($fp)
+#    bne $t1, $t2, SYS_TASEND
+
+    #scroll, t1 is the new starting row and t2 is the old
+#    addi $t1, $t2, SCR_UNIT_SIZE * SCR_WIDTH
+#    ori $t0, $zero, SCR_UNIT_SIZE * SCR_WIDTH * SCR_HEIGHT
+#    bne $t1, $t0, SYS_TAS1
+#    and $t1, $zero, $zero
+#SYS_TAS1:
+#    sw $t1, SCR_OFFSET($fp)
+    #clear the last row
+#    lw $t0, SCR_BASE($fp)
+#    add $a0, $t0, $t2
+#    ori $a1, $zero, 0x20
+#    ori $a2, $zero, 80
+#    jal MEMWORDSET
+#SYS_TASEND:
+#    lw $ra, 0($sp)
+#    addi $sp, $sp, 4
+#    jr $ra
+#}
 
 .decl func {
 SYS_CURSORNEXT:
@@ -72,16 +94,28 @@ SYS_CURSORNEXT:
     SETFRM_SYSINFO
     lw $t1, CURSOR($fp)
     #move cursor
-    addi $t1, $t1, 4
-    ori $t0, $zero, 4 * SCR_WIDTH * SCR_HEIGHT
-    blt $t1, $t0, SYS_CSNXT1
-    addi $t1, $t1, -4 * SCR_WIDTH * SCR_HEIGHT
+    addi $t1, $t1, SCR_UNIT_SIZE
+    ori $t0, $zero, SCR_UNIT_SIZE * SCR_WIDTH * SCR_HEIGHT
+    bne $t1, $t0, SYS_CSNXT1
+    and $t1, $zero, $zero
 SYS_CSNXT1:
     sw $t1, CURSOR($fp)
-
-    #test and scroll
-    jal SYS_TEST_AND_SCROLL
-
+    
+    lw $t2, SCR_OFFSET($fp)
+    bne $t1, $t2, SYS_CSNXYEND
+    #scroll, t1 is the new starting row and t2 is the old
+    addi $t1, $t2, SCR_UNIT_SIZE * SCR_WIDTH
+    bne $t1, $t0, SYS_CSNXT2
+    and $t1, $zero, $zero
+SYS_CSNXT2:
+    sw $t1, SCR_OFFSET($fp)
+    #clear the last row
+    lw $t0, SCR_BASE($fp)
+    add $a0, $t0, $t2
+    ori $a1, $zero, 0x20
+    ori $a2, $zero, 80
+    jal MEMWORDSET
+SYS_CSNXYEND:
     lw $ra, 0($sp)
     addi $sp, $sp, 4
     jr $ra
@@ -124,7 +158,7 @@ SYS_GTCAVL:
     add $t1, $t0, $t1
     lw $v0, 0($t1)
     andi $v0, $v0, 0xff
-    addi $t0, $t0, 4
+    addi $t0, $t0, INBUF_UNIT_SIZE
     ori $t1, $zero, INBUF_SIZE
     blt $t0, $t1, SYS_GTC1
     #addi $t0, $t0, -INBUF_SIZE

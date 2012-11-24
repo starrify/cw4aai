@@ -22,6 +22,8 @@
 
 #const
 .def INBUF_SIZE {4096}
+.def INBUF_UNIT_SIZE {4}
 .def SCR_WIDTH {80}     #maybe should read from sysinfo?
+.def SCR_UNIT_SIZE {4}
 .def SCR_HEIGHT {35}
 .def OS_STACK_INIT {0x8000}

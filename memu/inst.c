@@ -982,7 +982,7 @@ static int inst_exec_mfhi(u32_t code)
     reg_special_read(REG_SPECIAL_HI, &regdata);
     reg_gpr_write(rd, regdata);
 #if DUMP_INST
-    fprintf(LOG_FILE, "Instruction: MFLO: rd=%d\n", rd);
+    fprintf(LOG_FILE, "Instruction: MFHI: rd=%d, word=%08X\n", rd, regdata);
 #endif
     return EXCEPTION_NONE;
 }
