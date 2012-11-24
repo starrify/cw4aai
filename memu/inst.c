@@ -307,8 +307,8 @@ static int (* const inst_callback[])(u32_t) =
     [INST_C_ULT_FMT]    = inst_not_implemented,
     [INST_C_UN_FMT]     = inst_not_implemented,
     [INST_DERET]        = inst_not_implemented,
-    [INST_DIV]          = inst_not_implemented,
-    [INST_DIVU]         = inst_not_implemented,
+    [INST_DIV]          = inst_exec_div,
+    [INST_DIVU]         = inst_exec_divu,
     [INST_DIV_FMT]      = inst_not_implemented,
     [INST_ERET]         = inst_exec_eret,
     [INST_EXT]          = inst_not_implemented,
@@ -372,7 +372,7 @@ static int (* const inst_callback[])(u32_t) =
     [INST_MTLO]         = inst_not_implemented,
     [INST_MUL]          = inst_not_implemented,
     [INST_MULR_PS]      = inst_not_implemented,
-    [INST_MULT]         = inst_not_implemented,
+    [INST_MULT]         = inst_exec_mult,
     [INST_MULTU]        = inst_exec_multu,
     [INST_MUL_FMT]      = inst_not_implemented,
     [INST_NEG_FMT]      = inst_not_implemented,
@@ -737,8 +737,57 @@ static int inst_exec_c_ule_fmt(u32_t code);
 static int inst_exec_c_ult_fmt(u32_t code);
 static int inst_exec_c_un_fmt(u32_t code);
 static int inst_exec_deret(u32_t code);
-static int inst_exec_div(u32_t code);
-static int inst_exec_divu(u32_t code);
+
+static int inst_exec_div(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    int rt = MASKSHR(code, 20, 16);
+    i32_t regdata1;
+    reg_gpr_read(rs, &regdata1);
+    i32_t regdata2; 
+    reg_gpr_read(rt, &regdata2);
+    if (regdata2)
+    {
+        reg_special_write(REG_SPECIAL_HI, regdata1 / regdata2);
+        reg_special_write(REG_SPECIAL_LO, regdata1 % regdata2);
+    }
+    else
+    {
+#if DUMP_INST
+        fprintf(LOG_FILE, "Instruction: DIV: reg[rt]=0\n");
+#endif
+    }
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: DIV: rs=%d, rt=%d\n", rs, rt);
+#endif
+    return EXCEPTION_NONE;
+}
+
+static int inst_exec_divu(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    int rt = MASKSHR(code, 20, 16);
+    u32_t regdata1;
+    reg_gpr_read(rs, &regdata1);
+    u32_t regdata2; 
+    reg_gpr_read(rt, &regdata2);
+    if (regdata2)
+    {
+        reg_special_write(REG_SPECIAL_HI, regdata1 / regdata2);
+        reg_special_write(REG_SPECIAL_LO, regdata1 % regdata2);
+    }
+    else
+    {
+#if DUMP_INST
+        fprintf(LOG_FILE, "Instruction: DIVU: reg[rt]=0\n");
+#endif
+    }
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: DIVU: rs=%d, rt=%d\n", rs, rt);
+#endif
+    return EXCEPTION_NONE;
+}
+
 static int inst_exec_div_fmt(u32_t code);
 
 static int inst_exec_eret(u32_t code)
@@ -977,7 +1026,23 @@ static int inst_exec_mthi(u32_t code);
 static int inst_exec_mtlo(u32_t code);
 static int inst_exec_mul(u32_t code);
 static int inst_exec_mulr_ps(u32_t code);
-static int inst_exec_mult(u32_t code);
+
+static int inst_exec_mult(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    int rt = MASKSHR(code, 20, 16);
+    i32_t regdata1;
+    reg_gpr_read(rs, &regdata1);
+    i32_t regdata2; 
+    reg_gpr_read(rt, &regdata2);
+    i64_t regdata = (u64_t)regdata1 * (u64_t)regdata2;
+    reg_special_write(REG_SPECIAL_HI, MASK64SHR(regdata, 63, 32));
+    reg_special_write(REG_SPECIAL_LO, MASK64SHR(regdata, 31, 0));
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: MULT: rs=%d, rt=%d\n", rs, rt);
+#endif
+    return EXCEPTION_NONE;
+}
 
 static int inst_exec_multu(u32_t code)
 {

@@ -37,6 +37,7 @@
 
 typedef unsigned long long  u64_t;
 typedef unsigned int   u32_t;
+typedef long long i64_t;
 typedef int i32_t;
 typedef short   i16_t;
 typedef char    i8_t;
