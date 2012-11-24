@@ -18,7 +18,7 @@ struct config_t config =
     .endianess  = CONFIG_ENDIAN_LITTLE,
     .display_refresh_rate   = 20000000,
     .iic_check_rate = 100000,
-    .log_filename   = "1.log",
+    .log_filename   = "/tmp/1.log",
     .log_file   = NULL, /* to be initialized */
     .status_display_size    = 19,
 };

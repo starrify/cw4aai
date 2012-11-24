@@ -77,26 +77,30 @@ int main()
             step_count = step;
         }
 #endif
-        if (interrupt_test())
+        
+        u32_t reg_pc = reg_advance_pc();
+        u32_t reg_pcadv1;
+        reg_special_read(REG_SPECIAL_PC_ADVANCE1, &reg_pcadv1);
+        if (reg_pcadv1 == reg_pc + 4) // we dont interrupt at a delay slot
         {
-            u32_t entry = interrupt_entry();
-            if (entry)
+            if (interrupt_test())
             {
-                 u32_t pcadv1;
-                 reg_special_read(REG_SPECIAL_PC_ADVANCE1, &pcadv1);
-                 reg_cpr_write(FKREG_CPR_EPC, 0, pcadv1);
-                 reg_special_write(REG_SPECIAL_PC_ADVANCE1, entry);
-                 reg_special_write(REG_SPECIAL_PC_ADVANCE2, entry + 4);
-                       
-                 reg_cpr_write(FKREG_CPR_EXL, 0, MEMU_TRUE);
-		 interrupt_reset(entry);
-#if DUMP_INTERRUPT
-                 fprintf(LOG_FILE, "Interrupt: set EPC=%.8X\n", pcadv1);
-#endif
+                u32_t entry = interrupt_entry();
+                if (entry)
+                {
+                    reg_cpr_write(FKREG_CPR_EPC, 0, reg_pc);
+ #if DUMP_INTERRUPT
+                    fprintf(LOG_FILE, "Interrupt: set EPC=%.8X\n", reg_pc);
+#endif          
+                    reg_special_write(REG_SPECIAL_PC_ADVANCE1, entry);
+                    reg_special_write(REG_SPECIAL_PC_ADVANCE2, entry + 4);
+                    reg_pc = reg_advance_pc();
+                    reg_cpr_write(FKREG_CPR_EXL, 0, MEMU_TRUE);
+		            interrupt_reset(entry);
+                }
             }
         }
 
-        u32_t reg_pc = reg_advance_pc();
         u32_t code;
         u32_t paddr;
         u32_t attr;
