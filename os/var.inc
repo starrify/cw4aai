@@ -21,7 +21,7 @@
 #.def LIB_INBUF_END {0x1008}
 
 #const
-.def INBUF_SIZE {4096}
+.def INBUF_SIZE {65536}
 .def SCR_WIDTH {80}
 .def SCR_HEIGHT {35}
 .def OS_STACK_INIT {0x8000}

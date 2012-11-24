@@ -112,8 +112,8 @@ SYS_GTCAVL:
     addi $t0, $t0, 4
     ori $t1, $zero, INBUF_SIZE
     blt $t0, $t1, SYS_GTC1
-    addi $t0, $t0, -INBUF_SIZE
-
+    #addi $t0, $t0, -INBUF_SIZE
+    and $t0, $zero, $zero
 SYS_GTC1:
     sw $t0, INBUF_START($fp)
 SYS_GTCEND:
