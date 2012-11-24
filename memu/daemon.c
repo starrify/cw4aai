@@ -71,6 +71,9 @@ void *display_daemon(void *ptr)
         int chrsz = 4;
         int scrsize = scrx * scry * chrsz;
         memcpy(membase + fbbase + scrsize, membase + fbbase, fbhead * chrsz);
+#if DUMP_DISPLAY
+        fprintf(LOG_FILE, "Display: memcpy: %.8X -> %.8X, size: %X\n", fbbase, fbbase + scrsize, fbhead * chrsz);
+#endif
 
         int i;
         for (i = 0; i < scrx; i++)
@@ -81,9 +84,9 @@ void *display_daemon(void *ptr)
                 unsigned int p = fbbase + fbhead + (i * scry + j) * chrsz;
                 unsigned int c = *(unsigned int*)(p + membase);
                 mvaddch(i, j, c);
-#if DUMP_DISPLAY
-                fprintf(LOG_FILE, "DISPLAY: %.8X: %d at %d %d\n", p, c, i, j);
-#endif
+//#if DUMP_DISPLAY
+//                fprintf(LOG_FILE, "DISPLAY: %.8X: %d at %d %d\n", p, c, i, j);
+//#endif
             }
         }
         move(cursor_off / scry, cursor_off % scry);
