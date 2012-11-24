@@ -307,8 +307,8 @@ static int (* const inst_callback[])(u32_t) =
     [INST_C_ULT_FMT]    = inst_not_implemented,
     [INST_C_UN_FMT]     = inst_not_implemented,
     [INST_DERET]        = inst_not_implemented,
-    [INST_DIV]          = inst_not_implemented,
-    [INST_DIVU]         = inst_not_implemented,
+    [INST_DIV]          = inst_exec_div,
+    [INST_DIVU]         = inst_exec_divu,
     [INST_DIV_FMT]      = inst_not_implemented,
     [INST_ERET]         = inst_exec_eret,
     [INST_EXT]          = inst_not_implemented,
@@ -346,7 +346,7 @@ static int (* const inst_callback[])(u32_t) =
     [INST_MFC2]         = inst_not_implemented,
     [INST_MFHC1]        = inst_not_implemented,
     [INST_MFHC2]        = inst_not_implemented,
-    [INST_MFHI]         = inst_not_implemented,
+    [INST_MFHI]         = inst_exec_mfhi,
     [INST_MFLO]         = inst_exec_mflo,
     [INST_MFMC0]        = inst_not_implemented,
     [INST_MOVF]         = inst_not_implemented,
@@ -368,11 +368,11 @@ static int (* const inst_callback[])(u32_t) =
     [INST_MTC2]         = inst_not_implemented,
     [INST_MTHC1]        = inst_not_implemented,
     [INST_MTHC2]        = inst_not_implemented,
-    [INST_MTHI]         = inst_not_implemented,
-    [INST_MTLO]         = inst_not_implemented,
+    [INST_MTHI]         = inst_exec_mthi,
+    [INST_MTLO]         = inst_exec_mtlo,
     [INST_MUL]          = inst_not_implemented,
     [INST_MULR_PS]      = inst_not_implemented,
-    [INST_MULT]         = inst_not_implemented,
+    [INST_MULT]         = inst_exec_mult,
     [INST_MULTU]        = inst_exec_multu,
     [INST_MUL_FMT]      = inst_not_implemented,
     [INST_NEG_FMT]      = inst_not_implemented,
@@ -737,8 +737,57 @@ static int inst_exec_c_ule_fmt(u32_t code);
 static int inst_exec_c_ult_fmt(u32_t code);
 static int inst_exec_c_un_fmt(u32_t code);
 static int inst_exec_deret(u32_t code);
-static int inst_exec_div(u32_t code);
-static int inst_exec_divu(u32_t code);
+
+static int inst_exec_div(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    int rt = MASKSHR(code, 20, 16);
+    i32_t regdata1;
+    reg_gpr_read(rs, &regdata1);
+    i32_t regdata2; 
+    reg_gpr_read(rt, &regdata2);
+    if (regdata2)
+    {
+        reg_special_write(REG_SPECIAL_HI, regdata1 / regdata2);
+        reg_special_write(REG_SPECIAL_LO, regdata1 % regdata2);
+    }
+    else
+    {
+#if DUMP_INST
+        fprintf(LOG_FILE, "Instruction: DIV: reg[rt]=0\n");
+#endif
+    }
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: DIV: rs=%d, rt=%d\n", rs, rt);
+#endif
+    return EXCEPTION_NONE;
+}
+
+static int inst_exec_divu(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    int rt = MASKSHR(code, 20, 16);
+    u32_t regdata1;
+    reg_gpr_read(rs, &regdata1);
+    u32_t regdata2; 
+    reg_gpr_read(rt, &regdata2);
+    if (regdata2)
+    {
+        reg_special_write(REG_SPECIAL_HI, regdata1 / regdata2);
+        reg_special_write(REG_SPECIAL_LO, regdata1 % regdata2);
+    }
+    else
+    {
+#if DUMP_INST
+        fprintf(LOG_FILE, "Instruction: DIVU: reg[rt]=0\n");
+#endif
+    }
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: DIVU: rs=%d, rt=%d\n", rs, rt);
+#endif
+    return EXCEPTION_NONE;
+}
+
 static int inst_exec_div_fmt(u32_t code);
 
 static int inst_exec_eret(u32_t code)
@@ -925,7 +974,18 @@ static int inst_exec_mfc1(u32_t code);
 static int inst_exec_mfc2(u32_t code);
 static int inst_exec_mfhc1(u32_t code);
 static int inst_exec_mfhc2(u32_t code);
-static int inst_exec_mfhi(u32_t code);
+
+static int inst_exec_mfhi(u32_t code)
+{
+    int rd = MASKSHR(code, 15, 11);
+    i32_t regdata;
+    reg_special_read(REG_SPECIAL_HI, &regdata);
+    reg_gpr_write(rd, regdata);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: MFLO: rd=%d\n", rd);
+#endif
+    return EXCEPTION_NONE;
+}
 
 static int inst_exec_mflo(u32_t code)
 {
@@ -973,11 +1033,50 @@ static int inst_exec_mtc1(u32_t code);
 static int inst_exec_mtc2(u32_t code);
 static int inst_exec_mthc1(u32_t code);
 static int inst_exec_mthc2(u32_t code);
-static int inst_exec_mthi(u32_t code);
-static int inst_exec_mtlo(u32_t code);
+
+static int inst_exec_mthi(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    i32_t regdata;
+    reg_gpr_read(rs, &regdata);
+    reg_special_write(REG_SPECIAL_HI, regdata);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: MTHI: rs=%d\n", rs);
+#endif
+    return EXCEPTION_NONE;
+}
+
+static int inst_exec_mtlo(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    i32_t regdata;
+    reg_gpr_read(rs, &regdata);
+    reg_special_write(REG_SPECIAL_LO, regdata);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: MTLO: rs=%d\n", rs);
+#endif
+    return EXCEPTION_NONE;
+}
+
 static int inst_exec_mul(u32_t code);
 static int inst_exec_mulr_ps(u32_t code);
-static int inst_exec_mult(u32_t code);
+
+static int inst_exec_mult(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    int rt = MASKSHR(code, 20, 16);
+    i32_t regdata1;
+    reg_gpr_read(rs, &regdata1);
+    i32_t regdata2; 
+    reg_gpr_read(rt, &regdata2);
+    i64_t regdata = (u64_t)regdata1 * (u64_t)regdata2;
+    reg_special_write(REG_SPECIAL_HI, MASK64SHR(regdata, 63, 32));
+    reg_special_write(REG_SPECIAL_LO, MASK64SHR(regdata, 31, 0));
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: MULT: rs=%d, rt=%d\n", rs, rt);
+#endif
+    return EXCEPTION_NONE;
+}
 
 static int inst_exec_multu(u32_t code)
 {

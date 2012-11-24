@@ -65,7 +65,9 @@ void *display_daemon(void *ptr)
         unsigned int scry = *(sbase + 10); //screen y
         unsigned int fbbase = *(sbase + 12);    //fb base
         unsigned int fbhead = *(sbase + 13);    //fb head offset
-        int cursor_off = (*(sbase + 14) + fbhead) / 4;   //cursor_off
+        int cursor_off = (*(sbase + 14) - fbhead) / 4;   //cursor_off
+        if (cursor_off < 0)
+            cursor_off += scrx * scry;
         int chrsz = 4;
         int scrsize = scrx * scry * chrsz;
         memcpy(membase + fbbase + scrsize, membase + fbbase, fbhead * chrsz);
