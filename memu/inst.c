@@ -346,7 +346,7 @@ static int (* const inst_callback[])(u32_t) =
     [INST_MFC2]         = inst_not_implemented,
     [INST_MFHC1]        = inst_not_implemented,
     [INST_MFHC2]        = inst_not_implemented,
-    [INST_MFHI]         = inst_not_implemented,
+    [INST_MFHI]         = inst_exec_mfhi,
     [INST_MFLO]         = inst_exec_mflo,
     [INST_MFMC0]        = inst_not_implemented,
     [INST_MOVF]         = inst_not_implemented,
@@ -368,8 +368,8 @@ static int (* const inst_callback[])(u32_t) =
     [INST_MTC2]         = inst_not_implemented,
     [INST_MTHC1]        = inst_not_implemented,
     [INST_MTHC2]        = inst_not_implemented,
-    [INST_MTHI]         = inst_not_implemented,
-    [INST_MTLO]         = inst_not_implemented,
+    [INST_MTHI]         = inst_exec_mthi,
+    [INST_MTLO]         = inst_exec_mtlo,
     [INST_MUL]          = inst_not_implemented,
     [INST_MULR_PS]      = inst_not_implemented,
     [INST_MULT]         = inst_exec_mult,
@@ -974,7 +974,18 @@ static int inst_exec_mfc1(u32_t code);
 static int inst_exec_mfc2(u32_t code);
 static int inst_exec_mfhc1(u32_t code);
 static int inst_exec_mfhc2(u32_t code);
-static int inst_exec_mfhi(u32_t code);
+
+static int inst_exec_mfhi(u32_t code)
+{
+    int rd = MASKSHR(code, 15, 11);
+    i32_t regdata;
+    reg_special_read(REG_SPECIAL_HI, &regdata);
+    reg_gpr_write(rd, regdata);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: MFLO: rd=%d\n", rd);
+#endif
+    return EXCEPTION_NONE;
+}
 
 static int inst_exec_mflo(u32_t code)
 {
@@ -1022,8 +1033,31 @@ static int inst_exec_mtc1(u32_t code);
 static int inst_exec_mtc2(u32_t code);
 static int inst_exec_mthc1(u32_t code);
 static int inst_exec_mthc2(u32_t code);
-static int inst_exec_mthi(u32_t code);
-static int inst_exec_mtlo(u32_t code);
+
+static int inst_exec_mthi(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    i32_t regdata;
+    reg_gpr_read(rs, &regdata);
+    reg_special_write(REG_SPECIAL_HI, regdata);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: MTHI: rs=%d\n", rs);
+#endif
+    return EXCEPTION_NONE;
+}
+
+static int inst_exec_mtlo(u32_t code)
+{
+    int rs = MASKSHR(code, 25, 21);
+    i32_t regdata;
+    reg_gpr_read(rs, &regdata);
+    reg_special_write(REG_SPECIAL_LO, regdata);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: MTLO: rs=%d\n", rs);
+#endif
+    return EXCEPTION_NONE;
+}
+
 static int inst_exec_mul(u32_t code);
 static int inst_exec_mulr_ps(u32_t code);
 
