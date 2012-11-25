@@ -145,7 +145,7 @@ void *timer_daemon(void *ptr)
     while (1)
     {
         nanosleep(&rqtp, NULL);
-        interrput_set(INTERRUPT_ENTRY_TIMER);
+        interrupt_set(INTERRUPT_ENTRY_TIMER);
     }
     return NULL;
 }

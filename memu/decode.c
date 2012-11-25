@@ -840,7 +840,8 @@ static inline u32_t decode_opcode(u32_t bincode)
 u32_t decode(u32_t code)
 {
     u32_t ret = decode_opcode(code);
-    ret &= ~SYMBOL_LDELTA; /* all other symbols would cause a Reserved Instruction Exception */ 
+//    ret &= ~SYMBOL_LDELTA; /* all other symbols would cause a Reserved Instruction Exception */ 
+    ret &= 0xFFFF; // clear symbols
     return ret;
 }
 

@@ -33,15 +33,15 @@ static void init()
     mem_create(config.memsize);
     get_dma_info(&membase, &memsize);  
 
+    config.log_file = fopen(config.log_filename, "w");
+    assert(config.log_file);
+
     hdd_init();
     mem_init();
     hdd_read(membase + config.img_base, 0, config.hdd_sector_skip);
     mmu_init();
     reg_init();
     daemon_init();
-    
-    config.log_file = fopen(config.log_filename, "w");
-    assert(config.log_file);
     
     pthread_create(&display_daemon_thread, NULL, display_daemon, NULL);
     pthread_create(&keyboard_daemon_thread, NULL, keyboard_daemon, NULL);

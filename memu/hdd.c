@@ -43,7 +43,7 @@ int hdd_read(void *mem_start, size_t sector_start, size_t sector_count)
 {
     memcpy(mem_start, hdd_base + sector_start * SECTOR_SIZE, sector_count * SECTOR_SIZE);
 #if DUMP_HDD
-    fprintf(LOG_FILE, "HDD: Read: mem_start=0x%.8X, sector_start=0x%.8X, sector_count=0x%.8X\n",
+    fprintf(LOG_FILE, "HDD: Read: mem_start=0x%p, sector_start=0x%.8X, sector_count=0x%.8X\n",
         mem_start, sector_start, sector_count);
 #endif
     return MEMU_SUCCESS;
@@ -53,7 +53,7 @@ int hdd_write(void *mem_start, size_t sector_start, size_t sector_count)
 {
     memcpy(hdd_base + sector_start * SECTOR_SIZE, mem_start, sector_count * SECTOR_SIZE);
 #if DUMP_HDD
-    fprintf(LOG_FILE, "HDD: Write: mem_start=0x%.8X, sector_start=0x%.8X, sector_count=0x%.8X\n",
+    fprintf(LOG_FILE, "HDD: Write: mem_start=0x%p, sector_start=0x%.8X, sector_count=0x%.8X\n",
         mem_start, sector_start, sector_count);
 #endif
     return MEMU_SUCCESS;
