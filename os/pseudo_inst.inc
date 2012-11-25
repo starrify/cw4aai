@@ -118,18 +118,6 @@
     #is overlap if (raddr1 + rsize > raddr2 and raddr2 + rsize > raddr1) != 0
     and r1, r1, $at
 }
-#load word from label
-.def lwlb rd, lb, offset
-{
-    lla $at, lb
-    lw rd, offset($at)
-}
-#store word from label
-.def swlb rd, lb, offset
-{
-    lla $at, lb
-    sw rd, offset($at)
-}
 #load word grom label with reg offset
 .def lwlbv rd, lb, roff
 {

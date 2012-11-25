@@ -4,6 +4,7 @@
 
 .def SETFRM pos {ori $fp, $zero, pos}
 .def SETFRML pos {lli $fp, $zero, pos}
+.def SETFRMLB lb {lla $fp, lb}
 .def SETFRM_SYSINFO {SETFRM 32768}
 
 #sysinfo
@@ -13,11 +14,6 @@
 .def INBUF_BASE {64}
 .def INBUF_START {72}
 .def INBUF_END {76}
-
-#os var
-#.def LIB_INBUF_BASE {0x1000}
-#.def LIB_INBUF_START {0x1004}
-#.def LIB_INBUF_END {0x1008}
 
 #const
 .def INBUF_SIZE {4096}

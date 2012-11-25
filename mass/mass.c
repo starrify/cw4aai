@@ -36,7 +36,7 @@ const char *optstr = "-B:DWo:hv";
 
 int option_byteorder = 0;
 int option_output_binary = 0;
-int option_warning = 1;
+int option_warning = 0;
 char *option_input_file = NULL;
 char *option_output_file = NULL;
 

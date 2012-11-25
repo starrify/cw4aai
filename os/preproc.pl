@@ -67,7 +67,6 @@ sub calcDep() {
     my @dep = ();
     for $key (keys %func) {
         if(index($funcinfo->[$func_code], $key) != -1) {
-			#if($key eq "SYS_PUTC") {print($func{$key}->[$func_scope]);}
             if($func{$key}->[$func_scope] ne "__global__" 
 				&& !($func{$key}->[$func_scope] =~ /(^|[^\w])$curfile($|[^\w])/)) {
                 push @dep, "__error__ '$func{$key}->[$func_name]' '$funcinfo->[$func_name]' '$curfile'";
@@ -108,9 +107,9 @@ sub addDef() {
 	$macros{$macro_name} = [];
 	my $args = $2;
 	$leftover = $';
-	$leftover =~ /^\s*{(.*?)}/s 
+	$leftover =~ /^\s*(?:([^{]+?)\s|{)\s*(.*?)(\1|})/s 
 		or die "Invalid macro definition: \".def $macro_name " . &getline($leftover) . '"';
-	$macros{$macro_name}->[0] = $1;
+	$macros{$macro_name}->[0] = $2;
 	$leftover = $';
 	defined($args) and push(@{$macros{$macro_name}}, grep { $_ } split(/\s|,/, $args));
 	("", $leftover);
@@ -145,7 +144,6 @@ sub expandDef() {
 		@args = defined($1) ? (grep { $_ ne "" } split(/\s|,/, $1)) : ();
 
 	}
-	#print("argc: $argc, args: @args\n");
 	my $i;
 	for $i (0 .. $argc - 1) {
 		$str =~ s/(^|[^\w])$macros{$cmd}->[$i + 1]($|[^\w])/$1$args[$i]$2/g;
@@ -195,13 +193,12 @@ sub localDep() {
 sub addFuncDecl() {
 	my $leftover = $_[0];
 	my $func_type = "global|scope";
-	$leftover =~ /^\s*(?:($func_type)(?:\s*\((.*?)\)?)\s+)?{\s*((\w+):.*?)}/s 
+	$leftover =~ /^\s*(?:($func_type)(?:\s*\((.*?)\))?\s+)?(?:([^{]+?)\s|{)\s*((\w+):.*?)(\3|})/s 
 		or die "invalid function declaration format \"" . &getline($leftover) . '"';
 	$leftover = $';
-	my ($processed) = &process($3);
+	my ($processed) = &process($4);
 	my $scope = (defined($1) && $1 eq "scope") ? ("$curfile, " . (defined($2) ? $2 : "")) : "__global__";
-	#if($4 eq "SYS_PUTC") {print($scope."\n");}
-	my $funcinfo = [$4, $curfile, $processed, $scope];
+	my $funcinfo = [$5, $curfile, $processed, $scope];
 	push @{$funcinfo}, &calcDep($funcinfo);
 	$func{$funcinfo->[$func_name]} = $funcinfo;
 	("", $leftover);
@@ -227,12 +224,34 @@ sub addDecl() {
 #.static subroutines
 sub addStatic() {
 	my $leftover = $_[0];
-	$leftover =~ /^\s*{(.*?)}/s or die "invalid static variable declaration format \"" . &getline($leftover) . '"';
+	$leftover =~ /^\s*(?:([^{]+?)\s|{)\s*(.*?)(\1|})/s 
+		or die "invalid static variable declaration format \"" . &getline($leftover) . '"';
 	$leftover = $';
-	$static .= &process($1);
+	my ($processed) = &process($2);
+	$static .= $processed;
 	("", $leftover)
 }
 
+#.loop subroutines
+sub loop() {
+	my $leftover = $_[0];
+	my $loopvar, my $tmp;
+	my $out = "";
+	$leftover =~ /^\s*([x\da-fA-F]+)\s+([x\da-fA-F]+)(?:\s+([x\da-fA-F]+))?\s*(?:([^{]+)\s|{)(.*?)(\4|})/s
+		or die "invalid loop format\"" . &getline($leftover) . '"';
+	$leftover = $';
+	my $num1 = index($1, "0x") == 0 ? hex($1) : $1;
+	my $num2 = index($2, "0x") == 0 ? hex($2) : $2;
+	my $num3 = (defined($3) ? (index($3, "0x") == 0 ? hex($3) : $3) : 1);
+	for($loopvar = $num1;
+		$loopvar <= $num2; 
+		$loopvar += $num3) {
+		$tmp = $5;
+		$tmp =~ s/<LOOPVAR>/$loopvar/g;
+		$out .= $tmp;
+	}
+	($out, $leftover);
+}
 
 sub processCmd() {
 	my ($cmd, $leftover) = @_;
@@ -256,6 +275,11 @@ sub processCmd() {
 		}
 		when('.static') {
 			($tmp, $leftover) = &addStatic($leftover);
+			$out = $tmp;
+			$localout = $tmp;
+		}
+		when('.loop') {
+			($tmp, $leftover) = &loop($leftover);
 			$out = $tmp;
 			$localout = $tmp;
 		}
@@ -294,7 +318,7 @@ sub process() {
 my $src = &readSrc();
 my ($res, $localout) = &process($src);
 $res .= &localDep($localout);
-$res .= "STATIC_HERE:\n$static";
+$res .= "STATIC_BEG:\n${static}STATIC_END:\n";
 $res = &format($res);
 print($res);
 0;

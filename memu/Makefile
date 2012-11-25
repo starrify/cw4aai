@@ -5,7 +5,7 @@
 # oops this makefile sucks..
 
 CC  = gcc
-CFLAG   = -O2
+CFLAG   = -O2 
 LFLAG   = -lpthread -lncurses
 OBJS    = memu.o config.o decode.o inst.o mem.o mmu.o reg.o \
             daemon.o fancyterm.o interrupt.o
