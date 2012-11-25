@@ -54,7 +54,7 @@ static inline void warn_expand_to_multi_inst(char *file, int lineno);
     INST_J INST_JAL
 
     /* cp0 instructions */
-    INST_ERET INST_MFC0 INST_MTC0 INST_WAIT
+    INST_ERET INST_MFC0 INST_MTC0 INST_WAIT INST_RDPGPR INST_WRPGPR
 
     /* cp1 instructions */
     INST_ADD_S INST_CVT_S_W INST_CVT_W_S INST_DIV_S INST_MFC1 INST_MOV_S 
@@ -454,7 +454,7 @@ cp0_inst:
     INST_ERET | INST_WAIT;
 
 cp0_inst_rt_rd:
-    INST_MFC0 | INST_MTC0 ;
+    INST_MFC0 | INST_MTC0 | INST_RDPGPR | INST_WRPGPR ;
     
 cp1_inst_fd_fs_ft:
     INST_ADD_S | INST_CVT_S_W | INST_CVT_W_S | INST_DIV_S | INST_MUL_S 

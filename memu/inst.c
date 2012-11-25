@@ -392,7 +392,7 @@ static int (* const inst_callback[])(u32_t) =
     [INST_PUL_PS]       = inst_not_implemented,
     [INST_PUU_PS]       = inst_not_implemented,
     [INST_RDHWR]        = inst_not_implemented,
-    [INST_RDPGPR]       = inst_not_implemented,
+    [INST_RDPGPR]       = inst_exec_rdpgpr,
     [INST_RECIP_FMT]    = inst_not_implemented,
     [INST_RECIP1]       = inst_not_implemented,
     [INST_RECIP2]       = inst_not_implemented,
@@ -455,7 +455,7 @@ static int (* const inst_callback[])(u32_t) =
     [INST_TRUNC_L_FMT]  = inst_not_implemented,
     [INST_TRUNC_W_FMT]  = inst_not_implemented,
     [INST_WAIT]         = inst_not_implemented,
-    [INST_WRPGPR]       = inst_not_implemented,
+    [INST_WRPGPR]       = inst_exec_wrpgpr,
     [INST_WSBH]         = inst_not_implemented,
     [INST_XOR]          = inst_exec_xor,
     [INST_XORI]         = inst_exec_xori,
@@ -1158,7 +1158,18 @@ static int inst_exec_prefx(u32_t code);
 static int inst_exec_pul_ps(u32_t code);
 static int inst_exec_puu_ps(u32_t code);
 static int inst_exec_rdhwr(u32_t code);
-static int inst_exec_rdpgpr(u32_t code);
+
+static int inst_exec_rdpgpr(u32_t code)
+{
+    int rt = MASKSHR(code, 20, 16);
+    int rd = MASKSHR(code, 15, 11);
+    reg_gpr_shadow_read(rd, rt);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: RDPGPR: rt=%d, rd=%d\n", rt, rd);
+#endif
+    return EXCEPTION_NONE;
+}
+
 static int inst_exec_recip_fmt(u32_t code);
 static int inst_exec_recip1(u32_t code);
 static int inst_exec_recip2(u32_t code);
@@ -1423,7 +1434,16 @@ static int inst_exec_sync(u32_t code)
 }
 
 static int inst_exec_synci(u32_t code);
+
 static int inst_exec_syscall(u32_t code);
+{
+    interrupt_set(INTERRUPT_ENTRY_SYSCALL);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: SYSCALL\n");
+#endif
+    return EXCEPTION_NONE;
+}
+
 static int inst_exec_teq(u32_t code);
 static int inst_exec_teqi(u32_t code);
 static int inst_exec_tge(u32_t code);
@@ -1443,7 +1463,18 @@ static int inst_exec_tnei(u32_t code);
 static int inst_exec_trunc_l_fmt(u32_t code);
 static int inst_exec_trunc_w_fmt(u32_t code);
 static int inst_exec_wait(u32_t code);
-static int inst_exec_wrpgpr(u32_t code);
+
+static int inst_exec_wrpgpr(u32_t code)
+{
+    int rt = MASKSHR(code, 20, 16);
+    int rd = MASKSHR(code, 15, 11);
+    reg_gpr_shadow_write(rd, rt);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: WRPGPR: rt=%d, rd=%d\n", rt, rd);
+#endif
+    return EXCEPTION_NONE;
+}
+
 static int inst_exec_wsbh(u32_t code);
 
 static int inst_exec_xor(u32_t code)

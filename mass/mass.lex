@@ -79,6 +79,8 @@ eret    return yylval.int_t = INST_ERET;
 mfc0    return yylval.int_t = INST_MFC0;
 mtc0    return yylval.int_t = INST_MTC0;
 wait    return yylval.int_t = INST_WAIT;
+rdpgpr  return yylval.int_t = INST_RDPGPR;
+wrpgpr  return yylval.int_t = INST_WRPGPR;
 
  /* cp1 instructions */
 add.s   return yylval.int_t = INST_ADD_S;
