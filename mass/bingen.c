@@ -134,6 +134,8 @@ static unsigned int function[] =
     [INST_MTC0] = 0b000000,
     [INST_ERET] = 0b011000,
     [INST_WAIT] = 0b100000,
+    [INST_RDPGPR] = 0b000000,
+    [INST_WRPGPR] = 0b000000,
 
     /* cp1 instructions */
     [INST_ADD_S]    = 0b000000,
@@ -141,7 +143,7 @@ static unsigned int function[] =
     [INST_CVT_W_S]  = 0b100100,
     [INST_DIV_S]    = 0b000011,
     [INST_MFC1] = 0b000000,
-    [INST_MOV_S]    =0b000110,
+    [INST_MOV_S]    = 0b000110,
     [INST_MTC1] = 0b000000,
     [INST_MUL_S]    = 0b000010,
     [INST_SUB_S]    = 0b000001,
@@ -152,9 +154,11 @@ static unsigned int format[] =
 {
     /* for c0 instructions */
     [INST_ERET] = 0b10000,
+    [INST_WAIT] = 0b10000,
     [INST_MFC0] = 0b00000,
     [INST_MTC0] = 0b00100,
-    [INST_WAIT] = 0b10000,
+    [INST_RDPGPR]   = 0b01010,
+    [INST_WRPGPR]   = 0b01110,
 
     /* for c1 instructions */
     [INST_ADD_S]    = 0b10000,

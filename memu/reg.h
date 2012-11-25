@@ -99,6 +99,8 @@ enum _fake_reg_cpr
 extern i32_t reg_init();
 extern i32_t reg_gpr_read(unsigned int reg, i32_t *word);
 extern i32_t reg_gpr_write(unsigned int reg, i32_t word);
+extern i32_t reg_gpr_shadow_read(unsigned int rd, unsigned int rt);
+extern i32_t reg_gpr_shadow_write(unsigned int rd, unsigned int rt);
 extern i32_t reg_cpr_read(unsigned int reg, unsigned int sel, i32_t *word);
 extern i32_t reg_cpr_write(unsigned int reg, unsigned int sel, i32_t word);
 extern i32_t reg_special_read(unsigned int reg, i32_t *word);

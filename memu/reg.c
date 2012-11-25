@@ -43,6 +43,7 @@ static const i32_t reg_cpr_write_mask[NUMBER_OF_REG_CPRS] = {
 };
 
 static i32_t reg_gpr[NUMBER_OF_REG_GPRS];
+static i32_t reg_gpr_shadow[NUMBER_OF_REG_GPRS];
 static i32_t reg_cpr[NUMBER_OF_REG_CPRS];
 static i32_t reg_special[NUMBER_OF_REG_SPECIALS];
 
@@ -68,21 +69,22 @@ i32_t reg_gpr_write(unsigned int reg, i32_t word)
     reg %= NUMBER_OF_REG_GPRS;
     reg_gpr[reg] = word;
     reg_gpr[REG_GPR_ZERO] = 0;
-    switch (reg)
-    {
-    case 2:
-        fprintf(LOG_FILE, "GPR_V0: Write: data=%d\n", word);
-        break;
-    case 3:
-        fprintf(LOG_FILE, "GPR_V1: Write: data=%d\n", word);
-        break;
-    case 12:
-        fprintf(LOG_FILE, "GPR_T4: Write: data=%d\n", word);
-        break;        
-    default:
-        break;
-    }
+    return MEMU_SUCCESS;
+}
 
+i32_t reg_gpr_shadow_read(unsigned int rd, unsigned int rt)
+{
+    rd %= NUMBER_OF_REG_GPRS;
+    rt %= NUMBER_OF_REG_GPRS;
+    reg_gpr[rd] = reg_gpr_shadow[rt];
+    return MEMU_SUCCESS;
+}
+
+i32_t reg_gpr_shadow_write(unsigned int rd, unsigned int rt)
+{
+    rd %= NUMBER_OF_REG_GPRS;
+    rt %= NUMBER_OF_REG_GPRS;
+    reg_gpr_shadow[rd] = reg_gpr[rt];
     return MEMU_SUCCESS;
 }
 
