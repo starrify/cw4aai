@@ -5,14 +5,14 @@
 # oops this makefile sucks..
 
 CC  = gcc
-CFLAG   = -O2
+CFLAG   = -O2 -g
 LFLAG   = -lpthread -lncurses
 OBJS    = memu.o config.o decode.o inst.o mem.o mmu.o reg.o \
-            daemon.o fancyterm.o interrupt.o
+            daemon.o fancyterm.o interrupt.o hdd.o
 SOURCES = memu.c config.c decode.c inst.c mem.c mmu.c reg.c \
-			daemon.c fancyterm.c  interrupt.c\
+			daemon.c fancyterm.c  interrupt.c hdd.c\
 		  memu.h config.h decode.h exception.h inst.h mem.h mmu.h reg.h \
-			daemon.h fancyterm.h interrupt.h
+			daemon.h fancyterm.h interrupt.h hdd.h
             
 all: memu sys.img
 
@@ -20,7 +20,7 @@ memu: $(OBJS)
 	$(CC) $(CFLAG) $(LFLAG) $(OBJS) -o memu
 
 memu.o: memu.c memu.h config.h decode.h exception.h mem.h mmu.h reg.h \
-        daemon.h fancyterm.h interrupt.h
+        daemon.h fancyterm.h interrupt.h hdd.h
 	$(CC) $(CFLAG) -c memu.c -o memu.o
 
 config.o: config.c config.h
@@ -49,6 +49,9 @@ daemon.o: daemon.c daemon.h config.h mem.h reg.h interrupt.h
 
 interrupt.o: interrupt.c interrupt.h exception.h reg.h config.h
 	$(CC) $(CFLAG) -c interrupt.c -o interrupt.o
+
+hdd.o: hdd.c hdd.h memu.h config.h
+	$(CC) $(CFLAG) -c hdd.c -o hdd.o
 	
 gt64120.o: gt64120.c gt64120.h memu.h malta_mem.h
 	$(CC) $(CFLAG) -c gt64120.c -o gt64120.o

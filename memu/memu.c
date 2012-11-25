@@ -13,6 +13,7 @@
 #include "exception.h"
 #include "interrupt.h"
 #include "mem.h"
+#include "hdd.h"
 #include "mmu.h"
 #include "reg.h"
 #include "daemon.h"
@@ -23,11 +24,18 @@ static pthread_t display_daemon_thread;
 static pthread_t keyboard_daemon_thread;
 //static pthread_t iic_daemon_thread;
 
+static void *membase;
+static size_t memsize;
+
+
 static void init()
 {
     mem_create(config.memsize);
-    mem_loadimg(config.img_file, config.img_base);
+    get_dma_info(&membase, &memsize);  
+
+    hdd_init();
     mem_init();
+    hdd_read(membase + config.img_base, 0, config.hdd_sector_skip);
     mmu_init();
     reg_init();
     daemon_init();
@@ -60,11 +68,7 @@ int main()
     reg_special_write(REG_SPECIAL_PC_ADVANCE1, config.entry_offset);
     reg_special_write(REG_SPECIAL_PC_ADVANCE2, config.entry_offset + 4);
     
-    void *membase;
-    size_t memsize;
-    get_dma_info(&membase, &memsize);
-    
-    while (1)
+        while (1)
     {
 #if SINGLE_STEP
         static const int step = 500;
