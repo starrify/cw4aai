@@ -5,16 +5,16 @@ system reserved memory(shell included): from 0x0 to 0x1ffffff
 system image filename:
     "sys.img"
 system image load base:
-    0x00800000
+    0x00400000
 system image entry point:
-    0x00800000
+    0x00400000
 
 Redefined CP0 registers: (we use selection 0 only):
     Use MFC0/MTC0 to access them. see the instruction set. Notice we have selection 0 only
-    0: SEGBASE
-        Desc: Segment base address
+    0: GDTBASE
+        Desc: base address of gdt
         Perm: R/W for software
-        Init Value: 0x00000000
+        Init Value: 0x00000000 means no segmentations...
     1: EPC
         Desc: EPC, stores the address of the instruction to be resumed during
             an interrupt. stores back to PC at ERET
@@ -30,6 +30,10 @@ Redefined CP0 registers: (we use selection 0 only):
         Perm: R/W for software
         Init Value: 0
     4: reserved
+
+GDT: Global Descriptor Table
+    fixed size: 2 entries
+    in each entry: paddr/vaddr/sz/attr sized 1 word for each
 
 interrupt vector table: 0x00000000 size: 0x1000
     keyboard input: 0x80
