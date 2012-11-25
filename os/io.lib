@@ -61,6 +61,12 @@ GTC1:
 }
 
 .decl func {
+#pushc
+INT_KEYBOARD:
+    sw 
+}
+
+.decl func {
 PUTS: #pt
     addi $sp, $sp, -8
     sw $ra, 4($sp)
