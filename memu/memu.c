@@ -22,7 +22,7 @@
 
 static pthread_t display_daemon_thread;
 static pthread_t keyboard_daemon_thread;
-//static pthread_t iic_daemon_thread;
+static pthread_t timer_daemon_thread;
 
 static void *membase;
 static size_t memsize;
@@ -45,7 +45,7 @@ static void init()
     
     pthread_create(&display_daemon_thread, NULL, display_daemon, NULL);
     pthread_create(&keyboard_daemon_thread, NULL, keyboard_daemon, NULL);
-//    pthread_create(&iic_daemon_thread, NULL, iic_daemon, NULL);
+    pthread_create(&timer_daemon_thread, NULL, timer_daemon, NULL);
     
     return;
 }
@@ -54,7 +54,8 @@ static void fini()
 {
     pthread_join(display_daemon_thread, NULL);
     pthread_join(keyboard_daemon_thread, NULL);
-//    pthread_join(iic_daemon_thread, NULL);
+    pthread_join(timer_daemon_thread, NULL);
+
     daemon_fini();
     
     mem_destroy();
@@ -68,7 +69,7 @@ int main()
     reg_special_write(REG_SPECIAL_PC_ADVANCE1, config.entry_offset);
     reg_special_write(REG_SPECIAL_PC_ADVANCE2, config.entry_offset + 4);
     
-        while (1)
+    while (1)
     {
 #if SINGLE_STEP
         static const int step = 500;

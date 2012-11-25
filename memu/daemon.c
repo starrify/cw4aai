@@ -139,4 +139,13 @@ void *keyboard_daemon(void *ptr)
     return NULL;
 }
 
-
+void *timer_daemon(void *ptr)
+{
+    struct timespec rqtp = { .tv_sec = 0, .tv_nsec = 10000000, };
+    while (1)
+    {
+        nanosleep(&rqtp, NULL);
+        interrput_set(INTERRUPT_ENTRY_TIMER);
+    }
+    return NULL;
+}

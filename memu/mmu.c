@@ -28,6 +28,12 @@ int mmu_addr_trans(u32_t vaddr, int access_type, u32_t *paddr, u32_t *attr)
     {
         *paddr = vaddr;
     }
+    else if (gdtbase >= config.memsize)
+    {
+#if DUMP_MMU
+        fprintf(LOG_FILE, "MMU: error: memory size limit exceeded: gdtbase=0x%.8X\n\n", gdtbase);
+#endif
+    }
     else
     {
         u32_t *pgdt = membase + gdtbase;
