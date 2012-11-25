@@ -1,5 +1,6 @@
 .inc "pseudo_inst.inc"
 .inc "string.lib"
+.inc "sysinfo.inc"
 
 .decl func scope(io.lib) {
 SYS_GOTOXY: #row, col
@@ -111,7 +112,7 @@ SYS_PUTC: #ch
     jr $ra
 }
 
-.decl func scope(interrupt.lib) {
+.decl func scope(interrupt.lib, io.lib, main file) {
 SYS_GETC:
     SETFRM_SYSINFO
     lw $t0, INBUF_START($fp)

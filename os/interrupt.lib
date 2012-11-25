@@ -1,0 +1,95 @@
+.static {
+REGS_BUF:
+    .dup 32 .0
+SYS_SP_BUF:
+    .0
+}
+
+#store gpr to REGS_BUF
+.def shade_gpr {
+    wrpgpr $at, $at
+    wrpgpr $fp, $fp
+    lla $fp, REGS_BUF
+    .loop 0 31 /
+    sw $<LOOPVAR>, 0($fp)
+    addi $fp, $fp, 4
+    /
+    wrpgpr $t0, $t0
+    lla $t0, REGS_BUF
+    rdpgpr $fp, $fp
+    rdpgpr $at, $at
+    sw $fp, 120($t0)
+    sw $at, 4($t0)
+    rdpgpr $t0, $t0
+}
+
+.decl func scope() {
+INT_STORE_PROC_INFO_OFF:
+    #suppose gpr is already stored in REGS_BUF by shade_gpr
+    SETFRMLB PROC
+    #dst: a0=proc_info + cur_proc * 64
+    lw $a0, PROC_INFO_OFF($fp)
+    lw $t0, CUR_PROC_OFF($fp)
+    sll $t0, $t0, 6
+    add $t0, $a0, $t0
+    or $a0, $zero, $t0
+    #src: a1 = regs_buf
+    lla $a1, REGS_BUF
+    #word_cnt: a2 = 32
+    ori $a2, 32
+    jal MEMWORDSET
+    mfc0 $t1, $1
+    sw $t1, 160($t0)    #160: epc
+    mfhi $t1
+    sw $t1, 164($t0)
+    mflo $t1
+    sw $t1, 168($t0)
+    jr $ra
+}
+
+#load gpr from REGS_BUF
+.def restore_gpr {
+    lla $31, REGS_BUF
+    .loop 0 30 /
+    lw $<LOOPVAR>, 0($31)
+    addi $31, $31, 4
+    /
+    wrpgpr $t0, $t0
+    wrpgpr $at, $at
+    lla $t0, REGS_BUF
+    lw $31, 124($t0)
+    rdpgpr $t0, $t0
+    rdpgpr $at, $at
+}
+
+.decl func scope() {
+INT_LOAD_PROC_INFO_OFF:
+    #dst: a0 = regs_buf
+    lla $a0, REGS_BUF
+    SETFRMLB PROC
+    #src: a1=proc_info + cur_proc * 64
+    lw $a1, PROC_INFO_OFF($fp)
+    lw $t0, CUR_PROC_OFF($fp)
+    sll $t0, $t0, 6
+    add $t0, $a1, $t0
+    or $a1, $zero, $t0
+    #word_cnt: a2 = 32
+    ori $a2, 32
+    jal MEMWORDSET
+
+    sw $t1, 160($t0)    #160: epc
+    mtc0 $t1, $1
+    sw $t1, 164($t0)
+    mtlo $t1
+    sw $t1, 168($t0)
+    mthi $t1
+    jr $ra
+}
+
+.decl func scope(main file) {
+INT_INIT:
+    #interrupt handler for keyboard
+    lli $t0, 0x42000018  #eret
+    swia $t0, 0x80, 0
+    jr $ra
+}

@@ -2,11 +2,13 @@
 .inc "var.inc"
 .inc "pseudo_inst.inc"
 .inc "syscall.lib"
+.inc "interrupt.lib"
 
 .def LIB_INBUF_SIZE {4096}
 .def LIB_INBUF_START {0}
 .def LIB_INBUF_END {4}
-.def LIB_INBUF_BASE {8}
+.def LIB_INBUF_DATA {8}
+.def LIB_INBUF_UNIT_SIZE {4}
 .static {
 LIB_INBUF:
     .0
@@ -38,38 +40,15 @@ PTCEND:
     jr $ra
 }
 
-.decl func {
-GETC:
-GTCBLK:
-    SETFRMLB LIB_INBUF
-    lw $t0, LIB_INBUF_START($fp)
-    lw $1, LIB_INBUF_END($fp)
-    beq $t0, $t1, GTCBLK
-
-    #read from lib buf
-    lw $t1, LIB_INBUF_BASE($fp)
-    add $t1, $t0, $t1
-    lw $v0, 0($t1)
-    
-    #move lib buf start
-    addi $t0, $t0, 1
-    ori $t1, $zero, LIB_INBUF_SIZE
-    bne $t0, $t1, GTC1
-    and $t0, $zero, $zero
-GTC1:
-    sw $t0, LIB_INBUF_START($fp)
-
-    jr $ra
-}
 
 .decl func {
 PUSHC:
     SETFRMLB LIB_INBUF
     lw $t0, LIB_INBUF_END($fp)
-    lw $t1, LIB_INBUF_BASE($fp)
+    addi $t1, $fp, LIB_INBUF_DATA
     add $t1, $t1, $t0
     sw $a0, 0($t1)
-    addi $t0, $t0, 4
+    addi $t0, $t0, LIB_INBUF_UNIT_SIZE
     ori $t1, $zero, LIB_INBUF_SIZE
     bne $t0, $t1, PSC1
     and $t0, $zero, $zero
@@ -82,6 +61,50 @@ PSC1:
 PSCERR:
     addi $v0, $zero, -1
 PSCEND:
+    jr $ra
+}
+
+#interrupt function for keyboard
+.decl func scope() {
+IO_INT_KEYBOARD:
+    shade_gpr
+    lla $s0, SYS_SP_BUF
+    lw $sp, 0($s0)
+    
+IO_INT_KBD1:
+    jal SYS_GETC
+    blt $v0, $zero, IO_INT_KBDEND
+    or $a0, $zero, $v0
+    jal PUSHC
+    j IO_INT_KBD1
+    
+IO_INT_KBDEND:
+    sw $sp, 0($s0)
+    restore_gpr
+    eret
+}
+
+.decl func {
+GETC:
+    SETFRMLB LIB_INBUF
+GTCBLK:
+    lw $t0, LIB_INBUF_START($fp)
+    lw $t1, LIB_INBUF_END($fp)
+    beq $t0, $t1, GTCBLK
+
+    #read from lib buf
+    addi $t1, $fp, LIB_INBUF_DATA
+    add $t1, $t0, $t1
+    lw $v0, 0($t1)
+    
+    #move lib buf start
+    addi $t0, $t0, LIB_INBUF_UNIT_SIZE
+    ori $t1, $zero, LIB_INBUF_SIZE
+    bne $t0, $t1, GTC1
+    and $t0, $zero, $zero
+GTC1:
+    sw $t0, LIB_INBUF_START($fp)
+
     jr $ra
 }
 
@@ -132,3 +155,12 @@ GTSEND:
     jr $ra
 }
 
+.decl func {
+IO_INIT:
+    #register keyboard int function for io lib
+    lla $t0, IO_INT_KEYBOARD
+    srl $t0, $t0, 2
+    lui $t1, 0x0800
+    or $t0, $t0, $t1
+    swia $t0, 0x80, 0
+}
