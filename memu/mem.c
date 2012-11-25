@@ -149,25 +149,24 @@ int mem_write(u32_t paddr, u32_t vaddr, u32_t attr, int access_type, i32_t word)
     if (paddr == config.sbase_offset + 0x00000080)  // HDD access. see spec.txt
     {
         u32_t type = *(sbase + 0x00000080);
-        u32_t mbase = *(sbase + 0x00000081);
-        u32_t hbase = *(sbase + 0x00000082);
-        u32_t maxsz = *(sbase + 0x00000083);
+        u32_t memstart = *(sbase + 0x00000081);
+        u32_t secstart = *(sbase + 0x00000082);
+        u32_t seccnt = *(sbase + 0x00000083);
         if (type == 1) // read
         {
-            
+            hdd_read(membase + memstart, secstart, seccnt);
         }
         else if (type == 2) // write
         {
-        
+            hdd_write(membase + memstart, secstart, seccnt);
         }
         else
         {
-
-        }
 #if DUMP_HDD
-        fprintf(LOG_FILE, "HDD: unknown type=%d, mbase=0x%.8X, hbase=0x%.8X, maxsize=0x%.8X\n",
-            type, mbase, hbase, maxsz);
+            fprintf(LOG_FILE, "HDD: unknown type=%d, memstart=0x%.8X, secstart=0x%.8X, seccnt=0x%.8X\n",
+                type, memstart, secstart, seccnt);
 #endif
+        }
     }
 #if DUMP_MEM
     if (access_type & MEM_ACCESS_DATA)
