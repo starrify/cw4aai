@@ -31,6 +31,10 @@ struct config_t
     char *log_filename;
     FILE *log_file;
     int status_display_size;
+    size_t hdd_size;
+    u32_t hdd_sector_skip;
+    int hdd_filelist_size;
+    char *hdd_filelist[];
 };
 
 extern struct config_t config;

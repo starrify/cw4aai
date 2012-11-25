@@ -16,7 +16,9 @@
 
 static void *membase;
 static size_t memsize;
+static u32_t *sbase;
 
+#if 0
 int mem_loadimg(char const *filename, u32_t offset)
 {
     FILE *fin = fopen(filename, "rb");
@@ -33,6 +35,7 @@ int mem_loadimg(char const *filename, u32_t offset)
 
     return MEMU_SUCCESS;
 }
+#endif
 
 void get_dma_info(void **_membase, size_t *_memsize)
 {
@@ -63,7 +66,7 @@ int mem_init()
     *(u32_t*)(membase + INTERRUPT_ENTRY_SYSCALL) = 0x42000018;    //ERET as an empty exception handler
 
     /* sysinfo and device mapping 0x00008000-0x007FFFFF */
-    unsigned int *sbase = membase + config.sbase_offset;
+    sbase = membase + config.sbase_offset;
     //*(sbase + 0) = 0;  //segment offset // moved to register
     *(sbase + 8) = 0;  //char mode
     *(sbase + 9) = 35; //screen x
@@ -142,6 +145,28 @@ int mem_write(u32_t paddr, u32_t vaddr, u32_t attr, int access_type, i32_t word)
     default:
         assert(0);
         break;
+    }
+    if (paddr == config.sbase_offset + 0x00000080)  // HDD access. see spec.txt
+    {
+        u32_t type = *(sbase + 0x00000080);
+        u32_t memstart = *(sbase + 0x00000081);
+        u32_t secstart = *(sbase + 0x00000082);
+        u32_t seccnt = *(sbase + 0x00000083);
+        if (type == 1) // read
+        {
+            hdd_read(membase + memstart, secstart, seccnt);
+        }
+        else if (type == 2) // write
+        {
+            hdd_write(membase + memstart, secstart, seccnt);
+        }
+        else
+        {
+#if DUMP_HDD
+            fprintf(LOG_FILE, "HDD: unknown type=%d, memstart=0x%.8X, secstart=0x%.8X, seccnt=0x%.8X\n",
+                type, memstart, secstart, seccnt);
+#endif
+        }
     }
 #if DUMP_MEM
     if (access_type & MEM_ACCESS_DATA)

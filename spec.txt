@@ -65,8 +65,8 @@ sysinfo and device mapping: 0x00008000 0x007FFFFF
     linux_timestamp: ->96
         1word: R seconds since EPOCH
         1word: R millisecons counter
-    hdd access: -> 128
-        1word: W only. 1 for read from disk, 2 for write to disk.
+    HDD access: -> 128
+        1word: W only. 1 for read from disk, 2 for write to disk. both are asynchronize
         1word: R/W. starting physical memory offset
         1word: R/W. starting sector number
         1word: R/W. max transfer size in byte
