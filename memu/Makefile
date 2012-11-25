@@ -32,7 +32,7 @@ decode.o: decode.c decode.h memu.h
 #exception.o: exception.c exception.h
 #	$(CC) $(CFLAG) -c exception.c -o exception.o
 	
-inst.o: inst.c inst.h config.h exception.h memu.h decode.h reg.h mem.h mmu.h
+inst.o: inst.c inst.h config.h exception.h memu.h decode.h reg.h mem.h mmu.h interrupt.h
 	$(CC) $(CFLAG) -c inst.c -o inst.o
 
 mem.o: mem.c mem.h config.h exception.h memu.h

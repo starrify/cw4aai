@@ -12,6 +12,7 @@
 
 #include "config.h"
 #include "exception.h"
+#include "interrupt.h"
 #include "mem.h"
 #include "mmu.h"
 #include "memu.h"
@@ -435,7 +436,7 @@ static int (* const inst_callback[])(u32_t) =
     [INST_SWXC1]        = inst_not_implemented,
     [INST_SYNC]         = inst_exec_sync,
     [INST_SYNCI]        = inst_not_implemented,
-    [INST_SYSCALL]      = inst_not_implemented,
+    [INST_SYSCALL]      = inst_exec_syscall,
     [INST_TEQ]          = inst_not_implemented,
     [INST_TEQI]         = inst_not_implemented,
     [INST_TGE]          = inst_not_implemented,
@@ -1435,7 +1436,7 @@ static int inst_exec_sync(u32_t code)
 
 static int inst_exec_synci(u32_t code);
 
-static int inst_exec_syscall(u32_t code);
+static int inst_exec_syscall(u32_t code)
 {
     interrupt_set(INTERRUPT_ENTRY_SYSCALL);
 #if DUMP_INST

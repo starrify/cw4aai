@@ -89,7 +89,7 @@ enum _reg_cpr
 
 enum _fake_reg_cpr
 {
-    FKREG_CPR_SEGBASE = 0,
+    FKREG_CPR_GDTBASE = 0,
     FKREG_CPR_EPC,
     FKREG_CPR_EXL,
     FKREG_CPR_IE,

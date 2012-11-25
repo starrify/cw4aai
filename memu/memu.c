@@ -28,6 +28,7 @@ static void init()
     mem_create(config.memsize);
     mem_loadimg(config.img_file, config.img_base);
     mem_init();
+    mmu_init();
     reg_init();
     daemon_init();
     

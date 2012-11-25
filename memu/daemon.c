@@ -20,8 +20,8 @@
 #include "mem.h"
 #include "memu.h"
 
-void *membase;
-size_t memsize;
+static void *membase;
+static size_t memsize;
 unsigned int *sbase;
 
 void daemon_init()
