@@ -32,7 +32,7 @@ Redefined CP0 registers: (we use selection 0 only):
     4: reserved
 
 GDT: Global Descriptor Table
-    fixed size: 2 entries
+    fixed size: 0x80(128) entries
     in each entry: paddr/vaddr/sz/attr sized 1 word for each
 
 interrupt vector table: 0x00000000 size: 0x1000
@@ -40,6 +40,7 @@ interrupt vector table: 0x00000000 size: 0x1000
     timer: 0x100
         fixed time at about 10ms?
     syscall: 0x180
+
 
 sysinfo and device mapping: 0x00008000 0x007FFFFF
     R for read W for write and S for static
@@ -58,47 +59,20 @@ sysinfo and device mapping: 0x00008000 0x007FFFFF
 #       4word: RS base, reserved, cursor, reserved of mode 1
     keyboard io:  ->64
         1word: input buffer base
-        1word: 0x1000, round buffer
+        1word: buffer size(init value: 0x1000), round buffer
         1word: RW start_off_from_base R
         1word: R end_off_from_base RW
     linux_timestamp: ->96
         1word: R seconds since EPOCH
         1word: R millisecons counter
- 
-os memory: 0x00800000 to 0x01ffffff
-    lib_in_buffer -> 0
-        1024word: buffer
-		
-user memory: 0x02000000 to 0x0FFFFFFF
-        void add(WORD inst);
-        void addu(WORD inst);
-        void sub(WORD inst);
-        void subu(WORD inst);
-        void slt(WORD inst);
-        void sltu(WORD inst);
-        void sll(WORD inst);
-        void srl(WORD inst);
-        void addi(WORD inst);
-        void addiu(WORD inst);
-        void beq(WORD inst);
-        void bne(WORD inst);
-        void j(WORD inst);
-        void jal(WORD inst);
-        void lw(WORD inst);
-        void sw(WORD inst);
-        void lb(WORD inst);
-        void sb(WORD inst);
-        void lui(WORD inst);
-        void ori(WORD inst);
-        void xori(WORD inst);
-        void slti(WORD inst);
-        void sltiu(WORD inst);
-        void _and(WORD inst);
-        void andi(WORD inst);
-        void jalr(WORD inst);
-        void jr(WORD inst);
-        void nor(WORD inst);
-        void _or(WORD inst);
-        void _xor(WORD inst);
-        void sllv(WORD inst);
-        void srlv(WORD inst);
+    hdd access: -> 128
+        1word: W only. 1 for read from disk, 2 for write to disk.
+        1word: R/W. starting physical memory offset
+        1word: R/W. starting sector number
+        1word: R/W. max transfer size in byte
+
+per process memory layout:
+    0MB-24MB: user space 
+    24MB-32MB: kernel space 
+
+
