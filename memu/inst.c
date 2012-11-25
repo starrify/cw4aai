@@ -1434,7 +1434,16 @@ static int inst_exec_sync(u32_t code)
 }
 
 static int inst_exec_synci(u32_t code);
+
 static int inst_exec_syscall(u32_t code);
+{
+    interrupt_set(INTERRUPT_ENTRY_SYSCALL);
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: SYSCALL\n");
+#endif
+    return EXCEPTION_NONE;
+}
+
 static int inst_exec_teq(u32_t code);
 static int inst_exec_teqi(u32_t code);
 static int inst_exec_tge(u32_t code);
