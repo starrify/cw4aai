@@ -130,14 +130,14 @@
     lla $at, lb
     sw rd, offset($at)
 }
-$load word grom label with reg offset
+#load word grom label with reg offset
 .def lwlbv rd, lb, roff
 {
     lla $at, lb
     add $at, $at, roff
     lw rd, 0($at)
 }
-$store word grom label with reg offset
+#store word grom label with reg offset
 .def swlbv rd, lb, roff
 {
     lla $at, lb

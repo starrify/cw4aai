@@ -25,4 +25,4 @@
 .def SCR_WIDTH {80}     #maybe should read from sysinfo?
 .def SCR_UNIT_SIZE {4}
 .def SCR_HEIGHT {35}
-.def OS_STACK_INIT {0x0x01ff0000}
+.def OS_STACK_INIT {0x00800000}
