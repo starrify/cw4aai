@@ -40,6 +40,7 @@ int mmu_addr_trans(u32_t vaddr, int access_type, u32_t *paddr, u32_t *attr)
                 *paddr = vaddr + pgdt[0] - pgdt[1];
                 break;
             }
+            pgdt += 4;
         }
         if (i == 2) // entry match failed
         {

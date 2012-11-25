@@ -1369,6 +1369,8 @@ static int inst_exec_sub(u32_t code)
     reg_gpr_write(rd, regdata1 - regdata2);
 #if DUMP_INST
     fprintf(LOG_FILE, "Instruction: SUB: rs=%d, rt=%d, rd=%d\n", rs, rt, rd);
+    fprintf(LOG_FILE, "Instruction: SUB: reg[rs]=0x%.8X, reg[rt]=0x%.8X reg[rd]=0x%.8X\n", 
+        regdata1, regdata2, regdata1-regdata2);
 #endif
     return EXCEPTION_NONE;
 }
