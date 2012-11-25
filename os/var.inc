@@ -5,7 +5,6 @@
 .def SETFRM pos {ori $fp, $zero, pos}
 .def SETFRML pos {lli $fp, $zero, pos}
 .def SETFRM_SYSINFO {SETFRM 32768}
-.def SETFRM_STATIC {SETFRML STATIC_HERE}
 
 #sysinfo
 .def SCR_BASE {48}
@@ -26,4 +25,4 @@
 .def SCR_WIDTH {80}     #maybe should read from sysinfo?
 .def SCR_UNIT_SIZE {4}
 .def SCR_HEIGHT {35}
-.def OS_STACK_INIT {0x8000}
+.def OS_STACK_INIT {0x0x01ff0000}

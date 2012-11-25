@@ -11,7 +11,7 @@ system image entry point:
 
 Redefined CP0 registers: (we use selection 0 only):
     Use MFC0/MTC0 to access them. see the instruction set. Notice we have selection 0 only
-    0: SEGBASEa
+    0: SEGBASE
         Desc: Segment base address
         Perm: R/W for software
         Init Value: 0x00000000

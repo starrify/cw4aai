@@ -57,35 +57,6 @@ SYS_GTXYEND:
     jr $ra
 }
 
-#.decl func {
-#SYS_TEST_AND_SCROLL:
-#    addi $sp, $sp, -4
-#    sw $ra, 0($sp)
-    
-#    SETFRM_SYSINFO
-#    lw $t1, CURSOR($fp)
-#    lw $t2, SCR_OFFSET($fp)
-#    bne $t1, $t2, SYS_TASEND
-
-    #scroll, t1 is the new starting row and t2 is the old
-#    addi $t1, $t2, SCR_UNIT_SIZE * SCR_WIDTH
-#    ori $t0, $zero, SCR_UNIT_SIZE * SCR_WIDTH * SCR_HEIGHT
-#    bne $t1, $t0, SYS_TAS1
-#    and $t1, $zero, $zero
-#SYS_TAS1:
-#    sw $t1, SCR_OFFSET($fp)
-    #clear the last row
-#    lw $t0, SCR_BASE($fp)
-#    add $a0, $t0, $t2
-#    ori $a1, $zero, 0x20
-#    ori $a2, $zero, 80
-#    jal MEMWORDSET
-#SYS_TASEND:
-#    lw $ra, 0($sp)
-#    addi $sp, $sp, 4
-#    jr $ra
-#}
-
 .decl func {
 SYS_CURSORNEXT:
     addi $sp, $sp, -4
@@ -138,6 +109,24 @@ SYS_PUTC: #ch
     lw $ra, 0($sp)
     addi $sp, $sp, 4
     jr $ra
+}
+
+#wrap for getc that stores all necessary registers in advance
+.decl func {
+INT_GETC:
+    addi $sp, $sp, -20
+    sw $v0, 16($sp)
+    sw $t0, 12($sp)
+    sw $t1, 8($sp)
+    sw $fp, 4($sp)
+    sw $ra, 0($sp)
+    jal SYS_GETC
+    lw $v0, 16($sp)
+    lw $t0, 12($sp)
+    lw $t1, 8($sp)
+    lw $fp, 4($sp)
+    lw $ra, 0($sp)
+    addi $sp, $sp, 20
 }
 
 .decl func scope(io.lib) {

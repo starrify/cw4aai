@@ -6,8 +6,17 @@
 
 .offset 0x800000
 
+.static {
+CUR_USR_PROC:
+    .0
+PROC_SEGBASE:    #starting from system
+    .dup 32 .0
+PROC_CURSP:      #starting from system
+    .dup 32 .0
+}
+
 INIT:
-    ori $sp, $zero, 0x8000
+    ori $sp, $zero, 0x8000      #j
     lla $t0, WTF
     srl $t0, $t0, 2
     lui $t1, 0x0800
