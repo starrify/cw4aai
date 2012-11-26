@@ -1,6 +1,7 @@
 .inc "pseudo_inst.inc"
 .inc "string.lib"
 .inc "sysinfo.inc"
+.inc "interrupt.lib"
 
 .decl func scope(interrupt.lib) {
 SYS_GOTOXY: #row, col
@@ -144,5 +145,16 @@ SYS_GTCEND:
 .decl func scope(interrupt.lib) {
 #only implemented as new process here
 SYS_FORK:
+    #store cur process
+    shade_gpr
+    
+    SETFRMLB PROC
+    lw $t0, MAX_PROC_OFF($fp)
+    addi $t1, $fp, PROC_INFO_OFF
+    #NOTE!!!: size of gdt may change in the future
+    sll $t2, $t0, 6
+    add $t1, $t1, $t2
+    #set gdt of new proc
+    mtc0 $t1, $0
     
 }

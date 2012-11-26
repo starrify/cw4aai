@@ -4,16 +4,19 @@
 .inc "interrupt.lib"
 .inc "sysinfo.inc"
 
-.def LIB_INBUF_START {0}
-.def LIB_INBUF_END {4}
-.def LIB_INBUF_DATA {8}
+.def LIB_INBUF_START_OFF {0}
+.def LIB_INBUF_END_OFF {4}
+.def LIB_INBUF_DATA_OFF {8}
 
 .def LIB_INBUF_SIZE {4096}
 .def LIB_INBUF_UNIT_SIZE {4}
 .static {
 LIB_INBUF:
+LIB_INBUF_START:
     .0
+LIB_INBUF_END:
     .0
+LIB_INBUF_DATA:
     .dup 1024 .0
 }
 
@@ -48,8 +51,8 @@ PTCEND:
 .decl func {
 PUSHC:
     SETFRMLB LIB_INBUF
-    lw $t0, LIB_INBUF_END($fp)
-    addi $t1, $fp, LIB_INBUF_DATA
+    lw $t0, LIB_INBUF_END_OFF($fp)
+    addi $t1, $fp, LIB_INBUF_DATA_OFF
     add $t1, $t1, $t0
     sw $a0, 0($t1)
     addi $t0, $t0, LIB_INBUF_UNIT_SIZE
@@ -57,9 +60,9 @@ PUSHC:
     bne $t0, $t1, PSC1
     and $t0, $zero, $zero
 PSC1:
-    lw $t1, LIB_INBUF_START($fp)
+    lw $t1, LIB_INBUF_START_OFF($fp)
     beq $t0, $t1, PSCERR
-    sw $t0, LIB_INBUF_END($fp)
+    sw $t0, LIB_INBUF_END_OFF($fp)
     and $v0, $zero, $zero
     j PSCEND
 PSCERR:
@@ -91,12 +94,12 @@ IO_INT_KBDEND:
 GETC:
     SETFRMLB LIB_INBUF
 GTCBLK:
-    lw $t0, LIB_INBUF_START($fp)
-    lw $t1, LIB_INBUF_END($fp)
+    lw $t0, LIB_INBUF_START_OFF($fp)
+    lw $t1, LIB_INBUF_END_OFF($fp)
     beq $t0, $t1, GTCBLK
 
     #read from lib buf
-    addi $t1, $fp, LIB_INBUF_DATA
+    addi $t1, $fp, LIB_INBUF_DATA_OFF
     add $t1, $t0, $t1
     lw $v0, 0($t1)
     
@@ -106,7 +109,7 @@ GTCBLK:
     bne $t0, $t1, GTC1
     and $t0, $zero, $zero
 GTC1:
-    sw $t0, LIB_INBUF_START($fp)
+    sw $t0, LIB_INBUF_START_OFF($fp)
 
     jr $ra
 }

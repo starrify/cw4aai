@@ -65,6 +65,7 @@ INT_LOAD_PROC_INFO_OFF:
     lla $a0, REGS_BUF
     SETFRMLB PROC
     #src: a1=proc_info + cur_proc * 64
+    #NOTE!!: size of gdt may change in the future
     lw $a1, PROC_INFO_OFF($fp)
     lw $t0, CUR_PROC_OFF($fp)
     sll $t0, $t0, 6
@@ -110,6 +111,11 @@ INT_SSC1:
     #case 4: getc
     jal SYS_GETC #sll 0, 0, 0
     j INT_SSCLEND #sll 0, 0, 0
+    #case 5-9: reserved
+    dup 20 .0
+    #case 10: fork
+    jal SYS_FORK
+    j INT_SSCLEND
 INT_SSCLEND:
     #restore_gpr
     eret

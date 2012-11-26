@@ -8,10 +8,13 @@
 .offset 0x1c00000 #28M
 
 .def CUR_PROC_OFF {0}
-.def PROC_INFO_OFF {4}
+.def MAX_PROC_OFF {4}
+.def PROC_INFO_OFF {8}
 .static {
 PROC:
 CUR_PROC:
+    .0
+MAX_PROC:
     .0
 PROC_INFO:
     .inc "procinfo.b"
@@ -26,11 +29,6 @@ BOOT:
     mtc0 $t1, $0
     #enable mmu
     mtc0 $zero, $4
-    #move inst from real BT1 to virtual BT1
-    #lla $t2, BT1
-    #sub $t3, $t2, $t0
-    #lw $t3, 0($t3)
-    #sw $t3, 0($t2)
     
     j INIT
     
