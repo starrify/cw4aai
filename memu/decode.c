@@ -6,6 +6,7 @@
 
 #include "memu.h"
 #include "decode.h"
+#include "config.h"
 
 /* 
  * reference: 
@@ -842,6 +843,9 @@ u32_t decode(u32_t code)
     u32_t ret = decode_opcode(code);
 //    ret &= ~SYMBOL_LDELTA; /* all other symbols would cause a Reserved Instruction Exception */ 
     ret &= 0xFFFF; // clear symbols
+#if DUMP_DECODE
+    fprintf(LOG_FILE, "decode: %d\n", ret);
+#endif
     return ret;
 }
 

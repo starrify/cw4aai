@@ -37,6 +37,7 @@
 #define DUMP_DISPLAY    1
 #define DUMP_KEYBOARD   1
 #define DUMP_INTERRUPT  1
+#define DUMP_DECODE 0
 #define DUMP_IIC    0
 #define LOG_FILE    config.log_file
 

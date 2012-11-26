@@ -349,7 +349,7 @@ void cp0_inst_assemble(int inst, int rt, int rd)
 {
     /*
      * binary layout of cp0_inst_assemble:
-     *  opcode(6) rs(5) rt(5) rd(5) misc(6) function(5)
+     *  opcode(6) rs(5) rt(5) rd(5) misc(5) function(6)
      */
     unsigned int code = 0;
     code |= (0b010000 & MASK_LOW6) << 26; /* opcode */
@@ -357,7 +357,7 @@ void cp0_inst_assemble(int inst, int rt, int rd)
     code |= (reg[rt] & MASK_LOW5) << 16; /* rt */
     code |= (reg[rd] & MASK_LOW5) << 11; /* rd */
     code |= (0b000000 & MASK_LOW6) << 5; /* misc */
-    code |= (function[inst] & MASK_LOW5) << 0; /* function */
+    code |= (function[inst] & MASK_LOW6) << 0; /* function */
     write_to_buf(code);
     return;
 }
