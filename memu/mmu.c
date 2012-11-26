@@ -49,6 +49,7 @@ int mmu_addr_trans(u32_t vaddr, int access_type, u32_t *paddr, u32_t *attr)
     u32_t mmud;
     reg_cpr_read(FKREG_CPR_GDTBASE, 0, &gdtbase);
     reg_cpr_read(FKREG_CPR_MMUD, 0, &mmud);
+    int ret = EXCEPTION_NONE;
     if (!gdtbase || mmud)
     {
         *paddr = vaddr;
@@ -75,6 +76,8 @@ int mmu_addr_trans(u32_t vaddr, int access_type, u32_t *paddr, u32_t *attr)
         }
         if (i == 2) // entry match failed
         {
+            reg_cpr_write(FKREG_CPR_PFLA, 0, vaddr);
+            //ret = 
             *paddr = vaddr;
 #if DUMP_MMU
             fprintf(LOG_FILE, "MMU: error: failed to match an entry in GDT\n");
@@ -85,7 +88,7 @@ int mmu_addr_trans(u32_t vaddr, int access_type, u32_t *paddr, u32_t *attr)
     fprintf(LOG_FILE, "MMU: mmud=%d, gdtbase=0x%.8X, vaddr=0x%.8X, paddr=0x%.8X, access_type=0x%X\n", 
         mmud, gdtbase, vaddr, *paddr, access_type);
 #endif
-     return EXCEPTION_NONE;
+    return EXCEPTION_NONE;
     /*
     // only kernel mode implemented for now 
     switch (MASKSHR(vaddr, 31, 29))

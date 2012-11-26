@@ -148,10 +148,10 @@ int mem_write(u32_t paddr, u32_t vaddr, u32_t attr, int access_type, i32_t word)
     }
     if (paddr == config.sbase_offset + 0x00000080)  // HDD access. see spec.txt
     {
-        u32_t type = *(sbase + 0x00000080);
-        u32_t memstart = *(sbase + 0x00000081);
-        u32_t secstart = *(sbase + 0x00000082);
-        u32_t seccnt = *(sbase + 0x00000083);
+        u32_t type = *(sbase + 0x00000020);
+        u32_t memstart = *(sbase + 0x00000021);
+        u32_t secstart = *(sbase + 0x00000022);
+        u32_t seccnt = *(sbase + 0x00000023);
         if (type == 1) // read
         {
             hdd_read(membase + memstart, secstart, seccnt);

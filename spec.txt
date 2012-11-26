@@ -33,7 +33,11 @@ Redefined CP0 registers: (we use selection 0 only):
         Desc: MMU Disabled 
         Perm: R/W for software
         Init Value: 1
-    5: reserved
+    5: PFLA
+        Desc: Page Fault Linear Address
+        Perm: R for software
+        Init Value: 0
+    6: reserved
 
 GDT: Global Descriptor Table
     fixed size: 0x80(128) entries
