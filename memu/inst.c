@@ -455,7 +455,7 @@ static int (* const inst_callback[])(u32_t) =
     [INST_TNEI]         = inst_not_implemented,
     [INST_TRUNC_L_FMT]  = inst_not_implemented,
     [INST_TRUNC_W_FMT]  = inst_not_implemented,
-    [INST_WAIT]         = inst_not_implemented,
+    [INST_WAIT]         = inst_exec_wait,
     [INST_WRPGPR]       = inst_exec_wrpgpr,
     [INST_WSBH]         = inst_not_implemented,
     [INST_XOR]          = inst_exec_xor,
@@ -1469,7 +1469,7 @@ static int inst_exec_trunc_w_fmt(u32_t code);
 
 static int inst_exec_wait(u32_t code)
 {
-    
+    wait = 1;
 #if DUMP_INST
     fprintf(LOG_FILE, "Instruction: WAIT\n");
 #endif

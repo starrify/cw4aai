@@ -7,6 +7,8 @@
 #ifndef MEMU_H
 #define MEMU_H
 
+#include <pthread.h>
+
 #ifndef NULL
 # define NULL   (void*)0
 #endif
@@ -56,5 +58,9 @@ enum _memu_bool
     MEMU_FALSE,
     MEMU_TRUE,
 };
+
+extern int wait;
+extern pthread_mutex_t wait_cond_mutex;
+extern pthread_cond_t wait_cond;
 
 #endif // MEMU_H

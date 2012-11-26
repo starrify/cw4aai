@@ -32,6 +32,10 @@ void interrupt_set(u32_t entry)
 {
     //pthread_mutex_lock(&interrupt_mutex);
     interrupt_state[entry] = 1;
+    pthread_mutex_lock(&wait_cond_mutex);
+    pthread_cond_signal(&wait_cond);
+    pthread_mutex_unlock(&wait_cond_mutex);
+
     //pthread_mutex_unlock(&interrput_mutex);
 #if DUMP_INTERRUPT
     fprintf(LOG_FILE, "Interrupt: set at entry %.8X\n", entry);
