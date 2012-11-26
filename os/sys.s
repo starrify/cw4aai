@@ -22,18 +22,21 @@ BOOT:
     lli $t0, 0x1800000
     lla $t1, PROC_INFO
     sub $t1, $t1, $t0
-    #move inst from real BT1 to virtual BT1
-    lla $t2, BT1
-    sub $t3, $t2, $t0
-    lw $t3, 0($t3)
-    sw $t3, 0($t2)
-    j BT1
-BT1:
+    #set gdt position
     mtc0 $t1, $0
+    #enable mmu
+    mtc0 $zero, $4
+    #move inst from real BT1 to virtual BT1
+    #lla $t2, BT1
+    #sub $t3, $t2, $t0
+    #lw $t3, 0($t3)
+    #sw $t3, 0($t2)
+    
+    j INIT
     
 INIT:
     #init os stack
-    lli $sp, OS_STACK_INIT
+    lli $sp, SYS_STACK_INIT
     #init interrupt
     jal INT_INIT
     #init libs
