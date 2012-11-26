@@ -96,7 +96,11 @@ GETC:
 GTCBLK:
     lw $t0, LIB_INBUF_START_OFF($fp)
     lw $t1, LIB_INBUF_END_OFF($fp)
-    beq $t0, $t1, GTCBLK
+    #beq $t0, $t1, GTCBLK
+    bne $t0, $t1, GTCGOTC
+    wait
+    beq $0, $0, GTCBLK
+GTCGOTC:
 
     #read from lib buf
     addi $t1, $fp, LIB_INBUF_DATA_OFF
