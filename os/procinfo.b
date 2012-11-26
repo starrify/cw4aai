@@ -1,4 +1,6 @@
-    #8word: gdt, 32word: gpr, 1word: epc, 1word: hi, 1word: lo, 21word: reserved
+#TODO: switch position of gdt and gpr
+    #8word: gdt, 32word: gpr,
+    #1word: epc, 1word: hi, 1word: lo, 1word: status, 20word: reserved
     #proc_info for init
 .loop 0 0xfffffff 0x2000000 {
     .<LOOPVAR>  #physical: <LOOPVAR>

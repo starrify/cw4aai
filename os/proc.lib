@@ -1,4 +1,5 @@
 .inc "string.lib"
+.inc "proc.inc"
 
 .def CUR_PROC_OFF {0}
 .def MAX_PROC_OFF {4}
@@ -110,7 +111,7 @@ FETCH_REGS:
     add $t0, $a1, $t0
     or $a1, $zero, $t0
     #word_cnt: a2 = 32
-    ori $a2, 32
+    ori $a2, $zero, 32
     #before calling memwordcpy, fetch epc, hi, lo first
     #NOTE!!: size of gdt may change in the future
     lw $t0, 128($a0)
@@ -124,5 +125,55 @@ FETCH_REGS:
 
     lw $ra, 0($sp)
     addi $sp, $sp, 4
+    jr $ra
+}
+
+.decl func scope(interrupt.lib) {
+PROC_SCHEDULE:
+    addi $sp, $sp, -8
+    sw $s0, 4($sp)
+    sw $ra, 0($sp)
+    
+    SETFRMLB PROC
+    addi $t0, $fp, PROC_INFO_OFF
+    lw $t3, MAX_PROC_OFF($fp)
+    #NOTE!!!: gdt size may be changed in the future
+    sll $t3, $t3, 8     #max_proc * 64 * 4
+    
+    lw $t1, CUR_PROC_OFF($fp)
+    #NOTE!!!: gdt size may be changed in the future
+    sll $t1, $t1, 8
+PRC_SCHD1:
+    #move to next process
+    addi $t1, $t1, 64 * 4
+    ble $t1, $t3, PRC_SCHD2
+    and $t1, $zero, $zero
+PRC_SCHD2:
+    #get process state
+    lw $t2, 172($t1)
+    beq $t2, $zero, PRC_SCHD3   #found a ready process
+    j PRC_SCHD1
+PRC_SCHD3:
+    srl $s0, $t2, 8             #get process id
+    lw $t1, CUR_PROC_OFF($fp)
+    beq $t1, $s0, PRC_SCHDEND   #no need to switch
+
+    #calc physical gdt and write to c0
+    lli $t1, 0x001800000
+    sub $t1, $t2, $t1
+    mtc0 $t1, $0
+    
+    jal FLUSH_REGS
+
+    #restore fp
+    SETFRMLB PROC
+    sw $s0, CUR_PROC_OFF($fp)
+    
+    jal FETCH_REGS
+
+PRC_SCHDEND:
+    lw $ra, 0($sp)
+    lw $s0, 4($sp)
+    addi $sp, $sp, 8
     jr $ra
 }

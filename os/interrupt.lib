@@ -36,8 +36,22 @@ INT_SSC1:
     #case 10: fork
     jal SYS_FORK
     j INT_SSCLEND
+    #case 11: exec
+    jal SYS_EXEC
+    j INT_SSCLEND
 INT_SSCLEND:
     #restore_gpr
+    eret
+}
+
+.decl func scope() {
+INT_TIMER:
+    cache_regs
+    lli $sp, SYS_STACK_INIT
+
+    jal PROC_SCHEDULE
+
+    restore_regs
     eret
 }
 
@@ -54,5 +68,13 @@ INT_INIT:
     swia $t0, 0x180, 0
     lli $t0, 0x40802000 #mtc0 $zero, $4: enable mmu
     swia $t0, 0x184, 0
+    #interrupt handler for timer
+    lla $t0, INT_TIMER
+    srl $t0, $t0, 2
+    lui $t1, 0x0800
+    or $t0, $t0, $t1
+    swia $t0, 0x100, 0
+    lli $t0, 0x40802000 #mtc0 $zero, $4: enable mmu
+    swia $t0, 0x104, 0
     jr $ra
 }

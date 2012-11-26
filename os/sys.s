@@ -31,13 +31,19 @@ INIT:
     mtc0 $t0, $3
 
 TEST:
-    ori $a0, $zero, 34
-    and $a1, $zero, $zero
-    ori $k0, $zero, SC_GOTOXY
     #jal SYS_SYSCALL
+    ori $a0, $zero, 1
     ori $k0, $zero, SC_FORK
     syscall
+    #ori $a0, $zero, 2
+    #ori $k0, $zero, SC_FORK
+    #syscall
 LOOP:
+    #set proc status as suspended
+    SETFRMLB PROC_INFO
+    ori $t0, $zero, PROC_SUSPEND
+    #NOTE!!!: gdt size may be changed in the future
+    sw $t0, 172($fp)
     #jal GETC
     #jal SYS_GETC
     #blt $v0, $zero, LOOP

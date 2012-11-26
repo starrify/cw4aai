@@ -106,6 +106,10 @@ SYS_PUTC: #ch
 
     #write to disp mem
     add $t0, $t0, $t1
+    #UGLY FIX!!!!!!!
+    lli $t1, 0x01800000
+    add $t0, $t0, $t1
+    
     sw $a0, 0($t0)
     jal SYS_CURSORNEXT
 
@@ -176,16 +180,25 @@ SYS_FORK:
     mtc0 $zero, $1
     lli $sp, USR_INIT_STACK
 
-    lli $t1, 0x1808000 # sbase
-    addi $t1, $t1, 128 # offset of HDD
-    sll $t2, $t0, 25
-    sw $t2, 4($t1)
-    ori $t2, $zero, 0x1000
-    sw $t2, 8($t1)
-    lli $t2, 0x1000
-    sw $t2, 12($t1)
-    ori $t2, $zero, 1
-    sw $t2, 0($t1)
+    #UGLY FIX!!!!!
+    wrpgpr $ra, $ra
+    jal SYS_EXEC
+    rdpgpr $ra, $ra
     
+    jr $ra
+}
+
+.decl func scope(interrupt.lib) {
+SYS_EXEC:
+    SETFRM_SYSINFO
+    sll $t2, $t0, 25
+    sw $t2, HDD_SPMO($fp)
+    sll $a0, $a0, 12    # a0 * 0x1000
+    sw $a0, HDD_SSN($fp)
+    lli $t2, 0x1000
+    sw $t2, HDD_MAX_TSIZE($fp)
+    ori $t2, $zero, 1
+    sw $t2, HDD_ENABLE($fp)
+
     jr $ra
 }
