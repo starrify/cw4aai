@@ -77,6 +77,10 @@ i32_t reg_gpr_shadow_read(unsigned int rd, unsigned int rt)
     rd %= NUMBER_OF_REG_GPRS;
     rt %= NUMBER_OF_REG_GPRS;
     reg_gpr[rd] = reg_gpr_shadow[rt];
+#if DUMP_REG_SHADOW
+    fprintf(LOG_FILE, "Reg: Shadow: Read: gpr[%d]<-shadow[%d] 0x%.8X\n\n", 
+        rd, rt, reg_gpr_shadow[rt]);
+#endif
     return MEMU_SUCCESS;
 }
 
@@ -85,6 +89,10 @@ i32_t reg_gpr_shadow_write(unsigned int rd, unsigned int rt)
     rd %= NUMBER_OF_REG_GPRS;
     rt %= NUMBER_OF_REG_GPRS;
     reg_gpr_shadow[rd] = reg_gpr[rt];
+#if DUMP_REG_SHADOW
+    fprintf(LOG_FILE, "Reg: Shadow: Write: shadow[%d]<-gpr[%d] 0x%.8X\n\n", 
+        rd, rt, reg_gpr[rt]);
+#endif
     return MEMU_SUCCESS;
 }
 

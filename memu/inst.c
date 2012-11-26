@@ -1465,7 +1465,15 @@ static int inst_exec_tne(u32_t code);
 static int inst_exec_tnei(u32_t code);
 static int inst_exec_trunc_l_fmt(u32_t code);
 static int inst_exec_trunc_w_fmt(u32_t code);
-static int inst_exec_wait(u32_t code);
+
+static int inst_exec_wait(u32_t code)
+{
+    
+#if DUMP_INST
+    fprintf(LOG_FILE, "Instruction: WAIT\n");
+#endif
+    return EXCEPTION_NONE;
+}
 
 static int inst_exec_wrpgpr(u32_t code)
 {

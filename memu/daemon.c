@@ -72,7 +72,7 @@ void *display_daemon(void *ptr)
         int scrsize = scrx * scry * chrsz;
         memcpy(membase + fbbase + scrsize, membase + fbbase, fbhead * chrsz);
 #if DUMP_DISPLAY
-        fprintf(LOG_FILE, "Display: memcpy: %.8X -> %.8X, size: %X\n", fbbase, fbbase + scrsize, fbhead * chrsz);
+        fprintf(LOG_FILE, "Display: memcpy: %.8X -> %.8X, size: %X\n", fbbase, fbbase + scrsize, fbhead);
 #endif
 
         int i;

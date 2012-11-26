@@ -104,6 +104,7 @@ static inline void warn_expand_to_multi_inst(char *file, int lineno);
     j_type_inst_label
     cp0_inst
     cp0_inst_rt_rd
+    cp0_inst_rd_rt
     cp1_inst_fd_fs_ft
     cp1_inst_ft_fs
     cp1_inst_fd_fs
@@ -194,6 +195,7 @@ j_type_statement:
 cp0_statement:
     cp0_statement_null
     | cp0_statement_rt_rd
+    | cp0_statement_rd_rt
     ;
     
 cp1_statement: 
@@ -335,6 +337,12 @@ cp0_statement_rt_rd:
     {
         cp0_inst_assemble($1, $2, $4);
     };
+
+cp0_statement_rd_rt:
+    cp0_inst_rd_rt register COMMA register
+    {
+        cp0_inst_assemble($1, $4, $2);
+    };
     
 cp1_statement_fd_fs_ft:
     cp1_inst_fd_fs_ft register COMMA register COMMA register
@@ -454,7 +462,10 @@ cp0_inst:
     INST_ERET | INST_WAIT;
 
 cp0_inst_rt_rd:
-    INST_MFC0 | INST_MTC0 | INST_RDPGPR | INST_WRPGPR ;
+    INST_MFC0 | INST_MTC0;
+
+cp0_inst_rd_rt:
+    INST_RDPGPR | INST_WRPGPR ;
     
 cp1_inst_fd_fs_ft:
     INST_ADD_S | INST_CVT_S_W | INST_CVT_W_S | INST_DIV_S | INST_MUL_S 
