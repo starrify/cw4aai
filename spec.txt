@@ -29,7 +29,11 @@ Redefined CP0 registers: (we use selection 0 only):
         Desc: Interrupt enabled.
         Perm: R/W for software
         Init Value: 0
-    4: reserved
+    4: MMUD
+        Desc: MMU Disabled 
+        Perm: R/W for software
+        Init Value: 1
+    5: reserved
 
 GDT: Global Descriptor Table
     fixed size: 0x80(128) entries
