@@ -102,7 +102,7 @@ int main()
                     reg_pc = reg_advance_pc();
                     reg_cpr_write(FKREG_CPR_EXL, 0, MEMU_TRUE);
 		            interrupt_reset(entry);
-                    reg_cpr_write(FKREG_CPR_MMUD, 0, 1);
+                    mmu_disable();
                 }
             }
         }

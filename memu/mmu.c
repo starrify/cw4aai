@@ -13,11 +13,33 @@
 
 static void *membase;
 static size_t memsize;
+static i32_t mmud_backup;
 
 int mmu_init()
 {
     get_dma_info(&membase, &memsize);
     reg_cpr_write(FKREG_CPR_MMUD, 0, 1);
+    return MEMU_SUCCESS;
+}
+
+int mmu_disable()
+{
+    reg_cpr_read(FKREG_CPR_MMUD, 0, &mmud_backup);
+    reg_cpr_write(FKREG_CPR_MMUD, 0, 1);
+#if DUMP_MMU
+    fprintf(LOG_FILE, "MMU: disabled. saved previous MMUD state: %d\n", mmud_backup);
+#endif
+    return MEMU_SUCCESS;
+}
+
+int mmu_restore()
+{
+    i32_t mmud;
+    reg_cpr_read(FKREG_CPR_MMUD, 0, &mmud);
+    reg_cpr_write(FKREG_CPR_MMUD, 0, mmud_backup);
+#if DUMP_MMU
+    fprintf(LOG_FILE, "MMU: MMUD restored to %d. ignored previous state: %d\n", mmud_backup, mmud);
+#endif
     return MEMU_SUCCESS;
 }
 
