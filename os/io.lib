@@ -125,13 +125,13 @@ PUTS: #pt
     sw $ra, 4($sp)
     sw $s0, 0($sp)
     
-	add $s0, $zero, $a0
+    add $s0, $zero, $a0
 PTSLP:
     lw $a0, 0($s0)
-	beq $a0, $zero, PTSEND
-	jal PUTC
-	addi $s0, $s0, 1
-	j PTSLP
+    beq $a0, $zero, PTSEND
+    jal PUTC
+    addi $s0, $s0, 1
+    j PTSLP
 
 PTSEND:
     lw $s0, 0($sp)
@@ -176,4 +176,5 @@ IO_INIT:
     swia $t0, 0x80, 0
     lli $t0, 0x40802000 #mtc0 $zero, $4: enable mmu
     swia $t0, 0x84, 0
+    jr $ra
 }

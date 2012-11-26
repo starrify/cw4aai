@@ -27,7 +27,7 @@ INIT:
     #init libs
     jal IO_INIT
     #interrupt enable
-    ori $t0, $zero, 1
+ 
     mtc0 $t0, $3
 
 TEST:
@@ -35,12 +35,14 @@ TEST:
     and $a1, $zero, $zero
     ori $k0, $zero, SC_GOTOXY
     #jal SYS_SYSCALL
+    ori $k0, $zero, SC_FORK
+    syscall
 LOOP:
-    jal GETC
+    #jal GETC
     #jal SYS_GETC
     #blt $v0, $zero, LOOP
-    or $a0, $zero, $v0
-    jal PUTC
+    #or $a0, $zero, $v0
+    #jal PUTC
     #ori $k0, $zero, SC_PUTC
     #jal SYS_SYSCALL
     j LOOP
