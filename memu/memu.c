@@ -27,7 +27,6 @@ static pthread_t timer_daemon_thread;
 static void *membase;
 static size_t memsize;
 
-
 static void init()
 {
     mem_create(config.memsize);
@@ -95,7 +94,7 @@ int main()
                 if (entry)
                 {
                     reg_cpr_write(FKREG_CPR_EPC, 0, reg_pc);
- #if DUMP_INTERRUPT
+#if DUMP_INTERRUPT
                     fprintf(LOG_FILE, "Interrupt: set EPC=%.8X\n", reg_pc);
 #endif          
                     reg_special_write(REG_SPECIAL_PC_ADVANCE1, entry);
@@ -103,6 +102,7 @@ int main()
                     reg_pc = reg_advance_pc();
                     reg_cpr_write(FKREG_CPR_EXL, 0, MEMU_TRUE);
 		            interrupt_reset(entry);
+                    reg_cpr_write(FKREG_CPR_MMUD, 0, 1);
                 }
             }
         }
@@ -113,7 +113,7 @@ int main()
         mmu_addr_trans(reg_pc, MEM_ACCESS_INST | MEM_ACCESS_READ, &paddr, &attr);
         mem_read(paddr, reg_pc, attr, MEM_ACCESS_LEN_4 | MEM_ACCESS_INST | MEM_ACCESS_READ, &code);
 #if DUMP_FETCH
-        fprintf(LOG_FILE, "Fetching: instruction %.8X at pc=%.8X\n", code, reg_pc);
+        fprintf(LOG_FILE, "Fetching: instruction %.8X at pc=%.8X paddr=%.8X\n", code, reg_pc, paddr);
 #endif
         int exception = inst_execute(code);
         

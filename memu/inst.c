@@ -1477,7 +1477,6 @@ static int inst_exec_wait(u32_t code)
 
 static int inst_exec_wrpgpr(u32_t code)
 {
-    fprintf(LOG_FILE, "WWWWWWWWWWWWWWWWWWWWTF\n");
     int rt = MASKSHR(code, 20, 16);
     int rd = MASKSHR(code, 15, 11);
     reg_gpr_shadow_write(rd, rt);
