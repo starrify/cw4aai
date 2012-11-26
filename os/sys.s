@@ -46,13 +46,14 @@ TEST:
     ori $a0, $zero, 34
     and $a1, $zero, $zero
     ori $k0, $zero, SC_GOTOXY
-    jal SYS_SYSCALL
+    #jal SYS_SYSCALL
 LOOP:
     jal GETC
+    #jal SYS_GETC
+    #blt $v0, $zero, LOOP
     or $a0, $zero, $v0
     jal PUTC
     #ori $k0, $zero, SC_PUTC
     #jal SYS_SYSCALL
     j LOOP
-WTF:
-    eret
+

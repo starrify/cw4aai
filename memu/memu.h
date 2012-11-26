@@ -28,7 +28,7 @@
 #define DUMP_INST   1
 #define DUMP_MEM    1
 #define DUMP_MMU    0
-#define DUMP_HDD    1
+#define DUMP_HDD    0
 #define DUMP_REG_CPR    0
 #define DUMP_FETCH  1
 #define DUMP_DISPLAY    0
