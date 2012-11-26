@@ -1,7 +1,7 @@
 .inc "pseudo_inst.inc"
 .inc "string.lib"
 .inc "sysinfo.inc"
-.inc "interrupt.lib"
+.inc "proc.lib"
 
 .decl func scope(interrupt.lib) {
 SYS_GOTOXY: #row, col

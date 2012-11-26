@@ -7,19 +7,6 @@
 
 .offset 0x1c00000 #28M
 
-.def CUR_PROC_OFF {0}
-.def MAX_PROC_OFF {4}
-.def PROC_INFO_OFF {8}
-.static {
-PROC:
-CUR_PROC:
-    .0
-MAX_PROC:
-    .0
-PROC_INFO:
-    .inc "procinfo.b"
-}
-
 BOOT:
     #calc physical address for proc_info
     lli $t0, 0x1800000
