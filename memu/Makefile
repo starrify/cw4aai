@@ -26,7 +26,7 @@ memu.o: memu.c memu.h config.h decode.h exception.h mem.h mmu.h reg.h \
 config.o: config.c config.h
 	$(CC) $(CFLAG) -c config.c -o config.o
 
-decode.o: decode.c decode.h memu.h
+decode.o: decode.c decode.h memu.h config.h
 	$(CC) $(CFLAG) -c decode.c -o decode.o
 	
 #exception.o: exception.c exception.h
