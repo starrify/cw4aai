@@ -1,6 +1,7 @@
 .inc "io.lib"
 .inc "interrupt.lib"
 .inc "var.inc"
+.inc "sysinfo.inc"
 
 .def SHELL_INBUF_START {0}
 .def SHELL_INBUF_END {4}
@@ -22,6 +23,8 @@ INIT:
     lui $t1, 0x0800
     or $t0, $t0, $t1
     swlia $t0, 0x1800080, 0
+    lli $t0, 0x40802000 #mtc0 $zero, $4: enable mmu
+    swlia $t0, 0x1800084, 0
 
 SHELL:
     addi $sp, $sp, -80
@@ -44,8 +47,8 @@ SHLL_END:
     
 SHELL_INT_KEYBOARD:
     shade_gpr
-    lla $s0, SYS_SP_BUF
-    lw $sp, 0($s0)
+    #initialize system stack
+    lli $sp, SYS_STACK_INIT
 
 SHLL_INT_KBD1:
     jal SYS_GETC
@@ -67,7 +70,6 @@ SHLL_INT_KBD3:
     jal PUSHC
     
 SHLL_INT_KBDEND:
-    sw $sp, 0($s0)
     restore_gpr
     eret
 

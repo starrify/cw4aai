@@ -1,19 +1,20 @@
 .inc "syscall.inc"
 .inc "var.inc"
 .inc "pseudo_inst.inc"
-.inc "syscall.lib"
 .inc "interrupt.lib"
+.inc "sysinfo.inc"
 
-.def LIB_INBUF_SIZE {4096}
 .def LIB_INBUF_START {0}
 .def LIB_INBUF_END {4}
 .def LIB_INBUF_DATA {8}
+
+.def LIB_INBUF_SIZE {4096}
 .def LIB_INBUF_UNIT_SIZE {4}
 .static {
 LIB_INBUF:
     .0
     .0
-    .dup 1000 .0
+    .dup 1024 .0
 }
 
 .decl func {
@@ -24,14 +25,17 @@ PUTC: #ch
     ori $t0, $zero, 10
     beq $a0, $t0, PTC_NL
 
-    jal SYS_PUTC
+    ori $k0, $zero, SC_PUTC
+    syscall
     j PTCEND
 PTC_NL:
-    jal SYS_GETXY
+    ori $k0, $zero, SC_GETXY
+    syscall
     #move to next line and wrap
     or $a0, $zero, $v0
     ori $a1, $zero, SCR_WIDTH - 1
-    jal SYS_GOTOXY
+    ori $k0, $zero, SC_GOTOXY
+    syscall
     jal SYS_CURSORNEXT
     j PTCEND
 PTCEND:
@@ -68,8 +72,8 @@ PSCEND:
 .decl func scope() {
 IO_INT_KEYBOARD:
     shade_gpr
-    lla $s0, SYS_SP_BUF
-    lw $sp, 0($s0)
+    #initialize system stack
+    lli $sp, SYS_STACK_INIT
     
 IO_INT_KBD1:
     jal SYS_GETC
@@ -79,7 +83,6 @@ IO_INT_KBD1:
     j IO_INT_KBD1
     
 IO_INT_KBDEND:
-    sw $sp, 0($s0)
     restore_gpr
     eret
 }
@@ -163,4 +166,6 @@ IO_INIT:
     lui $t1, 0x0800
     or $t0, $t0, $t1
     swia $t0, 0x80, 0
+    lli $t0, 0x40802000 #mtc0 $zero, $4: enable mmu
+    swia $t0, 0x84, 0
 }

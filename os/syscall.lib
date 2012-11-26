@@ -2,7 +2,7 @@
 .inc "string.lib"
 .inc "sysinfo.inc"
 
-.decl func scope(io.lib) {
+.decl func scope(interrupt.lib) {
 SYS_GOTOXY: #row, col
     #boundary check
     ori $t0, $zero, SCR_HEIGHT
@@ -37,7 +37,7 @@ SYS_GXYEND:
     jr $ra
 }
 
-.decl func scope(io.lib) {
+.decl func scope(interrupt.lib) {
 SYS_GETXY:
     SETFRM_SYSINFO
     #calculate reletive cursor
@@ -93,7 +93,7 @@ SYS_CSNXYEND:
     jr $ra
 }
 
-.decl func scope(io.lib) {
+.decl func scope(interrupt.lib) {
 SYS_PUTC: #ch
     addi $sp, $sp, -4
     sw $ra, 0($sp)
@@ -141,35 +141,8 @@ SYS_GTCEND:
     jr $ra
 }
 
-.decl func scope() {
+.decl func scope(interrupt.lib) {
 #only implemented as new process here
 SYS_FORK:
     
-}
-
-.decl func {
-SYS_SYSCALL:
-    addi $sp, $sp, -4
-    sw $ra, 0($sp)
-    #at most 4 instructions for each block
-    sll $k0, $k0, 4
-    lla $t0, SYS_SSC1
-    add $k0, $k0, $t0
-    jr $k0
-SYS_SSC1:    
-    #case 0
-    .dup 4 .0
-    #case 1: gotoxy
-    jal SYS_GOTOXY #sll 0, 0, 0
-    j SYSCLEND #sll 0, 0, 0
-    #case 2: putc
-    jal SYS_PUTC
-    j SYSCLEND
-    #case 3: getc
-    jal SYS_GETC #sll 0, 0, 0
-    j SYSCLEND #sll 0, 0, 0
-SYSCLEND:
-    lw $ra, 0($sp)
-    addi $sp, $sp, 4
-    jr $ra
 }

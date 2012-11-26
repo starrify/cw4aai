@@ -1,26 +1,25 @@
+.inc "syscall.inc"
+.inc "syscall.lib"
+.inc "sysinfo.inc"
+
 .static {
 REGS_BUF:
     .dup 32 .0
-SYS_SP_BUF:
-    .0
 }
 
 #store gpr to REGS_BUF
 .def shade_gpr {
-    wrpgpr $at, $at
-    wrpgpr $fp, $fp
-    lla $fp, REGS_BUF
+    wrpgpr $t7, $t7
+    lla $t7, REGS_BUF
     .loop 0 31 /
-    sw $<LOOPVAR>, 0($fp)
-    addi $fp, $fp, 4
+    sw $<LOOPVAR>, 0($t7)
+    addi $t7, $t7, 4
     /
-    wrpgpr $t0, $t0
-    lla $t0, REGS_BUF
-    rdpgpr $fp, $fp
+    wrpgpr $at, $at
+    lla $at, REGS_BUF
+    rdpgpr $t7, $t7
+    sw $t7, 60($at)
     rdpgpr $at, $at
-    sw $fp, 120($t0)
-    sw $at, 4($t0)
-    rdpgpr $t0, $t0
 }
 
 .decl func scope() {
@@ -55,11 +54,9 @@ INT_STORE_PROC_INFO_OFF:
     addi $31, $31, 4
     /
     wrpgpr $t0, $t0
-    wrpgpr $at, $at
     lla $t0, REGS_BUF
     lw $31, 124($t0)
     rdpgpr $t0, $t0
-    rdpgpr $at, $at
 }
 
 .decl func scope() {
@@ -86,10 +83,50 @@ INT_LOAD_PROC_INFO_OFF:
     jr $ra
 }
 
+.decl func scope() {
+INT_SYSCALL:
+    #syscall follows calling conventions, so there's no need to shade and restore gpr
+    #use user stack instead of system stack
+    
+    #shade_gpr
+
+    #at most 4 instructions for each block
+    sll $k0, $k0, 4
+    lla $t0, INT_SSC1
+    add $k0, $k0, $t0
+    jr $k0
+INT_SSC1:
+    #case 0
+    .dup 4 .0
+    #case 1: gotoxy
+    jal SYS_GOTOXY #sll 0, 0, 0
+    j INT_SSCLEND #sll 0, 0, 0
+    #case 2: getxy
+    jal SYS_GETXY #sll 0, 0, 0
+    j INT_SSCLEND #sll 0, 0, 0
+    #case 3: putc
+    jal SYS_PUTC
+    j INT_SSCLEND
+    #case 4: getc
+    jal SYS_GETC #sll 0, 0, 0
+    j INT_SSCLEND #sll 0, 0, 0
+INT_SSCLEND:
+    #restore_gpr
+    eret
+}
+
 .decl func scope(main file) {
 INT_INIT:
     #interrupt handler for keyboard
     lli $t0, 0x42000018  #eret
     swia $t0, 0x80, 0
+    #interrupt handler for syscall
+    lla $t0, INT_SYSCALL
+    srl $t0, $t0, 2
+    lui $t1, 0x0800
+    or $t0, $t0, $t1
+    swia $t0, 0x180, 0
+    lli $t0, 0x40802000 #mtc0 $zero, $4: enable mmu
+    swia $t0, 0x184, 0
     jr $ra
 }
