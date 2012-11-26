@@ -30,8 +30,9 @@
 #define DUMP_MMU    0
 #define DUMP_HDD    1
 #define DUMP_REG_CPR    0
+#define DUMP_REG_SHADOW    0
 #define DUMP_FETCH  1
-#define DUMP_DISPLAY    0
+#define DUMP_DISPLAY    1
 #define DUMP_KEYBOARD   1
 #define DUMP_INTERRUPT  1
 #define DUMP_IIC    0
