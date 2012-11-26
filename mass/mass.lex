@@ -179,12 +179,13 @@ $31 return yylval.int_t = REG_RA;
 \<\<    return yylval.int_t = OP_LSHIFT;
 \>\>    return yylval.int_t = OP_RSHIFT;
 
- /* identifiers and numbers */
+ /* identifiers, numbers, and strings */
 [_a-zA-Z][_0-9a-zA-Z]*  yylval.str_t = strdup(yytext); return IDENTIFIER;
 [0-9]+      yylval.int_t = strtol(yytext, NULL, 10); return INTEGER;
 0d[0-9]+    yylval.int_t = strtol(yytext, NULL, 10); return INTEGER;
 0b[01]+     yylval.int_t = strtol(yytext, NULL, 2); return INTEGER;
 0x[0-9a-zA-Z]+  yylval.int_t = strtol(yytext, NULL, 16); return INTEGER; 
+\"[^\n]*\"  yylval.str_t = strdup(yytext); return STRING;
 
  /* misc */
 \(  return yylval.int_t = L_PARENTHESIS;
@@ -195,6 +196,7 @@ $31 return yylval.int_t = REG_RA;
 \;  return yylval.int_t = SEMICOLON;
 \.dup return yylval.int_t = AD_DUP;
 \.offset    return yylval.int_t = AD_OFFSET;
+\.str       return yylval.int_t = AD_STR;
 
 \n+  return yylval.int_t = EOLN;
 [ \t]+  /* WHITESPACE(not including EOLN), do nothing */

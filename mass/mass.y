@@ -6,6 +6,7 @@
  */
  
 #include <assert.h>
+#include <stdlib.h>
 #include <stdio.h>
 //#include "mass.yy.h"
 #include "mass.h"
@@ -29,10 +30,10 @@ static inline void warn_expand_to_multi_inst(char *file, int lineno);
 %token <int_t>
     /* misc */
     INTEGER L_PARENTHESIS R_PARENTHESIS COMMA COLON SEMICOLON COMMENT WHITESPACE 
-    EOLN DOT 
+    EOLN DOT STRING
 
     /* assembler directives */
-    AD_DUP AD_OFFSET
+    AD_DUP AD_OFFSET AD_STR
     
     /* operator */
     OP_ADD OP_SUB OP_MUL OP_DIV OP_MOD OP_AND OP_OR OP_XOR OP_NOT OP_LSHIFT 
@@ -84,6 +85,7 @@ static inline void warn_expand_to_multi_inst(char *file, int lineno);
 %type <int_t>
     /* type declearations of these sub token */
     rawcode
+    rawstring
     immediate
     expr
     label_declare
@@ -127,6 +129,7 @@ statement:
     | instruct_statement
     | label_declare statement
     | rawcode
+    | rawstring
     | offset
     ;
 
@@ -137,6 +140,26 @@ rawcode:
         int i; 
         for (i = 0; i < $2; i++) 
             write_code($4);
+    }
+    ;
+
+rawstring:
+    AD_STR STRING
+    {
+        char *fname = "/tmp/tmp0";
+        char *s = malloc(0x1000);
+        sprintf(s, "echo %s > %s\n", $2, fname);
+        system(s);
+        free(s);
+        FILE *fin = fopen(fname, "rb");
+        while (!feof(fin))
+        {
+            char chr;
+            fread(&chr, sizeof(char), 1, fin);
+            write_code((unsigned int)chr);
+        }
+        write_code(0);
+        fclose(fin);
     }
     ;
 
