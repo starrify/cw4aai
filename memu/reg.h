@@ -94,6 +94,7 @@ enum _fake_reg_cpr
     FKREG_CPR_EXL,
     FKREG_CPR_IE,
     FKREG_CPR_MMUD,
+    FKREG_CPR_PFLA,
     FKREG_CPR_RESERVED,
 };
 
