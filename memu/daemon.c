@@ -91,7 +91,6 @@ void *display_daemon(void *ptr)
         }
         move(cursor_off / scry, cursor_off % scry);
 
-        fprintf(LOG_FILE, "SSSSSSSSSSSSSSSB: 0x%.8X\n", *(u32_t*)(membase + 0x80));
         refresh();
     }
 

@@ -3,3 +3,4 @@
 .def SC_PUTC {3}
 .def SC_GETC {4}
 .def SC_FORK {10}
+.def SC_SLEEP {13}
