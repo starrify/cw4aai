@@ -46,7 +46,7 @@ SHLL_END:
 
     
 SHELL_INT_KEYBOARD:
-    shade_gpr
+    cache_regs
     #initialize system stack
     lli $sp, SYS_STACK_INIT
 
@@ -70,7 +70,7 @@ SHLL_INT_KBD3:
     jal PUSHC
     
 SHLL_INT_KBDEND:
-    restore_gpr
+    restore_regs
     eret
 
 SHELL_INBUF_GETC:

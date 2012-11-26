@@ -253,6 +253,11 @@ sub loop() {
 	($out, $leftover);
 }
 
+#.str subroutines
+sub string() {
+	
+}
+
 sub processCmd() {
 	my ($cmd, $leftover) = @_;
 	my $out, my $tmp;
@@ -280,6 +285,11 @@ sub processCmd() {
 		}
 		when('.loop') {
 			($tmp, $leftover) = &loop($leftover);
+			$out = $tmp;
+			$localout = $tmp;
+		}
+		when('.str') {
+			($tmp, $leftover) = &string($leftover);
 			$out = $tmp;
 			$localout = $tmp;
 		}

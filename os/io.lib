@@ -1,8 +1,9 @@
 .inc "syscall.inc"
 .inc "var.inc"
 .inc "pseudo_inst.inc"
-.inc "interrupt.lib"
+.inc "proc.lib"
 .inc "sysinfo.inc"
+.inc "syscall.lib"
 
 .def LIB_INBUF_START_OFF {0}
 .def LIB_INBUF_END_OFF {4}
@@ -74,7 +75,7 @@ PSCEND:
 #interrupt function for keyboard
 .decl func scope() {
 IO_INT_KEYBOARD:
-    shade_gpr
+    cache_regs
     #initialize system stack
     lli $sp, SYS_STACK_INIT
     
@@ -86,7 +87,7 @@ IO_INT_KBD1:
     j IO_INT_KBD1
     
 IO_INT_KBDEND:
-    restore_gpr
+    restore_regs
     eret
 }
 

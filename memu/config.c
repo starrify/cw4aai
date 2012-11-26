@@ -25,5 +25,5 @@ struct config_t config =
     .hdd_size   = 0x040000000l, // 16GB
     .hdd_sector_skip    = 0x1000, // 2MB for each file
     .hdd_filelist_size  = 3,
-    .hdd_filelist = { "sys.img", "sys.img", "sys.img" },
+    .hdd_filelist = { "sys.img", "app1.img", "sys.img" },
 };

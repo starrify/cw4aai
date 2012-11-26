@@ -1,3 +1,5 @@
+.inc "string.lib"
+
 .def CUR_PROC_OFF {0}
 .def MAX_PROC_OFF {4}
 .def PROC_INFO_OFF {8}
@@ -10,51 +12,78 @@ MAX_PROC:
 PROC_INFO:
     .inc "procinfo.b"
 REGS_BUF:
-    .dup 32 .0
+    .dup 36 .0  #32w:gpr, 1w:epc, 1w:hi, 1w:lo, 1w:reserved
 }
 
-#store gpr to REGS_BUF
-.def shade_gpr {
-    wrpgpr $t7, $t7
-    lla $t7, REGS_BUF
+#store registers to REGS_BUF
+.def cache_regs {
+    wrpgpr $fp, $fp
+    lla $fp, REGS_BUF
+    #store gpr
     .loop 0 31 /
-    sw $<LOOPVAR>, 0($t7)
-    addi $t7, $t7, 4
+    sw $<LOOPVAR>, 0($fp)
+    addi $fp, $fp, 4
     /
     wrpgpr $at, $at
+    #store epc, hi, lo
+    mfc0 $at, $1
+    sw $at, 0($fp)
+    addi $fp, $fp, 4
+    mfhi $at
+    sw $at, 0($fp)
+    addi $fp, $fp, 4
+    mflo $at
+    sw $at, 0($fp)
+    
     lla $at, REGS_BUF
-    rdpgpr $t7, $t7
-    sw $t7, 60($at)
+    rdpgpr $fp, $fp
+    sw $fp, 120($at)
     rdpgpr $at, $at
 }
 
-.decl func scope() {
-INT_STORE_PROC_INFO_OFF:
+.decl func scope(syscall.lib) {
+FLUSH_REGS:
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
     #suppose gpr is already stored in REGS_BUF by shade_gpr
     SETFRMLB PROC
     #dst: a0=proc_info + cur_proc * 64
+    #note!!!: gdt may change in the future
     lw $a0, PROC_INFO_OFF($fp)
     lw $t0, CUR_PROC_OFF($fp)
     sll $t0, $t0, 6
-    add $t0, $a0, $t0
-    or $a0, $zero, $t0
+    add $a0, $a0, $t0
     #src: a1 = regs_buf
     lla $a1, REGS_BUF
     #word_cnt: a2 = 32
-    ori $a2, 32
-    jal MEMWORDSET
-    mfc0 $t1, $1
-    sw $t1, 160($t0)    #160: epc
-    mfhi $t1
-    sw $t1, 164($t0)
-    mflo $t1
-    sw $t1, 168($t0)
+    ori $a2, $zero, 32
+    #before memwordcpy, flush epc, hi, lo
+    #NOTE!!: size of gdt may change in the future
+    lw $t0, 128($a1)
+    sw $t0, 160($a0)
+    lw $t0, 132($a1)
+    sw $t0, 164($a0)
+    lw $t0, 136($a1)
+    sw $t0, 168($a0)
+    
+    jal MEMWORDCPY
+
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
     jr $ra
 }
 
-#load gpr from REGS_BUF
-.def restore_gpr {
+#load regs from REGS_BUF
+.def restore_regs {
     lla $31, REGS_BUF
+    #restore epc, hi, lo
+    lw $t0, 128($31)
+    mtc0 $t0, $1
+    lw $t0, 132($31)
+    mthi $t0
+    lw $t0, 136($31)
+    mtlo $t0
+    #restore gpr
     .loop 0 30 /
     lw $<LOOPVAR>, 0($31)
     addi $31, $31, 4
@@ -66,10 +95,13 @@ INT_STORE_PROC_INFO_OFF:
 }
 
 .decl func scope() {
-INT_LOAD_PROC_INFO_OFF:
+FETCH_REGS:
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+
+    SETFRMLB PROC
     #dst: a0 = regs_buf
     lla $a0, REGS_BUF
-    SETFRMLB PROC
     #src: a1=proc_info + cur_proc * 64
     #NOTE!!: size of gdt may change in the future
     lw $a1, PROC_INFO_OFF($fp)
@@ -79,13 +111,18 @@ INT_LOAD_PROC_INFO_OFF:
     or $a1, $zero, $t0
     #word_cnt: a2 = 32
     ori $a2, 32
-    jal MEMWORDSET
+    #before calling memwordcpy, fetch epc, hi, lo first
+    #NOTE!!: size of gdt may change in the future
+    lw $t0, 128($a0)
+    sw $t0, 160($a1)
+    lw $t0, 132($a0)
+    sw $t0, 164($a1)
+    lw $t0, 136($a0)
+    sw $t0, 168($a1)
+    
+    jal MEMWORDCPY
 
-    sw $t1, 160($t0)    #160: epc
-    mtc0 $t1, $1
-    sw $t1, 164($t0)
-    mtlo $t1
-    sw $t1, 168($t0)
-    mthi $t1
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
     jr $ra
 }
