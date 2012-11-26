@@ -27,6 +27,10 @@ static pthread_t timer_daemon_thread;
 static void *membase;
 static size_t memsize;
 
+int wait = 0;
+pthread_cond_t wait_cond = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t wait_cond_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 static void init()
 {
     mem_create(config.memsize);
@@ -61,10 +65,8 @@ static void fini()
     return;
 }
 
-int main()
+static int main_loop()
 {
-    init();
-    
     reg_special_write(REG_SPECIAL_PC_ADVANCE1, config.entry_offset);
     reg_special_write(REG_SPECIAL_PC_ADVANCE2, config.entry_offset + 4);
     
@@ -82,6 +84,13 @@ int main()
             step_count = step;
         }
 #endif
+        if (wait)
+        {
+            pthread_mutex_lock(&wait_cond_mutex);
+            pthread_cond_wait(&wait_cond, &wait_cond_mutex);
+            pthread_mutex_unlock(&wait_cond_mutex);
+            wait = 0;
+        }
         
         u32_t reg_pc = reg_advance_pc();
         u32_t reg_pcadv1;
@@ -127,6 +136,13 @@ int main()
         
     }
     
+    return 0;
+}
+
+int main()
+{
+    init();
+    main_loop();
     fini();
     return 0;
 }
