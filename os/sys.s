@@ -1,7 +1,7 @@
+.inc "jmp_fix.inc"
 .inc "pseudo_inst.inc"
 .inc "var.inc"
 .inc "sysinfo.inc"
-.inc "jmp_fix.inc"
 .inc "io.lib"
 .inc "interrupt.lib"
 
@@ -35,15 +35,16 @@ TEST:
     ori $a0, $zero, 1
     ori $k0, $zero, SC_FORK
     syscall
-    #ori $a0, $zero, 2
-    #ori $k0, $zero, SC_FORK
-    #syscall
+    ori $a0, $zero, 2
+    ori $k0, $zero, SC_FORK
+    syscall
 LOOP:
     #set proc status as suspended
     SETFRMLB PROC_INFO
     ori $t0, $zero, PROC_SUSPEND
     #NOTE!!!: gdt size may be changed in the future
     sw $t0, 172($fp)
+    wait
     #jal GETC
     #jal SYS_GETC
     #blt $v0, $zero, LOOP
@@ -51,5 +52,6 @@ LOOP:
     #jal PUTC
     #ori $k0, $zero, SC_PUTC
     #jal SYS_SYSCALL
-    j LOOP
+END:
+    j END
 

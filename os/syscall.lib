@@ -150,19 +150,19 @@ SYS_GTCEND:
 .decl func scope(interrupt.lib) {
 #only implemented as new process here
 SYS_FORK:
-    #store cur process
-    cache_regs
-    #store ra, for sp is changed later, so push and pop are done here
-    addi $sp, $sp, -4
+addi $sp, $sp, -8
     sw $ra, 0($sp)
+
+    #store ra, for sp is changed later, so push and pop are done here
+    #UGLY FIX!!! no need to store a0
+    sw $a0, 4($sp)
     jal FLUSH_REGS
-    lw $ra, 0($sp)
-    addi $sp, $sp, 4
+    lw $a0, 4($sp)
     SETFRMLB PROC
     
     lw $t0, MAX_PROC_OFF($fp)
 
-    #change CUR_PROC
+    #change MAX_PROC
     addi $t0, $t0, 1
     sw $t0, MAX_PROC_OFF($fp)
 
@@ -171,31 +171,33 @@ SYS_FORK:
     #proc_id * 64w: proc_id * 256bx     
     sll $t2, $t0, 8
     add $t1, $t1, $t2
-    #calc physical addr by sub 24M
-    lli $t2, 0x1800000
-    sub $t1, $t1, $t2
-    #set gdt of new proc
-    mtc0 $t1, $0
     #init regs, epc and sp
-    mtc0 $zero, $1
-    lli $sp, USR_INIT_STACK
+    sw $zero, 160($t1)  #epc = 0
+    lli $t2, USR_INIT_STACK
+    sw $t2, 148($t1)    #sp = USR_INIT_STACK
+    sw $zero, 172($t1)  #state = 0
 
     #UGLY FIX!!!!!
-    wrpgpr $ra, $ra
     jal SYS_EXEC
-    rdpgpr $ra, $ra
+
+    lw $ra, 0($sp)
+    addi $sp, $sp, 8
     
     jr $ra
 }
 
 .decl func scope(interrupt.lib) {
 SYS_EXEC:
+    #set epc to zero
+    SETFRMLB PROC
+    #UGLY FIX!!!! should load CUR_PROC_OFF here instead of MAX_PROC_OFF
+    lw $t0, MAX_PROC_OFF($fp)
     SETFRM_SYSINFO
     sll $t2, $t0, 25
     sw $t2, HDD_SPMO($fp)
     sll $a0, $a0, 12    # a0 * 0x1000
     sw $a0, HDD_SSN($fp)
-    lli $t2, 0x1000
+    ori $t2, $zero, 0x1000
     sw $t2, HDD_MAX_TSIZE($fp)
     ori $t2, $zero, 1
     sw $t2, HDD_ENABLE($fp)

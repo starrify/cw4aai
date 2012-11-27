@@ -48,25 +48,19 @@ FLUSH_REGS:
     sw $ra, 0($sp)
     #suppose gpr is already stored in REGS_BUF by shade_gpr
     SETFRMLB PROC
-    #dst: a0=proc_info + cur_proc * 64
+    #dst: a0=proc_info + cur_proc * 64 + 8word
     #note!!!: gdt may change in the future
-    lw $a0, PROC_INFO_OFF($fp)
+    addi $a0, $fp, PROC_INFO_OFF
     lw $t0, CUR_PROC_OFF($fp)
-    sll $t0, $t0, 6
+    sll $t0, $t0, 8     #64 * 4 bytes
     add $a0, $a0, $t0
+    #NOTE!!: size of gdt may change in the future
+    addi $a0, $a0, 32   # +8word to regs
     #src: a1 = regs_buf
     lla $a1, REGS_BUF
-    #word_cnt: a2 = 32
-    ori $a2, $zero, 32
-    #before memwordcpy, flush epc, hi, lo
-    #NOTE!!: size of gdt may change in the future
-    lw $t0, 128($a1)
-    sw $t0, 160($a0)
-    lw $t0, 132($a1)
-    sw $t0, 164($a0)
-    lw $t0, 136($a1)
-    sw $t0, 168($a0)
-    
+    #word_cnt: a2 = 35, including gpr, epc, hi, lo
+    ori $a2, $zero, 35
+
     jal MEMWORDCPY
 
     lw $ra, 0($sp)
@@ -103,23 +97,16 @@ FETCH_REGS:
     SETFRMLB PROC
     #dst: a0 = regs_buf
     lla $a0, REGS_BUF
-    #src: a1=proc_info + cur_proc * 64
+    #src: a1=proc_info + cur_proc * 64 + 8words
     #NOTE!!: size of gdt may change in the future
-    lw $a1, PROC_INFO_OFF($fp)
+    addi $a1, $fp, PROC_INFO_OFF
     lw $t0, CUR_PROC_OFF($fp)
-    sll $t0, $t0, 6
-    add $t0, $a1, $t0
-    or $a1, $zero, $t0
-    #word_cnt: a2 = 32
-    ori $a2, $zero, 32
-    #before calling memwordcpy, fetch epc, hi, lo first
+    sll $t0, $t0, 8     #64 * 4 bytes
+    add $a1, $a1, $t0
     #NOTE!!: size of gdt may change in the future
-    lw $t0, 128($a0)
-    sw $t0, 160($a1)
-    lw $t0, 132($a0)
-    sw $t0, 164($a1)
-    lw $t0, 136($a0)
-    sw $t0, 168($a1)
+    addi $a1, $a1, 32
+    #word_cnt: a2 = 35, including gpr, epc, hi, lo
+    ori $a2, $zero, 35
     
     jal MEMWORDCPY
 
@@ -149,19 +136,22 @@ PRC_SCHD1:
     ble $t1, $t3, PRC_SCHD2
     and $t1, $zero, $zero
 PRC_SCHD2:
+    addi $t3, $fp, PROC_INFO_OFF
     #get process state
-    lw $t2, 172($t1)
+    add $t2, $t3, $t1
+    lw $t2, 172($t2)
     beq $t2, $zero, PRC_SCHD3   #found a ready process
     j PRC_SCHD1
 PRC_SCHD3:
-    srl $s0, $t2, 8             #get process id
-    lw $t1, CUR_PROC_OFF($fp)
-    beq $t1, $s0, PRC_SCHDEND   #no need to switch
+    srl $s0, $t1, 8             #get process id
+    lw $t2, CUR_PROC_OFF($fp)
+    beq $t2, $s0, PRC_SCHDEND   #no need to switch
 
     #calc physical gdt and write to c0
-    lli $t1, 0x001800000
-    sub $t1, $t2, $t1
-    mtc0 $t1, $0
+    lli $t2, 0x01800000
+    sub $t2, $t3, $t2
+    add $t2, $t2, $t1
+    mtc0 $t2, $0
     
     jal FLUSH_REGS
 

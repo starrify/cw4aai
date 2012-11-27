@@ -1,0 +1,3 @@
+.def PROC_READY {0}
+.def PROC_SUSPEND {1}
+.def PROC_EXITED {2}

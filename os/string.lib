@@ -5,8 +5,6 @@
 #note: dst and src must be aligned and should not overlap
 .decl func {
 MEMWORDCPY:
-    addi $sp, $sp, -4
-    sw $ra, 0($sp)
     #check if aligned
     bnaln $a0, MWCPERR
     bnaln $a1, MWCPERR
@@ -28,8 +26,6 @@ MWCPSUCC:
 MWCPERR:
     addi $v0, $zero, -1
 MWCPEND:
-    lw $ra, 0($sp)
-    addi $sp, $sp, 4
     jr $ra
 }
 
