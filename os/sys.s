@@ -53,5 +53,7 @@ LOOP:
     #ori $k0, $zero, SC_PUTC
     #jal SYS_SYSCALL
 END:
+    #ori $a0, $zero, 99
+    #jal SYS_GETC
     j END
 
