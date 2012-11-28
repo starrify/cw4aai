@@ -1,1 +1,0 @@
-.def USR_INIT_STACK {0x01800000}

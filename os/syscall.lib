@@ -1,7 +1,6 @@
 .inc "pseudo_inst.inc"
 .inc "string.lib"
 .inc "sysinfo.inc"
-.inc "usrinfo.inc"
 .inc "proc.lib"
 
 .decl func scope(interrupt.lib) {
@@ -147,42 +146,88 @@ SYS_GTCEND:
     jr $ra
 }
 
-.decl func scope(interrupt.lib) {
-#only implemented as new process here
-SYS_FORK:
-addi $sp, $sp, -8
-    sw $ra, 0($sp)
+.decl func scope() {
+FIND_UNUSED_GDT_ITEM:   #gdt_vir_addr, returns first unused item addr
+    ori $t0, $zero, GDT_SIZE                    #t0 reserved as GDT_SIZE
+FUGI1:
+    lw $t1, 12($a0)                             #load the valid flag
+    beq $t1, $zero, FUGIEND                    #unused gdt item found
+    addi $a0, $a0, GDT_ITEM_SIZE
+    beq $a0, $t2, FUGIERR                    #no unused gdt item found
+    j FUGI1
+FUGIERR:
+    j FUGIERR                                #don't know how to handle here, apply a forever loop
+FUGIEND:
+    or $v0, $zero, $a0
+    jr $ra
+}
 
-    #store ra, for sp is changed later, so push and pop are done here
-    #UGLY FIX!!! no need to store a0
-    sw $a0, 4($sp)
-    jal FLUSH_REGS
-    lw $a0, 4($sp)
+.decl func scope(interrupt.lib) {
+SYS_FORK:
+    cache_regs
+
+    addi $sp, $sp, -8
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+
     SETFRMLB PROC
     
-    lw $t0, MAX_PROC_OFF($fp)
+    lw $s0, MAX_PROC_OFF($fp)           #s0 reserved as new PROC_ID
 
-    #change MAX_PROC
-    addi $t0, $t0, 1
+    #change MAX_PROC without overflow check
+    addi $t0, $s0, 1
     sw $t0, MAX_PROC_OFF($fp)
 
-    addi $t1, $fp, PROC_INFO_OFF
-    #NOTE!!!: size of gdt may change in the future
-    #proc_id * 64w: proc_id * 256bx     
-    sll $t2, $t0, 8
-    add $t1, $t1, $t2
-    #init regs, epc and sp
-    sw $zero, 160($t1)  #epc = 0
-    lli $t2, USR_INIT_STACK
-    sw $t2, 148($t1)    #sp = USR_INIT_STACK
-    sw $zero, 172($t1)  #state = 0
+    addi $t3, $fp, PROC_INFO_OFF        #t3 reserved as addr of PROC_INFO
+    #proc_id * 256w
+    sll $t2, $t0, PROC_INFO_LOG_SIZE
+    add $t1, $t3, $t2
+    #init proc state
+    sw $zero, PROC_STATE_OFF_PER_PROC($t1)      #state = 0
 
-    #UGLY FIX!!!!!
-    jal SYS_EXEC
+    #copy current process to the new one
+    #find a place in gdt to do memory mapping
+    sll $a0, $s0, PROC_INFO_LOG_SIZE
+    add $a0, $a0, $t3
+    jal FIND_UNUSED_GDT_ITEM
+    or $s0, $v0, $v0
+    #map the userspace of the new process to 8M - 16M here
+    sll $t0, $s0, PROC_USRSPACE_LOG_SIZE
+    sw $t0, 0($s0)                              #physical address
+    lli $t1, PROC_USRSPACE_SIZE                 #8M
+    sw $t1, 4($s0)                              #virtual address
+    sw $t1, 8($s0)                              #size
+    ori $t0, $zero, 1
+    sw $t0, 12($s0)                             #validate
+    #copy code and static data !!! assumed less than 2M here
+    or $a0, $zero, $t1                          #8M
+    and $a1, $zero, $zero                       #0M
+    #lli $a2, 0x80000                            #(2M / 4) words
+    lli $a2, 0x8000                             #(128K / 4) words
+    jal MEMWORDCPY
+    #copy stack data
+    #load sp from cached regs
+    SETFRMLB REGS_BUF
+    lw $t0, (29 * 4)($fp)
+    lli $a2, PROC_USRSPACE_SIZE
+    add $a0, $a2, $t0                   #we use user stack in syscall
+    or $a1, $zero, $t0
+    #calc stack size in words
+    sub $a2, $a2, $t0
+    srl $a2, $a2, 2
+    jal MEMWORDCPY
+    #copy registers
+    and $v0, $zero, $zero               #set return value of fork for child process
+    or $a0, $zero, $s0
+    jal FLUSH_REGS
+    or $v0, $zero, $s0                  #set return value of fork for father process
+    #restore gdt
+    sw $zero, 12($s0)
 
+#SYS_FRKEND:
     lw $ra, 0($sp)
+    lw $s0, 4($sp)
     addi $sp, $sp, 8
-    
     jr $ra
 }
 
@@ -193,7 +238,7 @@ SYS_EXEC:
     #UGLY FIX!!!! should load CUR_PROC_OFF here instead of MAX_PROC_OFF
     lw $t0, MAX_PROC_OFF($fp)
     SETFRM_SYSINFO
-    sll $t2, $t0, 25
+    sll $t2, $t0, 24
     sw $t2, HDD_SPMO($fp)
     sll $a0, $a0, 12    # a0 * 0x1000
     sw $a0, HDD_SSN($fp)

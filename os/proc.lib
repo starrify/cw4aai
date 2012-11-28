@@ -43,23 +43,20 @@ REGS_BUF:
 }
 
 .decl func scope(syscall.lib) {
-FLUSH_REGS:
+FLUSH_REGS: #a0:pid
     addi $sp, $sp, -4
     sw $ra, 0($sp)
     #suppose gpr is already stored in REGS_BUF by shade_gpr
     SETFRMLB PROC
-    #dst: a0=proc_info + cur_proc * 64 + 8word
-    #note!!!: gdt may change in the future
-    addi $a0, $fp, PROC_INFO_OFF
-    lw $t0, CUR_PROC_OFF($fp)
-    sll $t0, $t0, 8     #64 * 4 bytes
+    #dst: a0=proc_info + pid * 256 + 192word
+    addi $t0, $fp, PROC_INFO_OFF
+    sll $a0, $a0, PROC_INFO_LOG_SIZE     #256 * 4 bytes
     add $a0, $a0, $t0
-    #NOTE!!: size of gdt may change in the future
-    addi $a0, $a0, 32   # +8word to regs
+    addi $a0, $a0, REGS_OFF_PER_PROC   # +192word to regs
     #src: a1 = regs_buf
     lla $a1, REGS_BUF
     #word_cnt: a2 = 35, including gpr, epc, hi, lo
-    ori $a2, $zero, 35
+    ori $a2, $zero, REGS_CNT
 
     jal MEMWORDCPY
 
@@ -90,23 +87,21 @@ FLUSH_REGS:
 }
 
 .decl func scope() {
-FETCH_REGS:
+FETCH_REGS: #a0:pid
     addi $sp, $sp, -4
     sw $ra, 0($sp)
 
     SETFRMLB PROC
+    #src: a1=proc_info + cur_proc * 256 + 192words
+    or $a1, $zero, $a0                  #a1=pid
+    sll $a1, $a1, PROC_INFO_LOG_SIZE    #256 * 4 bytes
+    addi $t0, $fp, PROC_INFO_OFF
+    add $a1, $a1, $t0
+    addi $a1, $a1, REGS_OFF_PER_PROC    #192 * 4 bytes
     #dst: a0 = regs_buf
     lla $a0, REGS_BUF
-    #src: a1=proc_info + cur_proc * 64 + 8words
-    #NOTE!!: size of gdt may change in the future
-    addi $a1, $fp, PROC_INFO_OFF
-    lw $t0, CUR_PROC_OFF($fp)
-    sll $t0, $t0, 8     #64 * 4 bytes
-    add $a1, $a1, $t0
-    #NOTE!!: size of gdt may change in the future
-    addi $a1, $a1, 32
     #word_cnt: a2 = 35, including gpr, epc, hi, lo
-    ori $a2, $zero, 35
+    ori $a2, $zero, REGS_CNT            #35
     
     jal MEMWORDCPY
 
@@ -124,41 +119,41 @@ PROC_SCHEDULE:
     SETFRMLB PROC
     addi $t0, $fp, PROC_INFO_OFF
     lw $t3, MAX_PROC_OFF($fp)
-    #NOTE!!!: gdt size may be changed in the future
-    sll $t3, $t3, 8     #max_proc * 64 * 4
+    sll $t3, $t3, PROC_INFO_LOG_SIZE             #max_proc * 64 * 4
     
     lw $t1, CUR_PROC_OFF($fp)
-    #NOTE!!!: gdt size may be changed in the future
-    sll $t1, $t1, 8
+    sll $t1, $t1, PROC_INFO_LOG_SIZE
 PRC_SCHD1:
     #move to next process
-    addi $t1, $t1, 64 * 4
+    addi $t1, $t1, PROC_INFO_SIZE
     ble $t1, $t3, PRC_SCHD2
     and $t1, $zero, $zero
 PRC_SCHD2:
     addi $t3, $fp, PROC_INFO_OFF
     #get process state
     add $t2, $t3, $t1
-    lw $t2, 172($t2)
-    beq $t2, $zero, PRC_SCHD3   #found a ready process
+    lw $t2, PROC_STATE_OFF_PER_PROC($t2)
+    beq $t2, $zero, PRC_SCHD3                   #found a ready process
     j PRC_SCHD1
 PRC_SCHD3:
-    srl $s0, $t1, 8             #get process id
+    srl $s0, $t1, PROC_INFO_LOG_SIZE            #get process id
     lw $t2, CUR_PROC_OFF($fp)
     beq $t2, $s0, PRC_SCHDEND   #no need to switch
 
     #calc physical gdt and write to c0
-    lli $t2, 0x01800000
+    lli $t2, SYS_VIR_ADDR
     sub $t2, $t3, $t2
     add $t2, $t2, $t1
     mtc0 $t2, $0
-    
+
+    lw $a0, CUR_PROC_OFF($fp)
     jal FLUSH_REGS
 
     #restore fp
     SETFRMLB PROC
     sw $s0, CUR_PROC_OFF($fp)
-    
+
+    lw $a0, CUR_PROC_OFF($fp)
     jal FETCH_REGS
 
 PRC_SCHDEND:

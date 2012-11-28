@@ -21,7 +21,8 @@ BOOT:
     
 INIT:
     #init os stack
-    lli $sp, SYS_STACK_INIT
+    #when running init code, treat system as an ordinary process
+    lli $sp, PROC_USRSPACE_SIZE
     #init interrupt
     jal INT_INIT
     #init libs
@@ -35,16 +36,24 @@ TEST:
     ori $a0, $zero, 1
     ori $k0, $zero, SC_FORK
     syscall
-    ori $a0, $zero, 2
-    ori $k0, $zero, SC_FORK
-    syscall
+    beq $v0, $zero, TEST1
+#    ori $a0, $zero, 2
+#    ori $k0, $zero, SC_FORK
+#    syscall
 LOOP:
     #set proc status as suspended
-    SETFRMLB PROC_INFO
-    ori $t0, $zero, PROC_SUSPEND
-    #NOTE!!!: gdt size may be changed in the future
-    sw $t0, 172($fp)
+    #SETFRMLB PROC_INFO
+    #ori $t0, $zero, PROC_SUSPEND
+    #sw $t0, PROC_STATE_OFF_PER_PROC($fp)
+    #wait
+    ori $a0, $zero, 98
+    jal PUTC
     wait
+    j LOOP
+TEST1:
+    ori $a0, $zero, 97
+    jal PUTC
+    j TEST
     #jal GETC
     #jal SYS_GETC
     #blt $v0, $zero, LOOP
