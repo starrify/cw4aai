@@ -30,13 +30,11 @@ int interrupt_init()
 
 void interrupt_set(u32_t entry)
 {
-    //pthread_mutex_lock(&interrupt_mutex);
-    interrupt_state[entry] = 1;
     pthread_mutex_lock(&wait_cond_mutex);
+    interrupt_state[entry] = 1;
     pthread_cond_signal(&wait_cond);
     pthread_mutex_unlock(&wait_cond_mutex);
 
-    //pthread_mutex_unlock(&interrput_mutex);
 #if DUMP_INTERRUPT
     fprintf(LOG_FILE, "Interrupt: set at entry %.8X\n", entry);
 #endif 
@@ -45,10 +43,11 @@ void interrupt_set(u32_t entry)
 
 int interrupt_reset(u32_t entry)
 {
+    pthread_mutex_lock(&wait_cond_mutex);
     int ret = interrupt_state[entry];
-    //pthread_mutex_lock(&interrupt_mutex);
     interrupt_state[entry] = 0;
-    //pthread_mutex_unlock(&interrput_mutex);
+    pthread_mutex_unlock(&wait_cond_mutex);
+
 #if DUMP_INTERRUPT
     fprintf(LOG_FILE, "Interrupt: reset at entry %.8X\n", entry);
 #endif 
@@ -72,9 +71,9 @@ u32_t interrupt_entry()
 {
     static const u32_t tmp_loop[] = 
     { 
+        INTERRUPT_ENTRY_SYSCALL,
         INTERRUPT_ENTRY_KEYBOARD_INPUT,
         INTERRUPT_ENTRY_TIMER,
-        INTERRUPT_ENTRY_SYSCALL,
         0,
     };
     int i;

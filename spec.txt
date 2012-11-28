@@ -49,7 +49,6 @@ interrupt vector table: 0x00000000 size: 0x1000
         fixed time at about 10ms?
     syscall: 0x180
 
-
 sysinfo and device mapping: 0x00008000 0x007FFFFF
     R for read W for write and S for static
     

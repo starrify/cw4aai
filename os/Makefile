@@ -14,7 +14,7 @@ app1.img: mass app1.t
 	./mass app1.t -o app1.img
 app2.t: app2.s *.lib *.inc preproc.pl
 	./preproc.pl <app2.s >app2.t
-app2.img: mass app1.t
+app2.img: mass app2.t
 	./mass app2.t -o app2.img
 clean:	
 	rm -f sys.t shell.t app1.t app2.t sys.img shell.img app1.img app2.img mass memu 1.log
