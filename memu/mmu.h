@@ -9,6 +9,8 @@
 
 #include "memu.h"
 
+#define GDT_SIZE    32
+
 extern int mmu_init();
 extern int mmu_disable();
 extern int mmu_restore();

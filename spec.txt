@@ -78,6 +78,12 @@ sysinfo and device mapping: 0x00008000 0x007FFFFF
         1word: R/W. starting sector number
         1word: R/W. max transfer size in byte
 
+    DMA copy: -> 160
+        1word: W only. 1 for copy
+        1word: R/W dst physical memory offset 
+        1word: R/W src physical memory offset 
+        1word: R/W transfer size in byte
+
 per process memory layout:
     0MB-24MB: user space 
     24MB-32MB: kernel space 

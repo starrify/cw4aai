@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "interrupt.h"
 #include "config.h"
@@ -166,6 +167,23 @@ int mem_write(u32_t paddr, u32_t vaddr, u32_t attr, int access_type, i32_t word)
             fprintf(LOG_FILE, "HDD: unknown type=%d, memstart=0x%.8X, secstart=0x%.8X, seccnt=0x%.8X\n",
                 type, memstart, secstart, seccnt);
 #endif
+        }
+    }
+    else if (paddr == config.sbase_offset + 0x000000A0) // DMA copy
+    {
+        u32_t type = *(sbase + 0x00000024);
+        u32_t dst = *(sbase + 0x00000025);
+        u32_t src = *(sbase + 0x00000026);
+        u32_t sz = *(sbase + 0x00000027);
+#if DUMP_DMA
+        fprintf(LOG_FILE, "DMA: type=%d, dst=0x%.8X, src=0x%.8X, sz=0x%.8X\n", type, dst, src, sz);
+#endif
+        if (type == 1) // memcpy
+        {
+            memcpy(membase + dst, membase + src, sz);
+        }
+        else //if (type == 2) // memset?
+        {
         }
     }
 #if DUMP_MEM

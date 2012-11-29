@@ -64,17 +64,17 @@ int mmu_addr_trans(u32_t vaddr, int access_type, u32_t *paddr, u32_t *attr)
     {
         u32_t *pgdt = membase + gdtbase;
         int i;
-        for (i = 0; i < 2; i++)
+        for (i = 0; i < GDT_SIZE; i++)
         {
             // in a gdt entry: paddr/vaddr/sz/attr
-            if (pgdt[1] <= vaddr && vaddr < pgdt[1] + pgdt[2])
+            if (pgdt[1] <= vaddr && vaddr < pgdt[1] + pgdt[2] && pgdt[3])
             {
                 *paddr = vaddr + pgdt[0] - pgdt[1];
                 break;
             }
             pgdt += 4;
         }
-        if (i == 2) // entry match failed
+        if (i == GDT_SIZE) // entry match failed
         {
             reg_cpr_write(FKREG_CPR_PFLA, 0, vaddr);
             //ret = 
