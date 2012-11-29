@@ -164,8 +164,6 @@ FUGIEND:
 
 .decl func scope(interrupt.lib) {
 SYS_FORK:
-    cache_regs
-
     addi $sp, $sp, -8
     sw $ra, 0($sp)
     sw $s0, 4($sp)
@@ -175,54 +173,37 @@ SYS_FORK:
     lw $s0, MAX_PROC_OFF($fp)           #s0 reserved as new PROC_ID
 
     #change MAX_PROC without overflow check
-    addi $t0, $s0, 1
-    sw $t0, MAX_PROC_OFF($fp)
+    addi $s0, $s0, 1
+    sw $s0, MAX_PROC_OFF($fp)
 
-    addi $t3, $fp, PROC_INFO_OFF        #t3 reserved as addr of PROC_INFO
+    addi $t0, $fp, PROC_INFO_OFF
     #proc_id * 256w
-    sll $t2, $t0, PROC_INFO_LOG_SIZE
-    add $t1, $t3, $t2
+    sll $t1, $s0, PROC_INFO_LOG_SIZE
+    add $t1, $t0, $t1
     #init proc state
     sw $zero, PROC_STATE_OFF_PER_PROC($t1)      #state = 0
 
     #copy current process to the new one
-    #find a place in gdt to do memory mapping
-    sll $a0, $s0, PROC_INFO_LOG_SIZE
-    add $a0, $a0, $t3
-    jal FIND_UNUSED_GDT_ITEM
-    or $s0, $v0, $v0
-    #map the userspace of the new process to 8M - 16M here
+    #copy userspace using dma
+    lw $t1, CUR_PROC_OFF($fp)
+    sll $t1, $t1, PROC_USRSPACE_LOG_SIZE
     sll $t0, $s0, PROC_USRSPACE_LOG_SIZE
-    sw $t0, 0($s0)                              #physical address
-    lli $t1, PROC_USRSPACE_SIZE                 #8M
-    sw $t1, 4($s0)                              #virtual address
-    sw $t1, 8($s0)                              #size
+    SETFRM_SYSINFO
+    sw $t0, DMA_DST_ADDR($fp)
+    sw $t1, DMA_SRC_ADDR($fp)
+    lli $t0, 0x800000                           #8M
+    sw $t0, DMA_SIZE($fp)
     ori $t0, $zero, 1
-    sw $t0, 12($s0)                             #validate
-    #copy code and static data !!! assumed less than 2M here
-    or $a0, $zero, $t1                          #8M
-    and $a1, $zero, $zero                       #0M
-    #lli $a2, 0x80000                            #(2M / 4) words
-    lli $a2, 0x8000                             #(128K / 4) words
-    jal MEMWORDCPY
-    #copy stack data
-    #load sp from cached regs
+    sw $t0, DMA_ENABLE($fp)
+    #save values of registers
+    #set ret value for child proc
     SETFRMLB REGS_BUF
-    lw $t0, (29 * 4)($fp)
-    lli $a2, PROC_USRSPACE_SIZE
-    add $a0, $a2, $t0                   #we use user stack in syscall
-    or $a1, $zero, $t0
-    #calc stack size in words
-    sub $a2, $a2, $t0
-    srl $a2, $a2, 2
-    jal MEMWORDCPY
-    #copy registers
-    and $v0, $zero, $zero               #set return value of fork for child process
+    sw $zero, 8($fp)
     or $a0, $zero, $s0
     jal FLUSH_REGS
-    or $v0, $zero, $s0                  #set return value of fork for father process
-    #restore gdt
-    sw $zero, 12($s0)
+    #set ret value for father proc
+    SETFRMLB REGS_BUF
+    sw $s0, 8($fp)
 
 #SYS_FRKEND:
     lw $ra, 0($sp)
@@ -233,12 +214,15 @@ SYS_FORK:
 
 .decl func scope(interrupt.lib) {
 SYS_EXEC:
-    #set epc to zero
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+    
     SETFRMLB PROC
-    #UGLY FIX!!!! should load CUR_PROC_OFF here instead of MAX_PROC_OFF
-    lw $t0, MAX_PROC_OFF($fp)
+    lw $t0, CUR_PROC_OFF($fp)
+    #no need to set proc state
+    #load code and static data from hd
     SETFRM_SYSINFO
-    sll $t2, $t0, 24
+    sll $t2, $t0, PROC_USRSPACE_LOG_SIZE
     sw $t2, HDD_SPMO($fp)
     sll $a0, $a0, 12    # a0 * 0x1000
     sw $a0, HDD_SSN($fp)
@@ -246,6 +230,18 @@ SYS_EXEC:
     sw $t2, HDD_MAX_TSIZE($fp)
     ori $t2, $zero, 1
     sw $t2, HDD_ENABLE($fp)
+    #reset regs
+    SETFRMLB REGS_BUF
+    or $a0, $zero, $fp
+    and $a1, $zero, $zero
+    ori $a2, $zero, REGS_CNT            #35 regs
+    jal MEMWORDSET
+    #set sp
+    SETFRMLB REGS_BUF
+    lli $t0, PROC_USRSPACE_SIZE
+    sw $t0, 116($fp)
 
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
     jr $ra
 }

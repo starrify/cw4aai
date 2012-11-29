@@ -13,6 +13,10 @@
 .def HDD_SPMO {132}
 .def HDD_SSN {136}
 .def HDD_MAX_TSIZE {140}
+.def DMA_ENABLE {160}
+.def DMA_DST_ADDR {164}
+.def DMA_SRC_ADDR {168}
+.def DMA_SIZE {172}
 
 #const
 .def INBUF_SIZE {4096}

@@ -31,6 +31,7 @@
 #define DUMP_MEM    1
 #define DUMP_MMU    0
 #define DUMP_HDD    1
+#define DUMP_DMA    1
 #define DUMP_REG_CPR    0
 #define DUMP_REG_SHADOW    0
 #define DUMP_FETCH  1

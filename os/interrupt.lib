@@ -6,11 +6,9 @@
 #default interrupt handlers
 .decl func scope() {
 INT_SYSCALL:
-    #syscall follows calling conventions, so there's no need to shade and restore gpr
-    #use user stack instead of system stack
+    cache_regs
+    lli $sp, SYS_STACK_INIT
     
-    #shade_gpr
-
     #at most 4 instructions for each block
     sll $k0, $k0, 4
     lla $t0, INT_SSC1
@@ -40,7 +38,7 @@ INT_SSC1:
     jal SYS_EXEC
     j INT_SSCLEND
 INT_SSCLEND:
-    #restore_gpr
+    restore_regs
     eret
 }
 

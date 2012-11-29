@@ -32,37 +32,29 @@ INIT:
     mtc0 $t0, $3
 
 TEST:
-    #jal SYS_SYSCALL
     ori $a0, $zero, 1
     ori $k0, $zero, SC_FORK
     syscall
-    beq $v0, $zero, TEST1
-#    ori $a0, $zero, 2
-#    ori $k0, $zero, SC_FORK
-#    syscall
-LOOP:
+    beq $v0, $zero, CHILD
+FATHER:
     #set proc status as suspended
-    #SETFRMLB PROC_INFO
-    #ori $t0, $zero, PROC_SUSPEND
-    #sw $t0, PROC_STATE_OFF_PER_PROC($fp)
-    #wait
-    ori $a0, $zero, 98
-    jal PUTC
+    SETFRMLB PROC_INFO
+    ori $t0, $zero, PROC_SUSPEND
+    sw $t0, PROC_STATE_OFF_PER_PROC($fp)
     wait
-    j LOOP
-TEST1:
-    ori $a0, $zero, 97
-    jal PUTC
-    j TEST
-    #jal GETC
-    #jal SYS_GETC
-    #blt $v0, $zero, LOOP
-    #or $a0, $zero, $v0
+    j ENDFATH
+
+CHILD:
+    ori $a0, $zero, 1
+    ori $k0, $zero, SC_EXEC
+    syscall
+    #ori $a0, $zero, 97
     #jal PUTC
-    #ori $k0, $zero, SC_PUTC
-    #jal SYS_SYSCALL
-END:
-    #ori $a0, $zero, 99
-    #jal SYS_GETC
-    j END
+    #j ENDCHLD
+    
+ENDCHLD:
+    j ENDCHLD
+ENDFATH:
+     .0
+    j ENDFATH
 

@@ -5,7 +5,7 @@
     #proc_info for init
 #0x01000000 = PROC_USRSPACE_SIZE, however, macro is not used
 #because calculation in .loop is not supported in preproc yet
-.loop 0 0xfffffff 0x01000000 {
+.loop 0 0xfffffff 0x00800000 {
     .<LOOPVAR>  #physical: <LOOPVAR>
     .0x0        #virtual: 0
     .0x800000   #size: 8M

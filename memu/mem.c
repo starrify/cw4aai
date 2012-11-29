@@ -171,10 +171,10 @@ int mem_write(u32_t paddr, u32_t vaddr, u32_t attr, int access_type, i32_t word)
     }
     else if (paddr == config.sbase_offset + 0x000000A0) // DMA copy
     {
-        u32_t type = *(sbase + 0x00000024);
-        u32_t dst = *(sbase + 0x00000025);
-        u32_t src = *(sbase + 0x00000026);
-        u32_t sz = *(sbase + 0x00000027);
+        u32_t type = *(sbase + 0x00000028);
+        u32_t dst = *(sbase + 0x00000029);
+        u32_t src = *(sbase + 0x0000002A);
+        u32_t sz = *(sbase + 0x0000002B);
 #if DUMP_DMA
         fprintf(LOG_FILE, "DMA: type=%d, dst=0x%.8X, src=0x%.8X, sz=0x%.8X\n", type, dst, src, sz);
 #endif
