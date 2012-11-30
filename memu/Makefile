@@ -13,8 +13,8 @@ SOURCES = memu.c config.c decode.c inst.c mem.c mmu.c reg.c \
 			daemon.c fancyterm.c  interrupt.c hdd.c\
 		  memu.h config.h decode.h exception.h inst.h mem.h mmu.h reg.h \
 			daemon.h fancyterm.h interrupt.h hdd.h
-            
-all: memu sys.img
+
+all: memu 
 
 memu: $(OBJS)
 	$(CC) $(CFLAG) $(LFLAG) $(OBJS) -o memu
@@ -66,5 +66,5 @@ wc:
 	wc $(SOURCES)
 
 clean:
-	rm -f $(OBJS) memu *~ .*.swp sys.img
+	rm -f $(OBJS) memu *~ .*.swp 
 

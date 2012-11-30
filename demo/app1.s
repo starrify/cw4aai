@@ -8,7 +8,7 @@ MAIN:
 FATHER:
     ori $a0, $zero, 97
     jal PUTC
-    wait
+#    wait
     j FATHER
 CHILD:
     ori $a0, $zero, 98
