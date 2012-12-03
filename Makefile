@@ -6,7 +6,7 @@
 
 BIN = ./bin
 
-all: $(BIN)/mass $(BIN)/memu $(BIN)/sys.img
+all: $(BIN)/mass $(BIN)/memu $(BIN)/sys.img $(BIN)/app1.img $(BIN)/app2.img
 
 $(BIN)/mass: mass/
 	make -C mass/
@@ -19,9 +19,11 @@ $(BIN)/memu: memu/
 $(BIN)/preproc.pl: os/preproc.pl
 	cp os/preproc.pl $(BIN)
 
-$(BIN)/sys.img: os/ 
+$(BIN)/sys.img $(BIN)/app1.img $(BIN)/app2.img: os/ 
 	make -C os
 	cp os/sys.img $(BIN)
+	cp os/app1.img $(BIN)
+	cp os/app2.img $(BIN)
 
 clean:
 	make clean -C os
