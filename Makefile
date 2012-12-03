@@ -4,21 +4,26 @@
  
 # oops this makefile sucks..
 
-all: mass/mass memu/memu os/sys.img
-	
+BIN = ./bin
 
-mass/mass: mass/
+all: $(BIN)/mass $(BIN)/memu $(BIN)/sys.img $(BIN)/app1.img $(BIN)/app2.img
+
+$(BIN)/mass: mass/
 	make -C mass/
+	cp mass/mass $(BIN)
 
-memu/memu: memu/ os/sys.img
-	cp os/sys.img memu/
+$(BIN)/memu: memu/ 
 	make -C memu
-	# for zlk..
-	cp memu/memu os/
+	cp memu/memu $(BIN)
 
-os/sys.img: os/ mass/mass
-	cp mass/mass os/
+$(BIN)/preproc.pl: os/preproc.pl
+	cp os/preproc.pl $(BIN)
+
+$(BIN)/sys.img $(BIN)/app1.img $(BIN)/app2.img: os/ 
 	make -C os
+	cp os/sys.img $(BIN)
+	cp os/app1.img $(BIN)
+	cp os/app2.img $(BIN)
 
 clean:
 	make clean -C os
