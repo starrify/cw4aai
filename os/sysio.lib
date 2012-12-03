@@ -1,0 +1,111 @@
+.def SYS_INBUF_START_OFF {0}
+.def SYS_INBUF_END_OFF {4}
+.def SYS_INBUF_DATA_OFF {8}
+
+.def SYS_INBUF_SIZE {4096}
+.def SYS_INBUF_UNIT_SIZE {4}
+
+.def USR_INBUF_START_OFF {0}
+.def USR_INBUF_END_OFF {4}
+.def USR_INBUF_DATA_OFF {8}
+
+.def USR_INBUF_SIZE {4096}
+.def USR_INBUF_UNIT_SIZE {4}
+
+.static {
+SYS_INBUF:
+SYS_INBUF_START:
+    .0
+SYS_INBUF_END:
+    .0
+SYS_INBUF_DATA:
+    .dup 1024 .0
+USR_INBUF:
+USR_INBUF_START:
+    .0
+USR_INBUF_END:
+    .0
+USR_INBUF_DATA:
+    .dup 1024 .0
+}
+
+
+.decl func scope() {
+FLUSH_TO_USR:
+    SETFRMLB SYS_INBUF
+    addi $t6, $fp, SYS_INBUF_DATA_OFF
+    lw $t4, SYS_INBUF_START_OFF($fp)
+    add $t4, $t4, $t6
+    lw $t5, SYS_INBUF_END_OFF($fp)
+    add $t5, $t5, $t6
+    addi $t6, $t6, SYS_INBUF_SIZE
+    SETFRMLB USR_INBUF
+    addi $t9, $fp, USR_INBUF_DATA_OFF
+    lw $t7, USR_INBUF_START_OFF($fp)
+    add $t7, $t7, $t9
+    lw $t8, USR_INBUF_END_OFF($fp)
+    add $t8, $t8, $t9
+    addi $t9, $t9, USR_INBUF_SIZE
+    
+FTU1:
+    beq $t4, $t5, FTUEND
+    lw $t0, 0($t4)
+    sw $t0, 0($t8)
+    addi $t4, $t4, SYS_INBUF_UNIT_SIZE
+    bne $t4, $t6, FTU2
+    addi $t4, $t4, -SYS_INBUF_SIZE
+FTU2:
+    addi $t0, $t8, USR_INBUF_UNIT_SIZE
+    bne $t0, $t9, FTU3
+    addi $t0, $t0, -USR_INBUF_SIZE
+FTU3:
+    beq $t0, $t7, FTU4
+    or $t8, $zero, $t0
+FTU4:
+    j FTU1
+    
+FTUEND:
+    #store sysinbuf start and usrinbuf end
+    SETFRMLB SYS_INBUF
+    addi $t0, $fp, SYS_INBUF_DATA_OFF
+    sub $t4, $t4, $t0
+    sw $t4, SYS_INBUF_START_OFF($fp)
+    SETFRMLB USR_INBUF
+    addi $t0, $fp, USR_INBUF_DATA_OFF
+    sub $t8, $t8, $t0
+    sw $t8, USR_INBUF_END_OFF($fp)
+    jr $ra
+}
+
+.decl func scope(interrupt.lib) {
+SYS_INBUF_PUSHC:
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+    
+    SETFRMLB SYS_INBUF
+    lw $t0, SYS_INBUF_END_OFF($fp)
+    addi $t1, $fp, SYS_INBUF_DATA_OFF
+    add $t1, $t1, $t0
+    sw $a0, 0($t1)
+    addi $t0, $t0, SYS_INBUF_UNIT_SIZE
+    ori $t1, $zero, SYS_INBUF_SIZE
+    bne $t0, $t1, SYS_INBUF_PSC1
+    and $t0, $zero, $zero
+SYS_INBUF_PSC1:
+    lw $t1, SYS_INBUF_START_OFF($fp)
+    beq $t0, $t1, SYS_INBUF_PSCERR
+    sw $t0, SYS_INBUF_END_OFF($fp)
+    #if a0 == \n, write to lib buf
+    ori $t0, $zero, 10
+    bne $a0, $t0, SYS_INBUF_PSC2
+    jal FLUSH_TO_USR
+SYS_INBUF_PSC2:
+    and $v0, $zero, $zero
+    j SYS_INBUF_PSCEND
+SYS_INBUF_PSCERR:
+    addi $v0, $zero, -1
+SYS_INBUF_PSCEND:
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+    jr $ra
+}

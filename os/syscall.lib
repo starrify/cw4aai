@@ -1,7 +1,9 @@
 .inc "pseudo_inst.inc"
 .inc "string.lib"
 .inc "sysinfo.inc"
+.inc "proc.inc"
 .inc "proc.lib"
+.inc "sysio.lib"
 
 .decl func scope(interrupt.lib) {
 SYS_GOTOXY: #row, col
@@ -35,6 +37,8 @@ SYS_GXY1:
 SYS_GXYERR:
     addi $v0, $zero, -1
 SYS_GXYEND:
+    #returns value
+    and $k1, $zero, $zero
     jr $ra
 }
 
@@ -56,6 +60,8 @@ SYS_GTXY1:
     mflo $v1
     srl $v1, $v1, 2
 SYS_GTXYEND:
+    #returns value
+    and $k1, $zero, $zero
     jr $ra
 }
 
@@ -99,6 +105,9 @@ SYS_PUTC: #ch
     addi $sp, $sp, -4
     sw $ra, 0($sp)
 
+    ori $at, $zero, 10
+    beq $a0, $at, SYS_PTC_NL
+SYS_PTC_NM:
     SETFRM_SYSINFO
     lw $t0, SCR_BASE($fp)
     lw $t1, CURSOR($fp)
@@ -106,22 +115,34 @@ SYS_PUTC: #ch
     #write to disp mem
     add $t0, $t0, $t1
     #UGLY FIX!!!!!!!
-    lli $t1, 0x01800000
+    lli $t1, SYS_VIR_ADDR
     add $t0, $t0, $t1
     
     sw $a0, 0($t0)
     jal SYS_CURSORNEXT
+    j SYS_PTCEND
 
+SYS_PTC_NL:
+    jal SYS_GETXY
+    #move to next line and wrap
+    or $a0, $zero, $v0
+    ori $a1, $zero, SCR_WIDTH - 1
+    jal SYS_GOTOXY
+    jal SYS_CURSORNEXT
+    j SYS_PTCEND
+SYS_PTCEND:
     lw $ra, 0($sp)
     addi $sp, $sp, 4
+    #no return
+    ori $k1, $zero, 1
     jr $ra
 }
 
 .decl func scope(interrupt.lib, io.lib, main file) {
 SYS_GETC:
-    SETFRM_SYSINFO
-    lw $t0, INBUF_START($fp)
-    lw $t1, INBUF_END($fp)
+    SETFRMLB USR_INBUF
+    lw $t0, USR_INBUF_START_OFF($fp)
+    lw $t1, USR_INBUF_END_OFF($fp)
     bne $t0, $t1, SYS_GTCAVL
     #return?
     addi $v0, $zero, -1
@@ -131,18 +152,20 @@ SYS_GETC:
     #j SYS_GETC
 
 SYS_GTCAVL:
-    lw $t1, INBUF_BASE($fp)
+    addi $t1, $fp, USR_INBUF_DATA_OFF
     add $t1, $t0, $t1
     lw $v0, 0($t1)
     andi $v0, $v0, 0xff
-    addi $t0, $t0, INBUF_UNIT_SIZE
-    ori $t1, $zero, INBUF_SIZE
+    addi $t0, $t0, USR_INBUF_UNIT_SIZE
+    ori $t1, $zero, USR_INBUF_SIZE
     blt $t0, $t1, SYS_GTC1
     #addi $t0, $t0, -INBUF_SIZE
     and $t0, $zero, $zero
 SYS_GTC1:
-    sw $t0, INBUF_START($fp)
+    sw $t0, USR_INBUF_START_OFF($fp)
 SYS_GTCEND:
+    #returns value
+    and $k1, $zero, $zero
     jr $ra
 }
 
@@ -202,13 +225,17 @@ SYS_FORK:
     or $a0, $zero, $s0
     jal FLUSH_REGS
     #set ret value for father proc
-    SETFRMLB REGS_BUF
-    sw $s0, 8($fp)
+    or $v0, $zero, $s0
+    #SETFRMLB REGS_BUF
+    #sw $s0, 8($fp)
 
 #SYS_FRKEND:
     lw $ra, 0($sp)
     lw $s0, 4($sp)
     addi $sp, $sp, 8
+
+    #returns value
+    and $k1, $zero, $zero
     jr $ra
 }
 
@@ -243,5 +270,7 @@ SYS_EXEC:
 
     lw $ra, 0($sp)
     addi $sp, $sp, 4
+
+    ori $k1, $zero, 1
     jr $ra
 }

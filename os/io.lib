@@ -1,121 +1,24 @@
 .inc "syscall.inc"
 .inc "var.inc"
 .inc "pseudo_inst.inc"
-.inc "proc.lib"
 .inc "sysinfo.inc"
-.inc "syscall.lib"
-
-.def LIB_INBUF_START_OFF {0}
-.def LIB_INBUF_END_OFF {4}
-.def LIB_INBUF_DATA_OFF {8}
-
-.def LIB_INBUF_SIZE {4096}
-.def LIB_INBUF_UNIT_SIZE {4}
-.static {
-LIB_INBUF:
-LIB_INBUF_START:
-    .0
-LIB_INBUF_END:
-    .0
-LIB_INBUF_DATA:
-    .dup 1024 .0
-}
 
 .decl func {
 PUTC: #ch
-    addi $sp, $sp, -4
-    sw $ra, 0($sp)
-    
-    ori $t0, $zero, 10
-    beq $a0, $t0, PTC_NL
-
     ori $k0, $zero, SC_PUTC
     syscall
-    j PTCEND
-PTC_NL:
-    ori $k0, $zero, SC_GETXY
-    syscall
-    #move to next line and wrap
-    or $a0, $zero, $v0
-    ori $a1, $zero, SCR_WIDTH - 1
-    ori $k0, $zero, SC_GOTOXY
-    syscall
-    jal SYS_CURSORNEXT
-    j PTCEND
-PTCEND:
-    lw $ra, 0($sp)
-    addi $sp, $sp, 4
     jr $ra
-}
-
-
-.decl func {
-PUSHC:
-    SETFRMLB LIB_INBUF
-    lw $t0, LIB_INBUF_END_OFF($fp)
-    addi $t1, $fp, LIB_INBUF_DATA_OFF
-    add $t1, $t1, $t0
-    sw $a0, 0($t1)
-    addi $t0, $t0, LIB_INBUF_UNIT_SIZE
-    ori $t1, $zero, LIB_INBUF_SIZE
-    bne $t0, $t1, PSC1
-    and $t0, $zero, $zero
-PSC1:
-    lw $t1, LIB_INBUF_START_OFF($fp)
-    beq $t0, $t1, PSCERR
-    sw $t0, LIB_INBUF_END_OFF($fp)
-    and $v0, $zero, $zero
-    j PSCEND
-PSCERR:
-    addi $v0, $zero, -1
-PSCEND:
-    jr $ra
-}
-
-#interrupt function for keyboard
-.decl func scope() {
-IO_INT_KEYBOARD:
-    cache_regs
-    #initialize system stack
-    lli $sp, SYS_STACK_INIT
-    
-IO_INT_KBD1:
-    jal SYS_GETC
-    blt $v0, $zero, IO_INT_KBDEND
-    or $a0, $zero, $v0
-    jal PUSHC
-    j IO_INT_KBD1
-    
-IO_INT_KBDEND:
-    restore_regs
-    eret
 }
 
 .decl func {
 GETC:
-    SETFRMLB LIB_INBUF
 GTCBLK:
-    lw $t0, LIB_INBUF_START_OFF($fp)
-    lw $t1, LIB_INBUF_END_OFF($fp)
-    #beq $t0, $t1, GTCBLK
-    bne $t0, $t1, GTCGOTC
+    ori $k0, $zero, SC_GETC
+    syscall
+    bge $v0, $zero, GTCEND
     wait
-    beq $0, $0, GTCBLK
-GTCGOTC:
-
-    #read from lib buf
-    addi $t1, $fp, LIB_INBUF_DATA_OFF
-    add $t1, $t0, $t1
-    lw $v0, 0($t1)
-    
-    #move lib buf start
-    addi $t0, $t0, LIB_INBUF_UNIT_SIZE
-    ori $t1, $zero, LIB_INBUF_SIZE
-    bne $t0, $t1, GTC1
-    and $t0, $zero, $zero
-GTC1:
-    sw $t0, LIB_INBUF_START_OFF($fp)
-
+    j GTCBLK
+GTCEND:
     jr $ra
 }
 
@@ -163,18 +66,5 @@ GTSEND:
     lw $s0, 0($sp)
     lw $ra, 4($sp)
     addi $sp, $sp, 8
-    jr $ra
-}
-
-.decl func {
-IO_INIT:
-    #register keyboard int function for io lib
-    lla $t0, IO_INT_KEYBOARD
-    srl $t0, $t0, 2
-    lui $t1, 0x0800
-    or $t0, $t0, $t1
-    swia $t0, 0x80, 0
-    lli $t0, 0x40802000 #mtc0 $zero, $4: enable mmu
-    swia $t0, 0x84, 0
     jr $ra
 }

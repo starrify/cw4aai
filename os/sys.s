@@ -17,21 +17,21 @@ BOOT:
     #enable mmu
     mtc0 $zero, $4
     
-    j INIT
+    j SYS_INIT
     
-INIT:
+SYS_INIT:
     #init os stack
     #when running init code, treat system as an ordinary process
     lli $sp, PROC_USRSPACE_SIZE
     #init interrupt
     jal INT_INIT
     #init libs
-    jal IO_INIT
+    #jal IO_INIT
     #interrupt enable
  
     mtc0 $t0, $3
 
-TEST:
+MAIN:
     ori $a0, $zero, 1
     ori $k0, $zero, SC_FORK
     syscall
@@ -51,10 +51,9 @@ CHILD:
     #ori $a0, $zero, 97
     #jal PUTC
     #j ENDCHLD
-    
+
 ENDCHLD:
     j ENDCHLD
 ENDFATH:
-     .0
     j ENDFATH
 
