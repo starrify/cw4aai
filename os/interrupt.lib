@@ -1,4 +1,4 @@
-.inc "syscall.inc"
+.inc "../inc/syscall.inc"
 .inc "syscall.lib"
 .inc "sysinfo.inc"
 .inc "proc.lib"

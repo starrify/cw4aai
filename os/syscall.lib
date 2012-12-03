@@ -1,5 +1,5 @@
-.inc "pseudo_inst.inc"
-.inc "string.lib"
+.inc "../inc/pseudo_inst.inc"
+.inc "../lib/string.lib"
 .inc "sysinfo.inc"
 .inc "proc.inc"
 .inc "proc.lib"

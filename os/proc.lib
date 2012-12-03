@@ -1,4 +1,4 @@
-.inc "string.lib"
+.inc "../lib/string.lib"
 .inc "proc.inc"
 
 .def CUR_PROC_OFF {0}

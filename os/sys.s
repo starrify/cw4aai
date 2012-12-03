@@ -1,9 +1,9 @@
-.inc "jmp_fix.inc"
-.inc "pseudo_inst.inc"
-.inc "var.inc"
-.inc "sysinfo.inc"
-.inc "io.lib"
+.inc "../inc/jmp_fix.inc"
+.inc "../inc/pseudo_inst.inc"
+.inc "../inc/var.inc"
+.inc "../lib/io.lib"
 .inc "interrupt.lib"
+.inc "sysinfo.inc"
 
 .offset 0x1c00000 #28M
 

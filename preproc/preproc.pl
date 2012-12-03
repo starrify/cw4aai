@@ -42,7 +42,9 @@ my $curfile = "main file";
 #key proc
 sub readSrc() {
 	$/ = undef;
-	chomp(my $src = <STDIN>);
+	my $src = <STDIN>;
+	$/ = "\n";
+	chomp($src);
 	$src;
 }
 
@@ -166,19 +168,27 @@ sub include() {
 	$leftover = $';
 
 	if(!exists($included{$1})) {
-		#change curfile info
-		my $orifile = $curfile;
-		$curfile = $1;
-		
 		$included{$1} = 1;
-		open INC, $1 or die "Cannot open file $1";
+		open INC, $1 or die "Cannot open file $1 in $curfile";
+		
+		#change curfile info and curdir
+		my $orifile = $curfile;
+		chomp(my $oridir = `pwd`);
+		chomp(my $newdir = `dirname $1`);
+		$curfile = $1;
+		chdir $newdir or die $!; 
+	
+		$/ = undef;
 		my $src = <INC>;
+		$/ = "\n";
 		($out, $localout) = &process($src);
 		$out .= &localDep($localout);
-		close INC;
 		
-		#restore curfile info
+		#restore curfile info and curdir
 		$curfile = $orifile;
+		chdir $oridir or die $!;
+		
+		close INC;
 	}
 	($out, $leftover);
 }

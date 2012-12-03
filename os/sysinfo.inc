@@ -1,4 +1,4 @@
-.inc "var.inc"
+.inc "../inc/var.inc"
 #sysinfo in virtual address
 .def SETFRM_SYSINFO {SETFRML 0x1808000}
 

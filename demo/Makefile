@@ -1,20 +1,25 @@
-all: sys.img app1.img app2.img 
+BIN = ../bin
+EXT_DEP = ../inc/* ../lib/*
+all: app1.img app2.img
 
-sys.t: sys.s *.lib *.inc preproc.pl
-	./preproc.pl <sys.s >sys.t
-sys.img: mass sys.t
-	./mass sys.t -o sys.img
-shell.t: shell.s *.lib *.inc preproc.pl
-	./preproc.pl <shell.s >shell.t
-shell.img: mass shell.t
-	./mass shell.t -o shell.img
-app1.t: app1.s *.lib *.inc preproc.pl
-	./preproc.pl <app1.s >app1.t
-app1.img: mass app1.t
-	./mass app1.t -o app1.img
-app2.t: app2.s *.lib *.inc preproc.pl
-	./preproc.pl <app2.s >app2.t
-app2.img: mass app2.t
-	./mass app2.t -o app2.img
+$(BIN)/preproc.pl: ../preproc/preproc.pl
+	make bin/preproc.pl -C ..
+
+$(BIN)/mass: ../mass
+	make bin/mass -C ..
+
+app1.t: app1.s $(EXT_DEP) $(BIN)/preproc.pl
+	$(BIN)/preproc.pl <app1.s >app1.t
+
+app1.img: $(BIN)/mass app1.t
+	$(BIN)/mass app1.t -o app1.img
+
+app2.t: app2.s $(EXT_DEP) $(BIN)/preproc.pl
+	$(BIN)/preproc.pl <app2.s >app2.t
+
+app2.img: $(BIN)/mass app2.t
+	$(BIN)/mass app2.t -o app2.img
+
+
 clean:	
-	rm -f sys.t shell.t app1.t app2.t sys.img shell.img app1.img app2.img mass memu 1.log
+	rm -f app1.t app2.t app1.img app2.img

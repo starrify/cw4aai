@@ -1,4 +1,4 @@
-.inc "pseudo_inst.inc"
+.inc "../inc/pseudo_inst.inc"
 
 #arg: dst, src, word_cnt
 #ret: dst mem address, -1 on failed

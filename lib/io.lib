@@ -1,7 +1,7 @@
-.inc "syscall.inc"
-.inc "var.inc"
-.inc "pseudo_inst.inc"
-.inc "sysinfo.inc"
+.inc "../inc/syscall.inc"
+.inc "../inc/var.inc"
+.inc "../inc/pseudo_inst.inc"
+.inc "../inc/regulation.inc"
 
 .decl func {
 PUTC: #ch
@@ -33,7 +33,7 @@ PTSLP:
     lw $a0, 0($s0)
     beq $a0, $zero, PTSEND
     jal PUTC
-    addi $s0, $s0, 1
+    addi $s0, $s0, CHAR_SIZE
     j PTSLP
 
 PTSEND:

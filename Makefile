@@ -17,13 +17,14 @@ $(BIN)/memu: memu/
 	cp memu/memu $(BIN)
 
 $(BIN)/preproc.pl: os/preproc.pl
-	cp os/preproc.pl $(BIN)
+	cp preproc/preproc.pl $(BIN)
 
-$(BIN)/sys.img $(BIN)/app1.img $(BIN)/app2.img: os/ 
+$(BIN)/sys.img $(BIN)/app1.img $(BIN)/app2.img: os/ demo/ lib/ inc/ 
 	make -C os
+	make -C demo
 	cp os/sys.img $(BIN)
-	cp os/app1.img $(BIN)
-	cp os/app2.img $(BIN)
+	cp demo/app1.img $(BIN)
+	cp demo/app2.img $(BIN)
 
 clean:
 	make clean -C os
