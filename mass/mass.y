@@ -148,14 +148,16 @@ rawstring:
     {
         char *fname = "/tmp/tmp0";
         char *s = malloc(0x1000);
-        sprintf(s, "echo %s > %s\n", $2, fname);
+        sprintf(s, "echo -ne %s > %s", $2, fname);
         system(s);
         free(s);
         FILE *fin = fopen(fname, "rb");
-        while (!feof(fin))
+        while (1)
         {
             char chr;
             fread(&chr, sizeof(char), 1, fin);
+            if (feof(fin))
+                break;
             write_code((unsigned int)chr);
         }
         write_code(0);
