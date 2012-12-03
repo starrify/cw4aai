@@ -1,11 +1,17 @@
 .inc "jmp_fix.inc"
 .inc "io.lib"
 
+.static {
+STRHELLO:
+    .string "hello world"
+}
+
 MAIN:
-    jal GETC
-    or $a0, $zero, $v0
-    addi $zero, $zero, 0
-    jal PUTC
+    #jal GETC
+    #or $a0, $zero, $v0
+    #addi $zero, $zero, 0
+    lla $a0, STRHELLO
+    jal PUTS
     j MAIN
 #    ori $k0, $zero, SC_FORK
 #    syscall
