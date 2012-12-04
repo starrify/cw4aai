@@ -1,0 +1,214 @@
+.inc "hwio.lib"
+.inc "sysinfo.inc"      #should not include this
+
+.def TERM_INBUF_START_OFF {0}
+.def TERM_INBUF_END_OFF {4}
+.def TERM_INBUF_DATA_OFF {8}
+
+.def TERM_INBUF_SIZE {4096}
+.def TERM_INBUF_UNIT_SIZE {4}
+
+.def LIB_INBUF_START_OFF {0}
+.def LIB_INBUF_END_OFF {4}
+.def LIB_INBUF_DATA_OFF {8}
+
+.def LIB_INBUF_SIZE {4096}
+.def LIB_INBUF_UNIT_SIZE {4}
+
+.static {
+TERM_INBUF:
+TERM_INBUF_START:
+    .0
+TERM_INBUF_END:
+    .0
+TERM_INBUF_DATA:
+    .dup 1024 .0
+LIB_INBUF:
+LIB_INBUF_START:
+    .0
+LIB_INBUF_END:
+    .0
+LIB_INBUF_DATA:
+    .dup 1024 .0
+}
+
+
+.decl func scope() {
+FLUSH_TO_LIB:
+    SETFRMLB TERM_INBUF
+    addi $t6, $fp, TERM_INBUF_DATA_OFF
+    lw $t4, TERM_INBUF_START_OFF($fp)
+    add $t4, $t4, $t6
+    lw $t5, TERM_INBUF_END_OFF($fp)
+    add $t5, $t5, $t6
+    addi $t6, $t6, TERM_INBUF_SIZE
+    SETFRMLB LIB_INBUF
+    addi $t9, $fp, LIB_INBUF_DATA_OFF
+    lw $t7, LIB_INBUF_START_OFF($fp)
+    add $t7, $t7, $t9
+    lw $t8, LIB_INBUF_END_OFF($fp)
+    add $t8, $t8, $t9
+    addi $t9, $t9, LIB_INBUF_SIZE
+    
+FTU1:
+    beq $t4, $t5, FTUEND
+    lw $t0, 0($t4)
+    sw $t0, 0($t8)
+    addi $t4, $t4, TERM_INBUF_UNIT_SIZE
+    bne $t4, $t6, FTU2
+    addi $t4, $t4, -TERM_INBUF_SIZE
+FTU2:
+    addi $t0, $t8, LIB_INBUF_UNIT_SIZE
+    bne $t0, $t9, FTU3
+    addi $t0, $t0, -LIB_INBUF_SIZE
+FTU3:
+    beq $t0, $t7, FTU4
+    or $t8, $zero, $t0
+FTU4:
+    j FTU1
+    
+FTUEND:
+    #store sysinbuf start and usrinbuf end
+    SETFRMLB TERM_INBUF
+    addi $t0, $fp, TERM_INBUF_DATA_OFF
+    sub $t4, $t4, $t0
+    sw $t4, TERM_INBUF_START_OFF($fp)
+    SETFRMLB LIB_INBUF
+    addi $t0, $fp, LIB_INBUF_DATA_OFF
+    sub $t8, $t8, $t0
+    sw $t8, LIB_INBUF_END_OFF($fp)
+    jr $ra
+}
+
+.decl func scope(interrupt.lib) {
+TERM_INBUF_PUSHC:
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+    
+    SETFRMLB TERM_INBUF
+    lw $t0, TERM_INBUF_END_OFF($fp)
+    addi $t1, $fp, TERM_INBUF_DATA_OFF
+    add $t1, $t1, $t0
+    sw $a0, 0($t1)
+    addi $t0, $t0, TERM_INBUF_UNIT_SIZE
+    ori $t1, $zero, TERM_INBUF_SIZE
+    bne $t0, $t1, TERM_INBUF_PSC1
+    and $t0, $zero, $zero
+TERM_INBUF_PSC1:
+    lw $t1, TERM_INBUF_START_OFF($fp)
+    beq $t0, $t1, TERM_INBUF_PSCERR
+    sw $t0, TERM_INBUF_END_OFF($fp)
+    #if a0 == \n, write to lib buf
+    ori $t0, $zero, 10
+    bne $a0, $t0, TERM_INBUF_PSC2
+    jal FLUSH_TO_LIB
+TERM_INBUF_PSC2:
+    and $v0, $zero, $zero
+    j TERM_INBUF_PSCEND
+TERM_INBUF_PSCERR:
+    addi $v0, $zero, -1
+TERM_INBUF_PSCEND:
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+    jr $ra
+}
+
+.decl func scope(interrupt.lib) {
+TERM_PUTC:
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+    
+    ori $at, $zero, 10
+    beq $a0, $at, TERM_PTC_NL
+TERM_PTC_NM:
+    jal HW_PUTC
+    j TERM_PTCEND
+    
+TERM_PTC_NL:
+    jal HW_GETXY
+    #move to next line and wrap
+    or $a0, $zero, $v0
+    ori $a1, $zero, SCR_WIDTH - 1
+    jal HW_GOTOXY
+    jal HW_CURSORNEXT
+    j TERM_PTCEND
+
+TERM_PTCEND:
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+    jr $ra
+}
+
+.decl func scope(interrupt.lib) {
+TERM_GETC:
+    SETFRMLB LIB_INBUF
+    lw $t0, LIB_INBUF_START_OFF($fp)
+    lw $t1, LIB_INBUF_END_OFF($fp)
+    bne $t0, $t1, TERM_GTCAVL
+    #return?
+    addi $v0, $zero, -1
+    j TERM_GTCEND
+
+    #block?
+    #j TERM_GETC
+
+TERM_GTCAVL:
+    addi $t1, $fp, LIB_INBUF_DATA_OFF
+    add $t1, $t0, $t1
+    lw $v0, 0($t1)
+    andi $v0, $v0, 0xff
+    addi $t0, $t0, LIB_INBUF_UNIT_SIZE
+    ori $t1, $zero, LIB_INBUF_SIZE
+    blt $t0, $t1, TERM_GTC1
+    #addi $t0, $t0, -INBUF_SIZE
+    and $t0, $zero, $zero
+TERM_GTC1:
+    sw $t0, LIB_INBUF_START_OFF($fp)
+TERM_GTCEND:
+    #returns value
+    and $k1, $zero, $zero
+    jr $ra
+}
+
+.decl func scope(interrupt.lib) {
+TERM_GOTOXY:
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+
+    jal HW_GOTOXY
+    
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+    jr $ra
+}
+
+.decl func scope(interrupt.lib) {
+TERM_GETXY:
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+
+    jal HW_GETXY
+
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+    jr $ra
+}
+
+.decl func scope(interrupt.lib) {
+TERM_KEYBOARD:
+    addi $sp, $sp, -8
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+    
+    #output to screen
+    or $s0, $zero, $a0
+    jal TERM_PUTC
+    #write to terminal inbuf
+    or $a0, $zero, $s0
+    jal TERM_INBUF_PUSHC
+    
+    lw $ra, 0($sp)
+    lw $s0, 4($sp)
+    addi $sp, $sp, 8
+    jr $ra
+}

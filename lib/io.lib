@@ -45,17 +45,18 @@ PTSEND:
 
 .decl func {
 GETS: #pt
-    addi $sp, $sp, -8
-    sw $ra, 4($sp)
-    sw $s0, 0($sp)
-    
-    ori $t0, $zero, 10
+    addi $sp, $sp, -12
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+    sw $s1, 8($sp)
+
+    ori $s1, $zero, 10
     add $s0, $zero, $a0
 GTSLP:
     jal GETC
-    beq $v0, $t0, GTSEND
     sw $v0, 0($s0)
-    addi $s0, $s0, 1
+    addi $s0, $s0, CHAR_SIZE
+    beq $v0, $s1, GTSEND
     j GTSLP
 
 GTSEND:
@@ -63,8 +64,9 @@ GTSEND:
     sw $zero, 0($s0)
 
     add $v0, $zero, $s0
-    lw $s0, 0($sp)
-    lw $ra, 4($sp)
-    addi $sp, $sp, 8
+    lw $s1, 8($sp)
+    lw $s0, 4($sp)
+    lw $ra, 0($sp)
+    addi $sp, $sp, 12
     jr $ra
 }

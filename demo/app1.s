@@ -5,13 +5,18 @@
 .static {
 STRHELLO:
     .str "hello world"
+MEM1:
+    .dup 80 .0
 }
 
 MAIN:
     #jal GETC
     #or $a0, $zero, $v0
     #addi $zero, $zero, 0
-    lla $a0, STRHELLO
+    #lla $a0, STRHELLO
+    lla $a0, MEM1
+    jal GETS
+    lla $a0, MEM1
     jal PUTS
 END:
     j END

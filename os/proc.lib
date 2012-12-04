@@ -162,3 +162,93 @@ PRC_SCHDEND:
     addi $sp, $sp, 8
     jr $ra
 }
+
+.decl func scope(interrupt.lib) {
+PROC_FORK:
+    addi $sp, $sp, -8
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+
+    SETFRMLB PROC
+
+    lw $s0, MAX_PROC_OFF($fp)           #s0 reserved as new PROC_ID
+
+    #change MAX_PROC without overflow check
+    addi $s0, $s0, 1
+    sw $s0, MAX_PROC_OFF($fp)
+
+    addi $t0, $fp, PROC_INFO_OFF
+    #proc_id * 256w
+    sll $t1, $s0, PROC_INFO_LOG_SIZE
+    add $t1, $t0, $t1
+    #init proc state
+    sw $zero, PROC_STATE_OFF_PER_PROC($t1)      #state = 0
+
+    #copy current process to the new one
+    #copy userspace using dma
+    lw $t1, CUR_PROC_OFF($fp)
+    sll $t1, $t1, PROC_USRSPACE_LOG_SIZE
+    sll $t0, $s0, PROC_USRSPACE_LOG_SIZE
+    SETFRM_SYSINFO
+    sw $t0, DMA_DST_ADDR($fp)
+    sw $t1, DMA_SRC_ADDR($fp)
+    lli $t0, 0x800000                           #8M
+    sw $t0, DMA_SIZE($fp)
+    ori $t0, $zero, 1
+    sw $t0, DMA_ENABLE($fp)
+    #save values of registers
+    #set ret value for child proc
+    SETFRMLB REGS_BUF
+    sw $zero, 8($fp)
+    or $a0, $zero, $s0
+    jal FLUSH_REGS
+    #set ret value for father proc
+    or $v0, $zero, $s0
+    #SETFRMLB REGS_BUF
+    #sw $s0, 8($fp)
+
+PROC_FRKEND:
+    lw $ra, 0($sp)
+    lw $s0, 4($sp)
+    addi $sp, $sp, 8
+
+    #returns value
+    and $k1, $zero, $zero
+    jr $ra
+}
+
+.decl func scope(interrupt.lib) {
+PROC_EXEC:
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+
+    SETFRMLB PROC
+    lw $t0, CUR_PROC_OFF($fp)
+    #no need to set proc state
+    #load code and static data from hd
+    SETFRM_SYSINFO
+    sll $t2, $t0, PROC_USRSPACE_LOG_SIZE
+    sw $t2, HDD_SPMO($fp)
+    sll $a0, $a0, 12    # a0 * 0x1000
+    sw $a0, HDD_SSN($fp)
+    ori $t2, $zero, 0x1000
+    sw $t2, HDD_MAX_TSIZE($fp)
+    ori $t2, $zero, 1
+    sw $t2, HDD_ENABLE($fp)
+    #reset regs
+    SETFRMLB REGS_BUF
+    or $a0, $zero, $fp
+    and $a1, $zero, $zero
+    ori $a2, $zero, REGS_CNT            #35 regs
+    jal MEMWORDSET
+    #set sp
+    SETFRMLB REGS_BUF
+    lli $t0, PROC_USRSPACE_SIZE
+    sw $t0, 116($fp)
+
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+
+    ori $k1, $zero, 1
+    jr $ra
+}

@@ -1,8 +1,8 @@
 .inc "../inc/syscall.inc"
-.inc "syscall.lib"
 .inc "sysinfo.inc"
 .inc "proc.lib"
-.inc "sysio.lib"
+.inc "terminal.lib"
+.inc "hwio.lib"
 
 #default interrupt handlers
 .decl func scope() {
@@ -21,19 +21,20 @@ INT_SSC_NOPROCOP:
     add $k0, $k0, $t0
     jr $k0
 INT_SSC1:
+    #syscall about io is wrapped by terminal
     #case 0
     .dup 4 .0
     #case 1: gotoxy
-    jal SYS_GOTOXY #sll 0, 0, 0
+    jal TERM_GOTOXY #sll 0, 0, 0
     j INT_SSCNOPROCEND #sll 0, 0, 0
     #case 2: getxy
-    jal SYS_GETXY #sll 0, 0, 0
+    jal TERM_GETXY #sll 0, 0, 0
     j INT_SSCNOPROCEND #sll 0, 0, 0
     #case 3: putc
-    jal SYS_PUTC
+    jal TERM_PUTC
     j INT_SSCNOPROCEND
     #case 4: getc
-    jal SYS_GETC #sll 0, 0, 0
+    jal TERM_GETC #sll 0, 0, 0
     j INT_SSCNOPROCEND #sll 0, 0, 0
     #case 5-39: reserved
     .dup 140 .0
@@ -53,10 +54,10 @@ INT_SSC_PROCOP:
     jr $k0
 INT_SSC2:
     #case 40: fork
-    jal SYS_FORK
+    jal PROC_FORK
     j INT_PROCOPEND
     #case 41: exec
-    jal SYS_EXEC
+    jal PROC_EXEC
     j INT_PROCOPEND
 INT_PROCOPEND:
     #if k1==1, there is no return
@@ -82,50 +83,16 @@ INT_TIMER:
 }
 
 .decl func scope() {
-GETC_FROM_HW_BUF:
-    SETFRM_SYSINFO
-    lw $t0, INBUF_START($fp)
-    lw $t1, INBUF_END($fp)
-    bne $t0, $t1, GFHB_AVL
-    #return?
-    addi $v0, $zero, -1
-    j GFHBEND
-
-GFHB_AVL:
-    lw $t1, INBUF_BASE($fp)
-    #UGLY FIX!!!!!
-    lli $t2, SYS_VIR_ADDR
-    add $t1, $t1, $t2
-    
-    add $t1, $t0, $t1
-    lw $v0, 0($t1)
-    andi $v0, $v0, 0xff
-    addi $t0, $t0, INBUF_UNIT_SIZE
-    ori $t1, $zero, INBUF_SIZE
-    blt $t0, $t1, GFHB1
-    #addi $t0, $t0, -INBUF_SIZE
-    and $t0, $zero, $zero
-GFHB1:
-    sw $t0, INBUF_START($fp)
-GFHBEND:
-    jr $ra
-}
-
-.decl func scope() {
 INT_KEYBOARD:
     cache_regs
     lli $sp, SYS_STACK_INIT
 
 INT_KBDAVL:
-    jal GETC_FROM_HW_BUF
+    jal HW_GETC
     blt $v0, $zero, INT_KBDEND
-    or $s0, $zero, $v0
-    #output to screen
-    or $a0, $zero, $s0
-    jal SYS_PUTC
-    #store to system inbuf
-    or $a0, $zero, $s0
-    jal SYS_INBUF_PUSHC
+    #send the key to terminal
+    or $a0, $zero, $v0
+    jal TERM_KEYBOARD
     j INT_KBDAVL
 INT_KBDEND:
     restore_regs

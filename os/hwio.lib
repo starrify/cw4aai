@@ -1,0 +1,171 @@
+.inc "../inc/pseudo_inst.inc"
+.inc "../lib/string.lib"
+.inc "sysinfo.inc"
+
+.decl func scope(terminal.lib, interrupt.lib) {
+HW_GOTOXY: #row, col
+    #boundary check
+    ori $t0, $zero, SCR_HEIGHT
+    bgeu $a0, $t0, HW_GXYERR
+    ori $t0, $zero, SCR_WIDTH * SCR_UNIT_SIZE
+    bgeu $a1, $t0, HW_GXYERR
+
+    #calculate cursor position
+    sll $t1, $a0, 6
+    sll $t0, $a0, 4
+    add $t0, $t0, $t1
+    add $t0, $t0, $a1
+    #four bytes per unit
+    sll $t0, $t0, 2
+
+    #decide real offset
+    SETFRM_SYSINFO
+    lw $t1, SCR_OFFSET($fp)
+    add $t0, $t0, $t1
+    ori $t1, $zero, SCR_UNIT_SIZE * SCR_WIDTH * SCR_HEIGHT
+    blt $t0, $t1, HW_GXY1
+    addi $t0, $t0, -SCR_UNIT_SIZE * SCR_WIDTH * SCR_HEIGHT
+
+HW_GXY1:
+    sw $t0, CURSOR($fp)
+    and $v0, $zero, $zero
+    j HW_GXYEND
+    
+HW_GXYERR:
+    addi $v0, $zero, -1
+HW_GXYEND:
+    #returns value
+    #and $k1, $zero, $zero
+    jr $ra
+}
+
+.decl func scope(terminal.lib, interrupt.lib) {
+HW_GETXY:
+    SETFRM_SYSINFO
+    #calculate reletive cursor
+    lw $t0, CURSOR($fp)
+    lw $t1, SCR_OFFSET($fp)
+    sub $t0, $t0, $t1
+    bge $t0, $zero, HW_GTXY1
+    addi $t0, $t0, SCR_UNIT_SIZE * SCR_WIDTH * SCR_HEIGHT
+HW_GTXY1:
+    ori $t1, $zero, SCR_UNIT_SIZE * SCR_WIDTH
+    divu $t0, $t1
+    #row = quotient
+    mfhi $v0
+    #colomn = remainder / 4
+    mflo $v1
+    srl $v1, $v1, 2
+HW_GTXYEND:
+    #returns value
+    #and $k1, $zero, $zero
+    jr $ra
+}
+
+.decl func {
+HW_CURSORNEXT:
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+
+    SETFRM_SYSINFO
+    lw $t1, CURSOR($fp)
+    #move cursor
+    addi $t1, $t1, SCR_UNIT_SIZE
+    ori $t0, $zero, SCR_UNIT_SIZE * SCR_WIDTH * SCR_HEIGHT
+    bne $t1, $t0, HW_CSNXT1
+    and $t1, $zero, $zero
+HW_CSNXT1:
+    sw $t1, CURSOR($fp)
+    
+    lw $t2, SCR_OFFSET($fp)
+    bne $t1, $t2, HW_CSNXYEND
+    #scroll, t1 is the new starting row and t2 is the old
+    addi $t1, $t2, SCR_UNIT_SIZE * SCR_WIDTH
+    bne $t1, $t0, HW_CSNXT2
+    and $t1, $zero, $zero
+HW_CSNXT2:
+    sw $t1, SCR_OFFSET($fp)
+    #clear the last row
+    lw $t0, SCR_BASE($fp)
+    add $a0, $t0, $t2
+    ori $a1, $zero, 0x20
+    ori $a2, $zero, 80
+    jal MEMWORDSET
+HW_CSNXYEND:
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+    jr $ra
+}
+
+.decl func scope(terminal.lib) {
+HW_PUTC: #ch
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+
+    SETFRM_SYSINFO
+    lw $t0, SCR_BASE($fp)
+    lw $t1, CURSOR($fp)
+
+    #write to disp mem
+    add $t0, $t0, $t1
+    #UGLY FIX!!!!!!!
+    lli $t1, SYS_VIR_ADDR
+    add $t0, $t0, $t1
+    
+    sw $a0, 0($t0)
+    jal HW_CURSORNEXT
+
+HW_PTCEND:
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+    #no return
+    #ori $k1, $zero, 1
+    jr $ra
+}
+
+.decl func scope(interrupt.lib) {
+HW_GETC:
+    SETFRM_SYSINFO
+    lw $t0, INBUF_START($fp)
+    lw $t1, INBUF_END($fp)
+    bne $t0, $t1, HW_GTC_AVL
+    #return?
+    addi $v0, $zero, -1
+    j HW_GTC_END
+
+HW_GTC_AVL:
+    lw $t1, INBUF_BASE($fp)
+    #UGLY FIX!!!!!
+    lli $t2, SYS_VIR_ADDR
+    add $t1, $t1, $t2
+
+    add $t1, $t0, $t1
+    lw $v0, 0($t1)
+    andi $v0, $v0, 0xff
+    addi $t0, $t0, INBUF_UNIT_SIZE
+    ori $t1, $zero, INBUF_SIZE
+    blt $t0, $t1, HW_GTC1
+    #addi $t0, $t0, -INBUF_SIZE
+    and $t0, $zero, $zero
+HW_GTC1:
+    sw $t0, INBUF_START($fp)
+HW_GTC_END:
+    jr $ra
+}
+
+#.decl func scope() {
+#FIND_UNUSED_GDT_ITEM:   #gdt_vir_addr, returns first unused item addr
+#    ori $t0, $zero, GDT_SIZE                    #t0 reserved as GDT_SIZE
+#FUGI1:
+#    lw $t1, 12($a0)                             #load the valid flag
+#    beq $t1, $zero, FUGIEND                    #unused gdt item found
+#    addi $a0, $a0, GDT_ITEM_SIZE
+#    beq $a0, $t2, FUGIERR                    #no unused gdt item found
+#    j FUGI1
+#FUGIERR:
+#    j FUGIERR                                #don't know how to handle here, apply a forever loop
+#FUGIEND:
+#    or $v0, $zero, $a0
+#    jr $ra
+#}
+
