@@ -16,7 +16,7 @@ $(BIN)/memu: memu/
 	make -C memu
 	cp memu/memu $(BIN)
 
-$(BIN)/preproc.pl: os/preproc.pl
+$(BIN)/preproc.pl: preproc/preproc.pl
 	cp preproc/preproc.pl $(BIN)
 
 $(BIN)/sys.img $(BIN)/app1.img $(BIN)/app2.img: os/ demo/ lib/ inc/ 
