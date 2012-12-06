@@ -1,0 +1,50 @@
+.inc "../lib/string.lib"
+
+.static {
+SH_PROMPT:
+    .str "> "
+SH_PROMPT_NOCMD:
+    .str ": command not found\n"
+SH_STR_EXEC:
+    .str "exec"
+}
+
+.decl func scope() {
+SH_EXEC:
+    
+}
+
+.decl func scope(main file) {
+SH_CMD:
+    addi $sp, $sp, -8
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+
+    #eliminate heading spaces
+    #eliminate trailing \n
+    
+    or $s0, $zero, $a0
+    #exec
+    lla $a1, SH_STR_EXEC
+    ori $a2, $zero, 4
+    jal STRNCMP
+    beq $v0, $zero, SH_CMD_EXEC
+    
+SH_NOCMD:
+    or $a0, $zero, $s0
+    jal PUTS
+    lla $a0, SH_PROMPT_NOCMD
+    jal PUTS
+    j SH_CMDEND
+    
+SH_CMD_EXEC:
+    addi $a0, $s0, CHAR_SIZE * 4
+    jal SH_EXEC
+    j SH_CMDEND
+    
+SH_CMDEND:
+    lw $s0, 4($sp)
+    lw $ra, 0($sp)
+    addi $sp, $sp, 8
+    jr $ra
+}
