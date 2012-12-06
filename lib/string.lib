@@ -1,4 +1,5 @@
 .inc "../inc/pseudo_inst.inc"
+.inc "../inc/regulation.inc"
 
 #arg: dst, src, word_cnt
 #ret: dst mem address, -1 on failed
@@ -37,13 +38,21 @@ MEMCPY:
 .decl func {
 STRCPY: #dst, src
 SCPLP:
-    lb $t0, 0($a1)
+    #must be aligned
+    bnaln $a0, SCPERR
+    bnaln $a1, SCPERR
+    #since 4 bytes per char
+    lw $t0, 0($a1)
     beq $t0, $zero, SCPEND
-    sb $t0, 0($a0)
-    addi $a0, $a0, 1
-    addi $a1, $a1, 1
+    sw $t0, 0($a0)
+    addi $a0, $a0, CHAR_SIZE
+    addi $a1, $a1, CHAR_SIZE
     j SCPLP
 
+SCPERR:
+    .1  #errcode
+    j SCPERR
+    
 SCPEND:
     jr $ra
 }
@@ -74,6 +83,36 @@ MCMP3:
     beq $t0, $t1, MCMP3
 
 MCMPEND:
+    sub $v0, $t0, $t1
+    jr $ra
+}
+
+.decl func {
+STRNCMP: #dst, src, n
+    bnaln $a0, SNCMPERR
+    bnaln $a1, SNCMPERR
+    and $t0, $zero, $zero
+    and $t1, $zero, $zero
+    
+SNCMPLP:
+    beq $a2, $zero, SNCMPEND
+    lw $t0, 0($a1)      #since 4 bytes per char
+    andi $t0, $t0, 0xff
+    beq $t0, $zero, SNCMPEND
+    lw $t1, 0($a0)
+    andi $t1, $t1, 0xff
+    beq $t1, $zero, SNCMPEND
+    bne $t0, $t1, SNCMPEND
+    addi $a0, $a0, CHAR_SIZE
+    addi $a1, $a1, CHAR_SIZE
+    addi $a2, $a2, -1
+    j SNCMPLP
+
+SNCMPERR:
+    .2 #don't know how to handle, errcode 2
+    j SNCMPERR
+    
+SNCMPEND:
     sub $v0, $t0, $t1
     jr $ra
 }

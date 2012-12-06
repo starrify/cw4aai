@@ -4,6 +4,7 @@
 .inc "../lib/io.lib"
 .inc "interrupt.lib"
 .inc "sysinfo.inc"
+.inc "shell.lib"
 
 .offset 0x1c00000 #28M
 
@@ -31,29 +32,23 @@ SYS_INIT:
  
     mtc0 $t0, $3
 
-MAIN:
-    ori $a0, $zero, 1
-    ori $k0, $zero, SC_FORK
-    syscall
-    beq $v0, $zero, CHILD
-FATHER:
-    #set proc status as suspended
-    SETFRMLB PROC_INFO
-    ori $t0, $zero, PROC_SUSPEND
-    sw $t0, PROC_STATE_OFF_PER_PROC($fp)
+SHELL:
+    #entering shell
+    #local variable
+    .def LOCAL_SHELL_CMD_OFF {0}
+    addi $sp, $sp, -4 * 80
+SHELLLP:
+    lla $a0, SH_PROMPT
+    jal PUTS
+    addi $a0, $sp, LOCAL_SHELL_CMD_OFF
+    jal GETS
+    or $a0, $zero, $v0
+    jal SH_CMD
+    j SHELL
+
+SHELLEND:
+    addi $sp, $sp, 4 * 80
+END:
     wait
-    j ENDFATH
-
-CHILD:
-    ori $a0, $zero, 1
-    ori $k0, $zero, SC_EXEC
-    syscall
-    #ori $a0, $zero, 97
-    #jal PUTC
-    #j ENDCHLD
-
-ENDCHLD:
-    j ENDCHLD
-ENDFATH:
-    j ENDFATH
+    j END
 

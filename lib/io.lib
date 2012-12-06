@@ -31,6 +31,7 @@ PUTS: #pt
     add $s0, $zero, $a0
 PTSLP:
     lw $a0, 0($s0)
+    andi $a0, $a0, 0xff
     beq $a0, $zero, PTSEND
     jal PUTC
     addi $s0, $s0, CHAR_SIZE
@@ -45,13 +46,15 @@ PTSEND:
 
 .decl func {
 GETS: #pt
-    addi $sp, $sp, -12
+    addi $sp, $sp, -16
     sw $ra, 0($sp)
     sw $s0, 4($sp)
     sw $s1, 8($sp)
-
+    sw $s2, 12($sp)
+    
     ori $s1, $zero, 10
-    add $s0, $zero, $a0
+    or $s0, $zero, $a0
+    or $s2, $zero, $a0
 GTSLP:
     jal GETC
     sw $v0, 0($s0)
@@ -63,10 +66,12 @@ GTSEND:
     #add trailing zero
     sw $zero, 0($s0)
 
-    add $v0, $zero, $s0
+    or $v0, $zero, $s2
+    
+    lw $s2, 12($sp)
     lw $s1, 8($sp)
     lw $s0, 4($sp)
     lw $ra, 0($sp)
-    addi $sp, $sp, 12
+    addi $sp, $sp, 16
     jr $ra
 }
