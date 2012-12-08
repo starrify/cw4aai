@@ -63,6 +63,8 @@ INT_SSC2:
     jal PROC_WAIT
     j INT_PROCOPEND
     #case 43: sleep
+    jal PROC_SLEEP
+    j INT_PROCOPEND
     #case 44:
     .dup 8 .0
     #case 45: exit
@@ -86,6 +88,7 @@ INT_TIMER:
     cache_regs
     lli $sp, SYS_STACK_INIT
 
+    jal PROC_SLEEP_UPDATE
     jal PROC_SCHEDULE
 
     restore_regs
