@@ -1,4 +1,5 @@
 .inc "../lib/string.lib"
+.inc "../lib/io.lib"
 
 .static {
 SH_PROMPT:
@@ -9,9 +10,66 @@ SH_STR_EXEC:
     .str "exec"
 }
 
+#tool string functions
+.decl func scope() {
+SKIP_BLANK:
+    ori $t4, $zero, 32  #blank
+    or $v0, $zero, $a0
+SKP_BLANK_LP:
+    lw $t0, 0($v0)
+    andi $t0, $t0, 0xff
+    bne $t0, $t4, SKP_BLANKEND
+    addi $v0, $v0, CHAR_SIZE
+    j SKP_BLANK_LP
+    
+SKP_BLANKEND:
+    jr $ra
+}
+
+.decl func scope() {
+CHOMP:
+    addi $sp, $sp, -8
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+
+    or $s0, $zero, $a0
+    jal STRLEN
+    sll $t1, $v0, 2     #charsize = 4!!!
+    add $t1, $t1, $s0
+
+    ori $t4, $zero, 10  #\n
+    addi $t1, $t1, -CHAR_SIZE   #the last char
+    lw $t0, 0($t1)
+    andi $t0, $t0, 0xff
+    bne $t0, $t4, CHOMPEND
+    sw $zero, 0($t1)    #remove the trailing \n
+
+CHOMPEND:
+    lw $ra, 0($sp)
+    lw $s0, 4($sp)
+    addi $sp, $sp, 8
+    jr $ra
+}
+
+#impletation of commands
 .decl func scope() {
 SH_EXEC:
+    addi $sp, $sp, -8
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+
+    jal SKIP_BLANK
+    or $s0, $zero, $v0
+
+    or $a0, $zero, $s0
+    jal PUTS
+    ori $a0, $zero, 10
+    jal PUTC
     
+    lw $ra, 0($sp)
+    lw $s0, 4($sp)
+    addi $sp, $sp, 8
+    jr $ra
 }
 
 .decl func scope(main file) {
@@ -21,12 +79,17 @@ SH_CMD:
     sw $s0, 4($sp)
 
     #eliminate heading spaces
+    #or $a0, $zero, $a0
+    jal SKIP_BLANK
+    or $s0, $zero, $v0
     #eliminate trailing \n
+    or $a0, $zero, $s0
+    jal CHOMP
     
-    or $s0, $zero, $a0
     #exec
     lla $a1, SH_STR_EXEC
     ori $a2, $zero, 4
+    or $a0, $zero, $s0
     jal STRNCMP
     beq $v0, $zero, SH_CMD_EXEC
     

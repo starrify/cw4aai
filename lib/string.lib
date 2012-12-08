@@ -195,3 +195,16 @@ MSTEND:
     jr $ra
 }
 
+.decl func {
+STRLEN:
+    and $v0, $zero, $zero
+STRLENLP:
+    lw $t0, 0($a0)
+    andi $t0, $t0, 0xff
+    beq $t0, $zero, STRLENEND
+    addi $a0, $a0, CHAR_SIZE
+    addi $v0, $v0, 1
+    j STRLENLP
+STRLENEND:
+    jr $ra
+}
