@@ -89,6 +89,7 @@ void *display_daemon(void *ptr)
 //#endif
             }
         }
+        assert(scry);
         move(cursor_off / scry, cursor_off % scry);
 
         refresh();
