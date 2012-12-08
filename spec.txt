@@ -76,7 +76,7 @@ sysinfo and device mapping: 0x00008000 0x007FFFFF
         1word: W only. 1 for read from disk, 2 for write to disk. both are asynchronize
         1word: R/W. starting physical memory offset
         1word: R/W. starting sector number
-        1word: R/W. max transfer size in byte
+        1word: R/W. transfer size in sector
 
     DMA copy: -> 160
         1word: W only. 1 for copy
