@@ -1133,7 +1133,8 @@ static int inst_exec_or(u32_t code)
     reg_gpr_read(rt, &regdata2);
     reg_gpr_write(rd, regdata1 | regdata2);
 #if DUMP_INST
-    fprintf(LOG_FILE, "Instruction: OR: rs=%d, rt=%d, rd=%d\n", rs, rt, rd);
+    fprintf(LOG_FILE, "Instruction: OR: rs=%d, rt=%d, rd=%d ", rs, rt, rd);
+    fprintf(LOG_FILE, "%d=%d|%d\n", regdata1 | regdata2, regdata1, regdata2);
 #endif
     return EXCEPTION_NONE;
 }
