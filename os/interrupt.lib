@@ -66,7 +66,7 @@ INT_SSC2:
     jal PROC_SLEEP
     j INT_PROCOPEND
     #case 44:
-    .dup 8 .0
+    .dup 4 .0
     #case 45: exit
     jal PROC_EXIT
     j INT_PROCOPEND

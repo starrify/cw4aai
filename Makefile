@@ -26,6 +26,7 @@ $(BIN)/sys.img $(BIN)/app1.img $(BIN)/app2.img: os/ demo/ lib/ inc/
 	make -C os
 	make -C demo
 	cp os/sys.img $(BIN)
+	cp os/shell.img $(BIN)
 	cp demo/app1.img $(BIN)
 	cp demo/app2.img $(BIN)
 

@@ -115,15 +115,15 @@ PROC_SCHEDULE:
     
     SETFRMLB PROC
     addi $t0, $fp, PROC_INFO_OFF
-    lw $t3, MAX_PROC_OFF($fp)
-    sll $t3, $t3, PROC_INFO_LOG_SIZE             #max_proc * 64 * 4
+    lw $t4, MAX_PROC_OFF($fp)
+    sll $t4, $t4, PROC_INFO_LOG_SIZE             #max_proc * 64 * 4
     
     lw $t1, CUR_PROC_OFF($fp)
     sll $t1, $t1, PROC_INFO_LOG_SIZE
 PRC_SCHD1:
     #move to next process
     addi $t1, $t1, PROC_INFO_SIZE
-    ble $t1, $t3, PRC_SCHD2
+    ble $t1, $t4, PRC_SCHD2
     and $t1, $zero, $zero
 PRC_SCHD2:
     addi $t3, $fp, PROC_INFO_OFF

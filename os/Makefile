@@ -1,6 +1,6 @@
 BIN = ../bin
 EXT_DEP = ../inc/* ../lib/*
-all: sys.img
+all: sys.img shell.img
 
 $(BIN)/preproc.pl: ../preproc/preproc.pl
 	make bin/preproc.pl -C ..
@@ -17,7 +17,7 @@ sys.img: $(BIN)/mass sys.t
 shell.t: shell.s *.lib *.inc $(EXT_DEP) $(BIN)/preproc.pl
 	$(BIN)/preproc.pl <shell.s >shell.t
 
-shell.img: $(BIN)mass shell.t
+shell.img: $(BIN)/mass shell.t
 	$(BIN)/mass shell.t -o shell.img
 
 

@@ -1,10 +1,8 @@
 .inc "../inc/jmp_fix.inc"
 .inc "../inc/pseudo_inst.inc"
-.inc "../inc/var.inc"
-.inc "../lib/io.lib"
+.inc "../inc/syscall.inc"
 .inc "interrupt.lib"
 .inc "sysinfo.inc"
-.inc "shell.lib"
 
 .offset 0x1c00000 #28M
 
@@ -27,27 +25,26 @@ SYS_INIT:
     #init interrupt
     jal INT_INIT
     #init libs
-    #jal IO_INIT
     #interrupt enable
- 
     mtc0 $t0, $3
 
-SHELL:
-    #entering shell
-    #local variable
-    .def LOCAL_SHELL_CMD_OFF {0}
-    addi $sp, $sp, -4 * 80
-SHELLLP:
-    lla $a0, SH_PROMPT
-    jal PUTS
-    addi $a0, $sp, LOCAL_SHELL_CMD_OFF
-    jal GETS
-    or $a0, $zero, $v0
-    jal SH_CMD
-    j SHELL
-
-SHELLEND:
-    addi $sp, $sp, 4 * 80
-END:
+SYS_MAIN:
+    ori $k0, $zero, SC_FORK
+    syscall
+    bne $v0, $zero, SYS_END
+SYS_MAIN_CLD:
+    ori $k0, $zero, SC_EXEC
+    ori $a0, $zero, 1   #supposed to be shell
+    syscall
+    
+SYS_MAIN_CLDERR:
+    .4  #errcode
+    j SYS_MAIN_CLDERR
+    
+SYS_END:
+    #suspend proc 0, may be resumed by proc_schedule
+    SETFRMLB PROC_INFO
+    ori $t0, $zero, PROC_SUSPENDED
+    sw $t0, PROC_STATE_OFF_PER_PROC($fp)
     wait
-    j END
+    j SYS_END

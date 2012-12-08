@@ -99,7 +99,7 @@ SH_EXECEND:
 
 SH_EXEC_CLD:
     ori $k0, $zero, SC_EXEC
-    ori $a0, $zero, 1
+    ori $a0, $zero, 2
     syscall
 SH_EXEC_EXECERR:
     .3  #errcode 3
