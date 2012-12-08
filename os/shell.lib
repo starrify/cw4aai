@@ -87,10 +87,9 @@ SH_EXEC:
     syscall
     beq $v0, $zero, SH_EXEC_CLD
 SH_EXEC_FATHER:
+    #wait for all children to exit
     ori $k0, $zero, SC_WAIT
     syscall
-    ori $a0, $zero, 97
-    jal PUTC
     
 SH_EXECEND:
     lw $ra, 0($sp)

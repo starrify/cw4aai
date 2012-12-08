@@ -18,7 +18,9 @@ MAIN:
     #jal GETS
     lla $a0, STRHELLO
     jal PUTS
-    #j MAIN
+    ori $k0, $zero, SC_EXIT
+    syscall
+    j MAIN
 END:
     j END
 #    ori $k0, $zero, SC_FORK

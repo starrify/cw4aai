@@ -62,6 +62,13 @@ INT_SSC2:
     #case 42: wait
     jal PROC_WAIT
     j INT_PROCOPEND
+    #case 43: sleep
+    #case 44:
+    .dup 8 .0
+    #case 45: exit
+    jal PROC_EXIT
+    j INT_PROCOPEND
+    
 INT_PROCOPEND:
     #if k1==1, there is no return
     bne $k1, $zero, INT_SSCLRESTORE

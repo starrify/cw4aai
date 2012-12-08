@@ -175,15 +175,14 @@ PROC_FORK:
     sw $s0, MAX_PROC_OFF($fp)
 
     addi $t0, $fp, PROC_INFO_OFF
-    #init proc state, father_pid
+    #init proc state, parent_pid
     #proc_id * 256w
     sll $t1, $s0, PROC_INFO_LOG_SIZE
     add $t1, $t0, $t1
     sw $zero, PROC_STATE_OFF_PER_PROC($t1)      #state = 0
     lw $t2, CUR_PROC_OFF($fp)
-    sw $t2, PROC_FATHER_PID_OFF_PER_PROC($t1)
+    sw $t2, PROC_PARENT_PID_OFF_PER_PROC($t1)
     #add active_child_cnt of cur proc
-    sllv $zero, $zero, $t0
     sll $t1, $t2, PROC_INFO_LOG_SIZE
     add $t1, $t0, $t1
     lw $t3, PROC_ACTIVE_CHILD_CNT_OFF_PER_PROC($t1)
@@ -207,7 +206,7 @@ PROC_FORK:
     sw $zero, 8($fp)
     or $a0, $zero, $s0
     jal FLUSH_REGS
-    #set ret value for father proc
+    #set ret value for parent proc
     or $v0, $zero, $s0
     #SETFRMLB REGS_BUF
     #sw $s0, 8($fp)
@@ -269,10 +268,10 @@ PROC_WAIT:
     addi $t2, $fp, PROC_INFO_OFF
     add $t1, $t2, $t1
     lw $t2, PROC_ACTIVE_CHILD_CNT_OFF_PER_PROC($t1)
-    sllv $zero, $zero, $zero #dbg symbol
+    
     beq $t2, $zero, PRC_WAITEND
 
-    ori $t2, $zero, PROC_SUSPEND
+    ori $t2, $zero, PROC_SUSPENDED
     sw $t2, PROC_STATE_OFF_PER_PROC($t1)
     jal PROC_SCHEDULE
     
@@ -284,5 +283,36 @@ PRC_WAITEND:
 
 .decl func scope(interrupt.lib) {
 PROC_EXIT:
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+    sllv $zero, $zero, $zero #dbg symbol
+    SETFRMLB PROC
+    lw $t0, CUR_PROC_OFF($fp)
+    sll $t1, $t0, PROC_INFO_LOG_SIZE
+    addi $t2, $fp, PROC_INFO_OFF
+    add $t1, $t2, $t1
+    #set exit state of cur proc
+    ori $t2, $zero, PROC_EXITED
+    sw $t2, PROC_STATE_OFF_PER_PROC($t1)
+    #get parent proc id
+    lw $t1, PROC_PARENT_PID_OFF_PER_PROC($t1)
+    #from now on t0 is curprocid, t1 is parentprocid
+    #minus active_child_cnt of parent by 1
+    sll $t2, $t1, PROC_INFO_LOG_SIZE
+    addi $t3, $fp, PROC_INFO_OFF
+    add $t2, $t2, $t3
+    lw $t3, PROC_ACTIVE_CHILD_CNT_OFF_PER_PROC($t2)
+    addi $t3, $t3, -1
+    sw $t3, PROC_ACTIVE_CHILD_CNT_OFF_PER_PROC($t2)
+    bne $t3, $zero, PRC_EXIT1
+    #activate father
+    sw $zero, PROC_STATE_OFF_PER_PROC($t2)
     
+PRC_EXIT1:
+    jal PROC_SCHEDULE
+
+PRC_EXITEND:
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+    jr $ra
 }
