@@ -6,7 +6,10 @@
 
 BIN = ./bin
 
-all: $(BIN)/mass $(BIN)/memu $(BIN)/sys.img $(BIN)/app1.img $(BIN)/app2.img
+all: $(BIN)/mass $(BIN)/memu $(BIN)/sys.img $(BIN)/app1.img $(BIN)/app2.img $(BIN)/config.ini
+
+$(BIN)/config.ini: memu/config.ini
+	cp memu/config.ini $(BIN)/
 
 $(BIN)/mass: mass/
 	make -C mass/

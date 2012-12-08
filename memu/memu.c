@@ -33,15 +33,13 @@ pthread_mutex_t wait_cond_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void init()
 {
+    cfg_init();
     mem_create(config.memsize);
     get_dma_info(&membase, &memsize);  
 
-    config.log_file = fopen(config.log_filename, "w");
-    assert(config.log_file);
-
     hdd_init();
     mem_init();
-    hdd_read(membase + config.img_base, 0, config.hdd_sector_skip);
+    hdd_read(membase + config.entry_offset, 0, 8 << 8);
     mmu_init();
     reg_init();
     daemon_init();
@@ -62,6 +60,7 @@ static void fini()
     daemon_fini();
     
     mem_destroy();
+    cfg_fini();
     return;
 }
 

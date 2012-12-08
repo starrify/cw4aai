@@ -6,7 +6,7 @@
 
 CC  = gcc
 CFLAG   = -O2 
-LFLAG   = -lpthread -lncurses
+LFLAG   = -lpthread -lncurses -liniparser
 OBJS    = memu.o config.o decode.o inst.o mem.o mmu.o reg.o \
             daemon.o fancyterm.o interrupt.o hdd.o
 SOURCES = memu.c config.c decode.c inst.c mem.c mmu.c reg.c \
