@@ -17,26 +17,33 @@ enum _config_endianess
     CONFIG_ENDIAN_BIG   = 1,
 };
 
+typedef struct _hddfile_t
+{
+    char *filename;
+    int secstart;
+    int secsize;
+}   hddfile_t;
+
 struct config_t
 {
     size_t memsize;
     u32_t entry_offset;
-    char *flash_file;
-    char *img_file;
-    u32_t img_base;
     u32_t sbase_offset;
+
     int endianess;
-    int display_refresh_rate;
-    int iic_check_rate;
+    int display_refresh_interval;
+    int timer_interval;
+
     char *log_filename;
     FILE *log_file;
-    int status_display_size;
+
     size_t hdd_size;
-    u32_t hdd_sector_skip;
-    int hdd_filelist_size;
-    char *hdd_filelist[];
+    int hdd_filecnt;
+    hddfile_t *hdd_filelist;
 };
 
 extern struct config_t config;
+extern int cfg_init();
+extern int cfg_fini();
 
 #endif /* CONFIG_H */

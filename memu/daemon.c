@@ -56,7 +56,7 @@ void daemon_fini()
 
 void *display_daemon(void *ptr)
 {
-    struct timespec rqtp = { .tv_sec = 0, .tv_nsec = 20000000, };
+    struct timespec rqtp = { .tv_sec = 0, .tv_nsec = config.display_refresh_interval, };
     while (1)
     {
         nanosleep(&rqtp, NULL);
@@ -142,7 +142,7 @@ void *keyboard_daemon(void *ptr)
 
 void *timer_daemon(void *ptr)
 {
-    struct timespec rqtp = { .tv_sec = 0, .tv_nsec = 10000000, };
+    struct timespec rqtp = { .tv_sec = 0, .tv_nsec = config.timer_interval, };
     while (1)
     {
         nanosleep(&rqtp, NULL);

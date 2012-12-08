@@ -40,6 +40,7 @@
 #define DUMP_INTERRUPT  1
 #define DUMP_DECODE 0
 #define DUMP_IIC    0
+#define CONFIG_FILE "config.ini"
 #define LOG_FILE    config.log_file
 
 typedef unsigned long long  u64_t;

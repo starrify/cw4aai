@@ -22,17 +22,16 @@ int hdd_init()
     hdd_size = config.hdd_size;
     hdd_base = mmap(NULL, hdd_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     assert(hdd_base != MAP_FAILED);
-    
+   
     int i;
-    int hflist_sz = config.hdd_filelist_size;
-    char **hflist = config.hdd_filelist;
-    void *phdd = hdd_base;
-    for (i = 0; i < hflist_sz; i++)
+    int hfcnt = config.hdd_filecnt;
+    hddfile_t *hflist = config.hdd_filelist;
+    for (i = 0; i < hfcnt; i++)
     {
-        int fd = open(hflist[i], O_RDONLY | O_SYNC);
+        printf(hflist[i].filename);
+        int fd = open(hflist[i].filename, O_RDONLY | O_SYNC);
         assert(fd > 0);
-        read(fd, phdd, config.hdd_sector_skip * SECTOR_SIZE);
-        phdd += config.hdd_sector_skip * SECTOR_SIZE;
+        read(fd, hdd_base + hflist[i].secstart * SECTOR_SIZE, hflist[i].secsize * SECTOR_SIZE);
         close(fd);
     }
 
