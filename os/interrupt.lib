@@ -59,6 +59,9 @@ INT_SSC2:
     #case 41: exec
     jal PROC_EXEC
     j INT_PROCOPEND
+    #case 42: wait
+    jal PROC_WAIT
+    j INT_PROCOPEND
 INT_PROCOPEND:
     #if k1==1, there is no return
     bne $k1, $zero, INT_SSCLRESTORE

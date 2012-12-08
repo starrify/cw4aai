@@ -5,5 +5,6 @@
 #proc operations start from 40
 .def SC_FORK {40}
 .def SC_EXEC {41}
+.def SC_WAIT {42}
 .def SC_SLEEP {43}
 .def SC_EXIT {45}

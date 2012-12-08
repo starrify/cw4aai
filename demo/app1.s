@@ -14,10 +14,11 @@ MAIN:
     #or $a0, $zero, $v0
     #addi $zero, $zero, 0
     #lla $a0, STRHELLO
-    lla $a0, MEM1
-    jal GETS
-    lla $a0, MEM1
+    #lla $a0, MEM1
+    #jal GETS
+    lla $a0, STRHELLO
     jal PUTS
+    #j MAIN
 END:
     j END
 #    ori $k0, $zero, SC_FORK

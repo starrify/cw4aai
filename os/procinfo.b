@@ -1,9 +1,10 @@
 
-    #32*4word: gdt, 64word: reserved:
-    #32word: gpr, 1word: epc, 1word: hi, 1word: lo, 1word: status, 28word: reserved
+    #32*4word: gdt, 64word: reserved,
+    #32word: gpr, 1word: epc, 1word: hi, 1word: lo, 1word: status, 12word: reserved
+    #1word: father pid, 1word: active_child_cnt, 14word reserved
     #256words in total
     #proc_info for init
-#0x01000000 = PROC_USRSPACE_SIZE, however, macro is not used
+#0x00800000 = PROC_USRSPACE_SIZE, however, macro is not used
 #because calculation in .loop is not supported in preproc yet
 .loop 0 0xfffffff 0x00800000 {
     .<LOOPVAR>  #physical: <LOOPVAR>

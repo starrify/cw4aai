@@ -22,19 +22,17 @@ REGS_BUF:
     lla $fp, REGS_BUF
     #store gpr
     .loop 0 31 /
-    sw $<LOOPVAR>, 0($fp)
-    addi $fp, $fp, 4
+    sw $<LOOPVAR>, (<LOOPVAR> * 4)($fp)
     /
     wrpgpr $at, $at
     #store epc, hi, lo
     mfc0 $at, $1
-    sw $at, 0($fp)
-    addi $fp, $fp, 4
+    sw $at, 128($fp)
     mfhi $at
-    sw $at, 0($fp)
+    sw $at, 132($fp)
     addi $fp, $fp, 4
     mflo $at
-    sw $at, 0($fp)
+    sw $at, 136($fp)
     
     lla $at, REGS_BUF
     rdpgpr $fp, $fp
@@ -77,8 +75,7 @@ FLUSH_REGS: #a0:pid
     mtlo $t0
     #restore gpr
     .loop 0 30 /
-    lw $<LOOPVAR>, 0($31)
-    addi $31, $31, 4
+    lw $<LOOPVAR>, (<LOOPVAR> * 4)($31)
     /
     wrpgpr $t0, $t0
     lla $t0, REGS_BUF
@@ -178,20 +175,28 @@ PROC_FORK:
     sw $s0, MAX_PROC_OFF($fp)
 
     addi $t0, $fp, PROC_INFO_OFF
+    #init proc state, father_pid
     #proc_id * 256w
     sll $t1, $s0, PROC_INFO_LOG_SIZE
     add $t1, $t0, $t1
-    #init proc state
     sw $zero, PROC_STATE_OFF_PER_PROC($t1)      #state = 0
-
+    lw $t2, CUR_PROC_OFF($fp)
+    sw $t2, PROC_FATHER_PID_OFF_PER_PROC($t1)
+    #add active_child_cnt of cur proc
+    sllv $zero, $zero, $t0
+    sll $t1, $t2, PROC_INFO_LOG_SIZE
+    add $t1, $t0, $t1
+    lw $t3, PROC_ACTIVE_CHILD_CNT_OFF_PER_PROC($t1)
+    addi $t3, $t3, 1
+    sw $t3, PROC_ACTIVE_CHILD_CNT_OFF_PER_PROC($t1)
+    
     #copy current process to the new one
     #copy userspace using dma
-    lw $t1, CUR_PROC_OFF($fp)
-    sll $t1, $t1, PROC_USRSPACE_LOG_SIZE
+    sll $t2, $t2, PROC_USRSPACE_LOG_SIZE
     sll $t0, $s0, PROC_USRSPACE_LOG_SIZE
     SETFRM_SYSINFO
     sw $t0, DMA_DST_ADDR($fp)
-    sw $t1, DMA_SRC_ADDR($fp)
+    sw $t2, DMA_SRC_ADDR($fp)
     lli $t0, 0x800000                           #8M
     sw $t0, DMA_SIZE($fp)
     ori $t0, $zero, 1
@@ -251,4 +256,33 @@ PROC_EXEC:
 
     ori $k1, $zero, 1
     jr $ra
+}
+
+.decl func scope(interrupt.lib) {
+PROC_WAIT:
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+    
+    SETFRMLB PROC
+    lw $t0, CUR_PROC_OFF($fp)
+    sll $t1, $t0, PROC_INFO_LOG_SIZE
+    addi $t2, $fp, PROC_INFO_OFF
+    add $t1, $t2, $t1
+    lw $t2, PROC_ACTIVE_CHILD_CNT_OFF_PER_PROC($t1)
+    sllv $zero, $zero, $zero #dbg symbol
+    beq $t2, $zero, PRC_WAITEND
+
+    ori $t2, $zero, PROC_SUSPEND
+    sw $t2, PROC_STATE_OFF_PER_PROC($t1)
+    jal PROC_SCHEDULE
+    
+PRC_WAITEND:
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+    jr $ra
+}
+
+.decl func scope(interrupt.lib) {
+PROC_EXIT:
+    
 }

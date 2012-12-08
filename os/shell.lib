@@ -4,10 +4,12 @@
 .static {
 SH_PROMPT:
     .str "> "
-SH_PROMPT_NOCMD:
+SH_PROMPT_CMDNF:
     .str ": command not found\n"
 SH_STR_EXEC:
     .str "exec"
+SH_STR_ECHO:
+    .str "echo"
 }
 
 #tool string functions
@@ -53,7 +55,7 @@ CHOMPEND:
 
 #impletation of commands
 .decl func scope() {
-SH_EXEC:
+SH_ECHO:
     addi $sp, $sp, -8
     sw $ra, 0($sp)
     sw $s0, 4($sp)
@@ -72,6 +74,39 @@ SH_EXEC:
     jr $ra
 }
 
+.decl func scope() {
+SH_EXEC:
+    addi $sp, $sp, -8
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+    
+    #jal SKIP_BLANK
+    #or $s0, $zero, $v0
+
+    ori $k0, $zero, SC_FORK
+    syscall
+    beq $v0, $zero, SH_EXEC_CLD
+SH_EXEC_FATHER:
+    ori $k0, $zero, SC_WAIT
+    syscall
+    ori $a0, $zero, 97
+    jal PUTC
+    
+SH_EXECEND:
+    lw $ra, 0($sp)
+    lw $s0, 4($sp)
+    addi $sp, $sp, 8
+    jr $ra
+
+SH_EXEC_CLD:
+    ori $k0, $zero, SC_EXEC
+    ori $a0, $zero, 1
+    syscall
+SH_EXEC_EXECERR:
+    .3  #errcode 3
+    j SH_EXEC_EXECERR
+}
+
 .decl func scope(main file) {
 SH_CMD:
     addi $sp, $sp, -8
@@ -85,24 +120,42 @@ SH_CMD:
     #eliminate trailing \n
     or $a0, $zero, $s0
     jal CHOMP
-    
+
+    #an empty string
+    lw $t0, 0($s0)
+    beq $t0, $zero, SH_NOCMD
     #exec
     lla $a1, SH_STR_EXEC
     ori $a2, $zero, 4
     or $a0, $zero, $s0
     jal STRNCMP
     beq $v0, $zero, SH_CMD_EXEC
-    
-SH_NOCMD:
+    #echo
+    lla $a1, SH_STR_ECHO
+    ori $a2, $zero, 4
+    or $a0, $zero, $s0
+    jal STRNCMP
+    beq $v0, $zero, SH_CMD_ECHO
+SH_CMDNF:
+    #command not found
     or $a0, $zero, $s0
     jal PUTS
-    lla $a0, SH_PROMPT_NOCMD
+    lla $a0, SH_PROMPT_CMDNF
     jal PUTS
+    j SH_CMDEND
+    
+SH_NOCMD:
+    #empty string
     j SH_CMDEND
     
 SH_CMD_EXEC:
     addi $a0, $s0, CHAR_SIZE * 4
     jal SH_EXEC
+    j SH_CMDEND
+
+SH_CMD_ECHO:
+    addi $a0, $s0, CHAR_SIZE * 4
+    jal SH_ECHO
     j SH_CMDEND
     
 SH_CMDEND:
