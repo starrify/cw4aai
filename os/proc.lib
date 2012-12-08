@@ -295,13 +295,14 @@ PROC_SLEEP:
     sll $t1, $t0, PROC_INFO_LOG_SIZE
     addi $t2, $fp, PROC_INFO_OFF
     add $t1, $t2, $t1
-    sw $v0, PROC_SLEEP_TIME_OFF_PER_PROC($t1)
+    sw $a0, PROC_SLEEP_TIME_OFF_PER_PROC($t1)
 
     ori $t2, $zero, PROC_SLEEPING
     sw $t2, PROC_STATE_OFF_PER_PROC($t1)
     jal PROC_SCHEDULE
 
 PROC_SLEEP_END:
+    ori $k1, $zero, 1 # sb zlk...........
     lw $ra, 0($sp)
     addi $sp, $sp, 4
     jr $ra
