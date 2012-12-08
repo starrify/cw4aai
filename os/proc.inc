@@ -1,7 +1,8 @@
 .def PROC_READY {0}
 .def PROC_SUSPENDED {1}
 .def PROC_WAITING {2}
-.def PROC_EXITED {3}
+.def PROC_SLEEPING {3}
+.def PROC_EXITED {4}
 
 .def GDT_ITEM_LOG_CNT {5}
 .def GDT_ITEM_CNT {(1 << GDT_ITEM_LOG_CNT)}

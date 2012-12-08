@@ -315,7 +315,7 @@ PROC_SLEEP_UPDATE:
     SETFRMLB PROC
     lw $t0, MAX_PROC_OFF($fp)
 PROC_SLEEP_UPDATE_LOOP:
-    beq $t0, $zero, PROC_SKIP_UPDATE_END
+    beq $t0, $zero, PROC_SLEEP_UPDATE_END
     addi $t0, $t0, -1
 
     sll $t1, $t0, PROC_INFO_LOG_SIZE
@@ -332,7 +332,7 @@ PROC_SLEEP_UPDATE_LOOP:
     sw $t3, PROC_STATE_OFF_PER_PROC($t1)
 
 PROC_SLEEP_UPDATE_SKIP:
-    beq $zero, $zero, PROC_SLEPE_UPDATE_LOOP
+    beq $zero, $zero, PROC_SLEEP_UPDATE_LOOP
 
 PROC_SLEEP_UPDATE_END:
     lw $ra, 0($sp)

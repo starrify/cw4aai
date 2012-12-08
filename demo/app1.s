@@ -4,7 +4,7 @@
 
 .static {
 STRHELLO:
-    .str "hello world"
+    .str "hello world\n"
 MEM1:
     .dup 80 .0
 }

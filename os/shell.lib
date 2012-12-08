@@ -3,7 +3,7 @@
 
 .static {
 SH_PROMPT:
-    .str "> "
+    .str "[root@localhost]\x23 "
 SH_PROMPT_CMDNF:
     .str ": command not found\n"
 SH_STR_EXEC:
