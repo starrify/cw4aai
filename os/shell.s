@@ -3,7 +3,6 @@
 .inc "shell.lib"
 
 SHELL:
-    #entering shell
     #local variable
     .def LOCAL_SHELL_CMD_OFF {0}
     addi $sp, $sp, -4 * 80
