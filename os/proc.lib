@@ -206,6 +206,7 @@ PROC_FORK:
     sw $zero, 8($fp)
     or $a0, $zero, $s0
     jal FLUSH_REGS
+    sllv $zero, $zero, $zero #dbg symbol
     #set ret value for parent proc
     or $v0, $zero, $s0
     #SETFRMLB REGS_BUF
@@ -271,13 +272,16 @@ PROC_WAIT:
     
     beq $t2, $zero, PRC_WAITEND
 
-    ori $t2, $zero, PROC_SUSPENDED
+    ori $t2, $zero, PROC_WAITING
     sw $t2, PROC_STATE_OFF_PER_PROC($t1)
     jal PROC_SCHEDULE
     
 PRC_WAITEND:
     lw $ra, 0($sp)
     addi $sp, $sp, 4
+
+    #no ret
+    ori $k1, $zero, 1
     jr $ra
 }
 
@@ -285,7 +289,7 @@ PRC_WAITEND:
 PROC_EXIT:
     addi $sp, $sp, -4
     sw $ra, 0($sp)
-    sllv $zero, $zero, $zero #dbg symbol
+    #sllv $zero, $zero, $zero #dbg symbol
     SETFRMLB PROC
     lw $t0, CUR_PROC_OFF($fp)
     sll $t1, $t0, PROC_INFO_LOG_SIZE
@@ -306,7 +310,11 @@ PROC_EXIT:
     sw $t3, PROC_ACTIVE_CHILD_CNT_OFF_PER_PROC($t2)
     bne $t3, $zero, PRC_EXIT1
     #activate father
+    lw $t3, PROC_STATE_OFF_PER_PROC($t2)
+    ori $t4, $zero, PROC_WAITING
+    bne $t3, $t4, PRC_EXIT1   #if father is not waiting
     sw $zero, PROC_STATE_OFF_PER_PROC($t2)
+    #should I set ret value of wait?
     
 PRC_EXIT1:
     jal PROC_SCHEDULE
@@ -314,5 +322,8 @@ PRC_EXIT1:
 PRC_EXITEND:
     lw $ra, 0($sp)
     addi $sp, $sp, 4
+    
+    #no ret
+    ori $k1, $zero, 1
     jr $ra
 }

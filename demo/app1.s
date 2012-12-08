@@ -21,8 +21,6 @@ MAIN:
     ori $k0, $zero, SC_EXIT
     syscall
     j MAIN
-END:
-    j END
 #    ori $k0, $zero, SC_FORK
 #    syscall
 #    beq $v0, $zero, CHILD
