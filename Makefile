@@ -42,4 +42,5 @@ clean:
 	make clean -C os
 	make clean -C mass
 	make clean -C memu
+	make clean -C demo
 
