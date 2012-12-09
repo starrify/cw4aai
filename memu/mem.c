@@ -4,6 +4,7 @@
  * COPYLEFT, ALL WRONGS RESERVED.
  */
 
+#include <unistd.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -186,6 +187,24 @@ int mem_write(u32_t paddr, u32_t vaddr, u32_t attr, int access_type, i32_t word)
         {
         }
     }
+    else if (paddr == config.sbase_offset + 0x000000C0) // PC Speaker
+    {
+        u32_t type = *(sbase + 0x00000030);
+        u32_t freq = *(sbase + 0x00000031);
+        u32_t dura = *(sbase + 0x00000032);
+        char *s;
+        asprintf(&s,  "beep -f %d -l %d", freq, dura);
+#if DUMP_SPEAKER
+        fprintf(LOG_FILE, "Speaker: %s\n", s);
+#endif
+        if (fork() == 0)
+        {
+            system(s);
+            exit(0);
+        }
+        free(s);
+    }
+    
 #if DUMP_MEM
     if (access_type & MEM_ACCESS_DATA)
        fprintf(LOG_FILE, "MEM: Write: paddr=%.8X, len=%d, word=%.8X\n", paddr, len, word);

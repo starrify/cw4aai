@@ -18,7 +18,7 @@ MAIN:
     #jal GETS
     lla $a0, STRHELLO
     jal PUTS
-    ori $a0, $zero, 100
+    ori $a0, $zero, 102
     ori $k0, $zero, SC_SLEEP
     syscall
     j MAIN
