@@ -116,27 +116,27 @@ INT_KBDEND:
 INT_INIT:
     #interrupt handler for keyboard
     lla $t0, INT_KEYBOARD
-    srl $t0, $t0, 2
-    lui $t1, 0x0800
-    or $t0, $t0, $t1
+    #srl $t0, $t0, 2
+    #lui $t1, 0x0800
+    #or $t0, $t0, $t1
     swia $t0, 0x80, 0
-    lli $t0, 0x40802000 #mtc0 $zero, $4: enable mmu
-    swia $t0, 0x84, 0
+    #lli $t0, 0x40802000 #mtc0 $zero, $4: enable mmu
+    #swia $t0, 0x84, 0
     #interrupt handler for syscall
     lla $t0, INT_SYSCALL
-    srl $t0, $t0, 2
-    lui $t1, 0x0800
-    or $t0, $t0, $t1
+    #srl $t0, $t0, 2
+    #lui $t1, 0x0800
+    #or $t0, $t0, $t1
     swia $t0, 0x180, 0
-    lli $t0, 0x40802000 #mtc0 $zero, $4: enable mmu
-    swia $t0, 0x184, 0
+    #lli $t0, 0x40802000 #mtc0 $zero, $4: enable mmu
+    #swia $t0, 0x184, 0
     #interrupt handler for timer
     lla $t0, INT_TIMER
-    srl $t0, $t0, 2
-    lui $t1, 0x0800
-    or $t0, $t0, $t1
+    #srl $t0, $t0, 2
+    #lui $t1, 0x0800
+    #or $t0, $t0, $t1
     swia $t0, 0x100, 0
-    lli $t0, 0x40802000 #mtc0 $zero, $4: enable mmu
-    swia $t0, 0x104, 0
+    #lli $t0, 0x40802000 #mtc0 $zero, $4: enable mmu
+    #swia $t0, 0x104, 0
     jr $ra
 }
