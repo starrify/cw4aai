@@ -88,6 +88,10 @@ HW_CSNXT2:
     #clear the last row
     lw $t0, SCR_BASE($fp)
     add $a0, $t0, $t2
+    #UGLY FIX!!!!: add virt addr
+    lli $t1, SYS_VIR_ADDR
+    add $a0, $a0, $t1
+    
     ori $a1, $zero, 0x20
     ori $a2, $zero, 80
     jal MEMWORDSET
