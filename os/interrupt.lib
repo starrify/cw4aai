@@ -42,8 +42,13 @@ INT_SSC1:
     #case 10: stat
     jal FS_STAT
     j INT_SSCNOPROCEND
-    #case 11-39: reserved
-    .dup 116 .0
+    #case 11-14: reserved
+    .dup 16 .0
+    #case 15: read
+    jal FS_READ
+    j INT_SSCNOPROCEND
+    #case 16-39: reserved
+    .dup 96 .0
 INT_SSCNOPROCEND:
     lw $ra, 0($sp)
     addi $sp, $sp, 4

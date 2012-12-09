@@ -4,6 +4,9 @@
 .def FILE_TABLE_ITEM_LOG_SIZE {4}
 .def FILE_TABLE_ITEM_SIZE {(2 << FILE_TABLE_ITEM_LOG_SIZE)}
 .def FILE_TABLE_SIZE {(FILE_TABLE_ITEM_CNT * FILE_TABLE_ITEM_SIZE)}
+.def FILE_TABLE_FILENAME_OFF_PER_ITEM {0}
+.def FILE_TABLE_STARTSECT_OFF_PER_ITEM {4}
+.def FILE_TABLE_SIZEINSECT_OFF_PER_ITEM {8}
 
 .static {
 FILES:
@@ -67,7 +70,7 @@ FS_GET_FILEITEM_BY_NAME:
 
 FS_GFBN1:
     #if filename is not null and does not equal a0, then linear search
-    lw $t1, 0($s3)
+    lw $t1, FILE_TABLE_FILENAME_OFF_PER_ITEM($s3)
     beq $t1, $zero, FS_GFBNEND #str is null, ret
     
     or $a0, $zero, $t1
@@ -107,9 +110,9 @@ FS_ADDFILE:
     jal FS_GET_FILEITEM_BY_NAME
 
 FS_ADDFILE3:
-    sw $s0, 0($v0)
-    sw $s1, 4($v0)
-    sw $s2, 8($v0)
+    sw $s0, FILE_TABLE_FILENAME_OFF_PER_ITEM($v0)
+    sw $s1, FILE_TABLE_STARTSECT_OFF_PER_ITEM($v0)
+    sw $s2, FILE_TABLE_SIZEINSECT_OFF_PER_ITEM($v0)
     
 FS_ADDFILEEND:
     lw $ra, 0($sp)
@@ -130,18 +133,62 @@ FS_STAT: #a0: filename, a1: pt to at least 4w space
     or $s0, $zero, $a1
 
     jal FS_GET_FILEITEM_BY_NAME
-    lw $t0, 0($v0)
-    sw $t0, 0($s0)
-    lw $t0, 4($v0)
-    sw $t0, 4($s0)
-    lw $t0, 8($v0)
-    sw $t0, 8($s0)
+    lw $t0, FILE_TABLE_FILENAME_OFF_PER_ITEM($v0)
+    sw $t0, FILE_TABLE_FILENAME_OFF_PER_ITEM($s0)
+    lw $t0, FILE_TABLE_STARTSECT_OFF_PER_ITEM($v0)
+    sw $t0, FILE_TABLE_STARTSECT_OFF_PER_ITEM($s0)
+    lw $t0, FILE_TABLE_SIZEINSECT_OFF_PER_ITEM($v0)
+    sw $t0, FILE_TABLE_SIZEINSECT_OFF_PER_ITEM($s0)
 
 FS_STATEND:
     or $v0, $zero, $s0
     lw $ra, 0($sp)
     lw $s0, 4($sp)
     addi $sp, $sp, 8
+
+    #returns
+    and $k1, $zero, $zero
+    jr $ra
+}
+
+.decl func scope(interrupt.lib) {
+FS_READ: #filename, buf, cnt_in_bytes
+    addi $sp, $sp, -16
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+    sw $s1, 8($sp)
+    sw $s2, 12($sp)
+
+    #store args
+    or $s0, $zero, $a0
+    or $s1, $zero, $a1
+    or $s2, $zero, $a2
+    
+    jal FS_GET_FILEITEM_BY_NAME
+    lw $t0, FILE_TABLE_FILENAME_OFF_PER_ITEM($v0)
+    beq $t0, $zero, FS_READERR #file not found
+
+    SETFRM_SYSINFO
+    sw $s1, HDD_SPMO($fp)
+    lw $t0, FILE_TABLE_STARTSECT_OFF_PER_ITEM($v0)
+    sw $t1, HDD_SSN($fp)
+    srl $t0, $s2, HDD_SECT_LOG_SIZE #from size in bytes to size in sectors
+    sw $t0, HDD_MAX_TSIZE($fp)
+    ori $t0, $zero, 1
+    sw $t0, HDD_ENABLE($fp)
+    and $v0, $zero, $zero
+    j FS_READEND
+FS_READERR:
+    addi $v0, $zero, -1
+FS_READEND:
+    lw $ra, 0($sp)
+    lw $s0, 4($sp)
+    lw $s1, 8($sp)
+    lw $s2, 12($sp)
+    addi $sp, $sp, 16
+
+    #return
+    and $k1, $zero, $zero
     jr $ra
 }
 
