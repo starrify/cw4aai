@@ -2,6 +2,8 @@
 .def SC_GETXY {2}
 .def SC_PUTC {3}
 .def SC_GETC {4}
+#file ops
+.def SC_STAT {10}
 #proc operations start from 40
 .def SC_FORK {40}
 .def SC_EXEC {41}

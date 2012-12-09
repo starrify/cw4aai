@@ -749,8 +749,8 @@ static int inst_exec_div(u32_t code)
     reg_gpr_read(rt, &regdata2);
     if (regdata2)
     {
-        reg_special_write(REG_SPECIAL_HI, regdata1 / regdata2);
-        reg_special_write(REG_SPECIAL_LO, regdata1 % regdata2);
+        reg_special_write(REG_SPECIAL_HI, regdata1 % regdata2);
+        reg_special_write(REG_SPECIAL_LO, regdata1 / regdata2);
     }
     else
     {
@@ -774,8 +774,8 @@ static int inst_exec_divu(u32_t code)
     reg_gpr_read(rt, &regdata2);
     if (regdata2)
     {
-        reg_special_write(REG_SPECIAL_HI, regdata1 / regdata2);
-        reg_special_write(REG_SPECIAL_LO, regdata1 % regdata2);
+        reg_special_write(REG_SPECIAL_HI, regdata1 % regdata2);
+        reg_special_write(REG_SPECIAL_LO, regdata1 / regdata2);
     }
     else
     {

@@ -2,6 +2,7 @@
 .inc "../inc/pseudo_inst.inc"
 .inc "../inc/syscall.inc"
 .inc "interrupt.lib"
+.inc "filesystem.lib"
 .inc "sysinfo.inc"
 
 .offset 0x1c00000 #28M
@@ -25,7 +26,10 @@ SYS_INIT:
     #init interrupt
     jal INT_INIT
     #init libs
+    #init fs
+    jal FS_INIT
     #interrupt enable
+    ori $t0, $zero, 1
     mtc0 $t0, $3
 
 SYS_MAIN:
@@ -34,7 +38,8 @@ SYS_MAIN:
     bne $v0, $zero, SYS_END
 SYS_MAIN_CLD:
     ori $k0, $zero, SC_EXEC
-    ori $a0, $zero, 1   #supposed to be shell
+    ori $a0, $zero, 0x1000   #supposed to be shell
+    ori $a1, $zero, 0x1000
     syscall
     
 SYS_MAIN_CLDERR:

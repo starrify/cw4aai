@@ -52,9 +52,9 @@ HW_GTXY1:
     ori $t1, $zero, SCR_UNIT_SIZE * SCR_WIDTH
     divu $t0, $t1
     #row = quotient
-    mfhi $v0
+    mflo $v0
     #colomn = remainder / 4
-    mflo $v1
+    mfhi $v1
     srl $v1, $v1, 2
 HW_GTXYEND:
     #returns value

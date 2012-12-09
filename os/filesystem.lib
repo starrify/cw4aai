@@ -1,0 +1,171 @@
+.inc "../inc/regulation.inc"
+
+.def FILE_TABLE_ITEM_CNT {203}
+.def FILE_TABLE_ITEM_LOG_SIZE {4}
+.def FILE_TABLE_ITEM_SIZE {(2 << FILE_TABLE_ITEM_LOG_SIZE)}
+.def FILE_TABLE_SIZE {(FILE_TABLE_ITEM_CNT * FILE_TABLE_ITEM_SIZE)}
+
+.static {
+FILES:
+FILE_NAMES:
+FILE1:
+    .str "app1.img"
+FILE2:
+    .str "app2.img"
+FILE_TABLE:
+    #1word: filename, 1word: start_sect, 1word: size_in_sect, 1word reserved
+    .dup FILE_TABLE_ITEM_CNT * 4 .0
+}
+
+.decl func scope() {
+ELFHASH:
+    and $t4, $zero, $zero #t4 as result
+    and $t5, $zero, $zero #t5 as x
+    lli $t6, 0xf0000000 #mask 0xf0000000
+ELFHASHLP:
+    lw $t0, 0($a0)
+    beq $t0, $zero, ELFHASHEND
+    sll $t1, $t4, 4
+    add $t4, $t0, $t1
+    addi $a0, $a0, CHAR_SIZE
+
+    and $t5, $t4, $t6
+    beq $t5, $zero, ELFHASH1
+    
+    srl $t0, $t5, 24
+    xor $t4, $t4, $t0
+    nor $t0, $zero, $t5
+    and $t4, $t4, $t0
+ELFHASH1:
+    j ELFHASHLP
+ELFHASHEND:
+    lli $t0, FILE_TABLE_ITEM_CNT
+    divu $t4, $t0
+    mfhi $v0
+    jr $ra
+}
+
+.decl func {
+FS_GET_FILEITEM_BY_NAME:
+    addi $sp, $sp, -20
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+    sw $s1, 8($sp)
+    sw $s2, 12($sp)
+    sw $s3, 16($sp)
+
+    or $s0, $zero, $a0 #store arg to s0
+    jal ELFHASH
+    #s1 stores the starting addr of filetable
+    lla $s1, FILE_TABLE
+    #s2 stores the ending addr of filetable
+    lli $s2, FILE_TABLE_SIZE
+    add $s2, $s2, $s1
+
+    sll $s3, $v0, FILE_TABLE_ITEM_LOG_SIZE
+    add $s3, $s3, $s1
+
+FS_GFBN1:
+    #if filename is not null and does not equal a0, then linear search
+    lw $t1, 0($s3)
+    beq $t1, $zero, FS_GFBNEND #str is null, ret
+    
+    or $a0, $zero, $t1
+    or $a1, $zero, $s0
+    jal STRCMP
+    beq $v0, $zero, FS_GFBNEND #found the same filename, ret
+
+    addi $s3, $s3, FILE_TABLE_ITEM_SIZE
+    bne $s3, $s2, FS_GFBN3
+    or $s3, $zero, $s1
+FS_GFBN3:
+    j FS_GFBN1
+FS_GFBNEND:
+    or $v0, $zero, $s3
+    lw $ra, 0($sp)
+    lw $s0, 4($sp)
+    lw $s1, 8($sp)
+    lw $s2, 12($sp)
+    lw $s3, 16($sp)
+    addi $sp, $sp, 20
+    jr $ra
+}
+
+.decl func {
+FS_ADDFILE:
+    addi $sp, $sp, -16
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+    sw $s1, 8($sp)
+    sw $s2, 12($sp)
+
+    #store args
+    or $s0, $zero, $a0
+    or $s1, $zero, $a1
+    or $s2, $zero, $a2
+    
+    jal FS_GET_FILEITEM_BY_NAME
+
+FS_ADDFILE3:
+    sw $s0, 0($v0)
+    sw $s1, 4($v0)
+    sw $s2, 8($v0)
+    
+FS_ADDFILEEND:
+    lw $ra, 0($sp)
+    lw $s0, 4($sp)
+    lw $s1, 8($sp)
+    lw $s2, 12($sp)
+    addi $sp, $sp, 16
+    jr $ra    
+}
+
+.decl func scope(interrupt.lib) {
+FS_STAT: #a0: filename, a1: pt to at least 4w space
+    sllv $zero, $zero, $zero #dbg symbol
+    addi $sp, $sp, -8
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+
+    or $s0, $zero, $a1
+
+    jal FS_GET_FILEITEM_BY_NAME
+    lw $t0, 0($v0)
+    sw $t0, 0($s0)
+    lw $t0, 4($v0)
+    sw $t0, 4($s0)
+    lw $t0, 8($v0)
+    sw $t0, 8($s0)
+
+FS_STATEND:
+    or $v0, $zero, $s0
+    lw $ra, 0($sp)
+    lw $s0, 4($sp)
+    addi $sp, $sp, 8
+    jr $ra
+}
+
+.decl func scope(main file) {
+#manually add file into the hash table
+FS_INIT:
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+    
+    lla $a0, FILE1
+    ori $a1, $zero, 0x2000
+    ori $a2, $zero, 0x1000
+    jal FS_ADDFILE
+    lla $a0, FILE2
+    ori $a1, $zero, 0x3000
+    ori $a2, $zero, 0x1000
+    jal FS_ADDFILE
+    
+FS_INITEND:
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4
+    jr $ra
+    
+FS_INITERR:
+    .5 #errcode 5
+    j FS_INITERR
+}

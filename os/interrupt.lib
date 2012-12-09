@@ -3,6 +3,7 @@
 .inc "proc.lib"
 .inc "terminal.lib"
 .inc "hwio.lib"
+.inc "filesystem.lib"
 
 #default interrupt handlers
 .decl func scope() {
@@ -36,8 +37,13 @@ INT_SSC1:
     #case 4: getc
     jal TERM_GETC #sll 0, 0, 0
     j INT_SSCNOPROCEND #sll 0, 0, 0
-    #case 5-39: reserved
-    .dup 140 .0
+    #case 5-9: reserved
+    .dup 20 .0
+    #case 10: stat
+    jal FS_STAT
+    j INT_SSCNOPROCEND
+    #case 11-39: reserved
+    .dup 116 .0
 INT_SSCNOPROCEND:
     lw $ra, 0($sp)
     addi $sp, $sp, 4

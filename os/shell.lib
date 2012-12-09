@@ -10,6 +10,8 @@ SH_STR_EXEC:
     .str "exec"
 SH_STR_ECHO:
     .str "echo"
+SH_MSG_FILE_NOT_FOUND:
+    .str " : file not found\n"
 }
 
 #tool string functions
@@ -76,13 +78,31 @@ SH_ECHO:
 
 .decl func scope() {
 SH_EXEC:
-    addi $sp, $sp, -8
+    addi $sp, $sp, -24
     sw $ra, 0($sp)
     sw $s0, 4($sp)
+    sw $s1, 8($sp)
+    #preproc sucks ^^!
+    .def LOCAL_SH_EXEC_FILEINFO_OFF / 12 / #3 words
     
-    #jal SKIP_BLANK
-    #or $s0, $zero, $v0
-
+    jal SKIP_BLANK
+    or $s0, $zero, $v0
+    #get fileinfo by name
+    ori $k0, $zero, SC_STAT
+    or $a0, $zero, $s0
+    addi $a1, $sp, LOCAL_SH_EXEC_FILEINFO_OFF
+    syscall
+    or $s1, $zero, $v0
+    lw $t0, 0($s1)
+    bne $t0, $zero, SH_EXEC_FORK
+    #file not found
+    or $a0, $zero, $s0
+    jal PUTS
+    lla $a0, SH_MSG_FILE_NOT_FOUND
+    jal PUTS
+    j SH_EXECEND
+    
+SH_EXEC_FORK:
     ori $k0, $zero, SC_FORK
     syscall
     beq $v0, $zero, SH_EXEC_CLD
@@ -94,12 +114,14 @@ SH_EXEC_FATHER:
 SH_EXECEND:
     lw $ra, 0($sp)
     lw $s0, 4($sp)
-    addi $sp, $sp, 8
+    lw $s1, 8($sp)
+    addi $sp, $sp, 24
     jr $ra
 
 SH_EXEC_CLD:
     ori $k0, $zero, SC_EXEC
-    ori $a0, $zero, 2
+    lw $a0, 4($s1) #starting sector
+    lw $a1, 8($s1) #size in sector
     syscall
 SH_EXEC_EXECERR:
     .3  #errcode 3

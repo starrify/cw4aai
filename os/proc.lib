@@ -240,10 +240,10 @@ PROC_EXEC:
     SETFRM_SYSINFO
     sll $t2, $t0, PROC_USRSPACE_LOG_SIZE
     sw $t2, HDD_SPMO($fp)
-    sll $a0, $a0, 12    # a0 * 0x1000
+    #sll $a0, $a0, 12    # a0 * 0x1000
     sw $a0, HDD_SSN($fp)
-    ori $t2, $zero, 0x1000
-    sw $t2, HDD_MAX_TSIZE($fp)
+    #ori $t2, $zero, 0x1000
+    sw $a1, HDD_MAX_TSIZE($fp)
     ori $t2, $zero, 1
     sw $t2, HDD_ENABLE($fp)
     #reset regs
@@ -319,7 +319,7 @@ PROC_SLEEP_END:
 PROC_SLEEP_UPDATE:
     addi $sp, $sp, -4
     sw $ra, 0($sp)
-    sllv $zero, $zero, $zero #dbg symbol
+    #sllv $zero, $zero, $zero #dbg symbol
     SETFRMLB PROC
     lw $t0, MAX_PROC_OFF($fp)
 PROC_SLEEP_UPDATE_LOOP:
