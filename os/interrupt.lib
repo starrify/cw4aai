@@ -70,8 +70,8 @@ INT_SSC2:
     #case 41: exec
     jal PROC_EXEC
     j INT_PROCOPEND
-    #case 42: wait
-    jal PROC_WAIT
+    #case 42: waitpid
+    jal PROC_WAITPID
     j INT_PROCOPEND
     #case 43: sleep
     jal PROC_SLEEP

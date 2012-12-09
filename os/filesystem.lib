@@ -1,13 +1,6 @@
 .inc "../inc/regulation.inc"
-.inc "proc.lib"
-
-.def FILE_TABLE_ITEM_CNT {203}
-.def FILE_TABLE_ITEM_LOG_SIZE {4}
-.def FILE_TABLE_ITEM_SIZE {(2 << FILE_TABLE_ITEM_LOG_SIZE)}
-.def FILE_TABLE_SIZE {(FILE_TABLE_ITEM_CNT * FILE_TABLE_ITEM_SIZE)}
-.def FILE_TABLE_FILENAME_OFF_PER_ITEM {0}
-.def FILE_TABLE_STARTSECT_OFF_PER_ITEM {4}
-.def FILE_TABLE_SIZEINSECT_OFF_PER_ITEM {8}
+.inc "proc.inc"
+.inc "filesystem.inc"
 
 .static {
 FILES:
@@ -130,7 +123,7 @@ FS_ADDFILEEND:
 
 .decl func scope(interrupt.lib) {
 FS_STAT: #a0: filename, a1: pt to at least 4w space
-    sllv $zero, $zero, $zero #dbg symbol
+    #sllv $zero, $zero, $zero #dbg symbol
     addi $sp, $sp, -8
     sw $ra, 0($sp)
     sw $s0, 4($sp)

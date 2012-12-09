@@ -1,13 +1,12 @@
 .inc "../lib/string.lib"
 .inc "../lib/io.lib"
+.inc "filesystem.inc"
 
 .static {
 SH_PROMPT:
     .str "[root@localhost]\x23 "
-SH_PROMPT_CMDNF:
-    .str ": command not found\n"
-SH_STR_EXEC:
-    .str "exec"
+SH_BACKGROUND_OP:
+    .str "&"
 SH_STR_ECHO:
     .str "echo"
 SH_MSG_FILE_NOT_FOUND:
@@ -55,6 +54,37 @@ CHOMPEND:
     jr $ra
 }
 
+.decl func scope() {
+#a0 NULL terminated str, a1 buffer, get the first symbol seperated by space
+SH_GET_SYMBOL:
+    addi $sp, $sp, -8
+    sw $ra, 0($sp)
+    sw $s0, 4($sp)
+
+    or $s0, $zero, $a1
+    
+    jal SKIP_BLANK
+
+    ori $t4, $zero, 32
+    ori $t5, $zero, 10
+
+SH_GETSYB1:
+    lw $t0, 0($v0)
+    beq $t0, $zero, SH_GETSYBEND
+    beq $t0, $t4, SH_GETSYBEND
+    beq $t0, $t5, SH_GETSYBEND
+    sw $t0, 0($s0)
+    addi $s0, $s0, CHAR_SIZE
+    addi $v0, $v0, CHAR_SIZE
+    j SH_GETSYB1
+
+SH_GETSYBEND:
+    lw $ra, 0($sp)
+    lw $s0, 4($sp)
+    addi $sp, $sp, 8
+    jr $ra
+}
+
 #impletation of commands
 .decl func scope() {
 SH_ECHO:
@@ -77,51 +107,50 @@ SH_ECHO:
 }
 
 .decl func scope() {
-SH_EXEC:
-    addi $sp, $sp, -24
+SH_EXEC: #a0: pt to fileinfo, a1: args
+    addi $sp, $sp, -336
     sw $ra, 0($sp)
     sw $s0, 4($sp)
     sw $s1, 8($sp)
-    #preproc sucks ^^!
-    .def LOCAL_SH_EXEC_FILEINFO_OFF / 12 / #3 words
+    sw $s2, 12($sp)
+    .def LOCAL_SH_EXEC_BUF_OFF / 16 /
+    .def LOCAL_SH_EXEC_BUF_SIZE / 320 /
     
-    jal SKIP_BLANK
-    or $s0, $zero, $v0
-    #get fileinfo by name
-    ori $k0, $zero, SC_STAT
-    or $a0, $zero, $s0
-    addi $a1, $sp, LOCAL_SH_EXEC_FILEINFO_OFF
-    syscall
-    or $s1, $zero, $v0
-    lw $t0, 0($s1)
-    bne $t0, $zero, SH_EXEC_FORK
-    #file not found
-    or $a0, $zero, $s0
-    jal PUTS
-    lla $a0, SH_MSG_FILE_NOT_FOUND
-    jal PUTS
-    j SH_EXECEND
+    or $s0, $zero, $a0
+    or $s1, $zero, $a1
+
+    #deal with args
+    or $a0, $zero, $s1
+    addi $a1, $sp, LOCAL_SH_EXEC_BUF_OFF
+    jal SH_GET_SYMBOL
+    addi $a0, $sp, LOCAL_SH_EXEC_BUF_OFF
+    lla $a1, SH_BACKGROUND_OP
+    ori $a2, $zero, 1
+    jal STRNCMP
+    or $s2, $zero, $v0 #s2 is non-zero then we need to wait the child
     
 SH_EXEC_FORK:
     ori $k0, $zero, SC_FORK
     syscall
     beq $v0, $zero, SH_EXEC_CLD
+    beq $s2, $zero, SH_EXECEND #no need to wait the child
 SH_EXEC_FATHER:
-    #wait for all children to exit
-    ori $k0, $zero, SC_WAIT
+    #wait for childproc v0 to exit
+    or $a0, $zero, $v0
+    ori $k0, $zero, SC_WAITPID
     syscall
     
 SH_EXECEND:
     lw $ra, 0($sp)
     lw $s0, 4($sp)
     lw $s1, 8($sp)
-    addi $sp, $sp, 24
+    addi $sp, $sp, 336
     jr $ra
 
 SH_EXEC_CLD:
     ori $k0, $zero, SC_EXEC
-    lw $a0, 4($s1) #starting sector
-    lw $a1, 8($s1) #size in sector
+    lw $a0, 4($s0) #starting sector
+    lw $a1, 8($s0) #size in sector
     syscall
 SH_EXEC_EXECERR:
     .3  #errcode 3
@@ -130,58 +159,68 @@ SH_EXEC_EXECERR:
 
 .decl func scope(main file) {
 SH_CMD:
-    addi $sp, $sp, -8
+    addi $sp, $sp, -344
     sw $ra, 0($sp)
     sw $s0, 4($sp)
+    sw $s1, 8($sp)
+    .def LOCAL_SH_CMD_FILEINFO_OFF / 12 /
+    .def LOCAL_SH_CMD_FILEINFO_SIZE / 12 /
+    .def LOCAL_SH_CMD_BUF_OFF / 24 /
+    .def LOCAL_SH_CMD_BUF_SIZE / 320 /
 
-    #eliminate heading spaces
-    #or $a0, $zero, $a0
-    jal SKIP_BLANK
-    or $s0, $zero, $v0
+    #s1 is the cmd and s0 is the args
     #eliminate trailing \n
-    or $a0, $zero, $s0
+    or $s0, $zero, $a0
     jal CHOMP
 
-    #an empty string
-    lw $t0, 0($s0)
-    beq $t0, $zero, SH_NOCMD
-    #exec
-    lla $a1, SH_STR_EXEC
-    ori $a2, $zero, 4
     or $a0, $zero, $s0
-    jal STRNCMP
-    beq $v0, $zero, SH_CMD_EXEC
+    addi $s1, $sp, LOCAL_SH_CMD_BUF_OFF
+    or $a1, $zero, $s1
+    jal SH_GET_SYMBOL
+    or $s0, $zero, $v0
+    
+    #an empty string
+    lw $t0, 0($s1)
+    beq $t0, $zero, SH_NOCMD
     #echo
     lla $a1, SH_STR_ECHO
     ori $a2, $zero, 4
-    or $a0, $zero, $s0
+    or $a0, $zero, $s1
     jal STRNCMP
     beq $v0, $zero, SH_CMD_ECHO
 SH_CMDNF:
-    #command not found
-    or $a0, $zero, $s0
+    #command not found, test if is a file
+    or $a0, $zero, $s1
+    addi $a1, $sp, LOCAL_SH_CMD_FILEINFO_OFF
+    ori $k0, $zero, SC_STAT
+    syscall
+    lw $t0, FILE_TABLE_FILENAME_OFF_PER_ITEM($v0)
+    beq $t0, $zero, SH_FILENF
+    #execute the file
+    or $a0, $zero, $v0
+    or $a1, $zero, $s0
+    jal SH_EXEC
+    j SH_CMDEND
+    
+SH_FILENF:
+    or $a0, $zero, $s1
     jal PUTS
-    lla $a0, SH_PROMPT_CMDNF
+    lla $a0, SH_MSG_FILE_NOT_FOUND
     jal PUTS
     j SH_CMDEND
     
 SH_NOCMD:
     #empty string
     j SH_CMDEND
-    
-SH_CMD_EXEC:
-    addi $a0, $s0, CHAR_SIZE * 4
-    jal SH_EXEC
-    j SH_CMDEND
 
 SH_CMD_ECHO:
-    addi $a0, $s0, CHAR_SIZE * 4
+    or $a0, $zero, $s0
     jal SH_ECHO
     j SH_CMDEND
     
 SH_CMDEND:
     lw $s0, 4($sp)
     lw $ra, 0($sp)
-    addi $sp, $sp, 8
+    addi $sp, $sp, 332
     jr $ra
 }

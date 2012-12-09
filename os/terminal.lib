@@ -229,16 +229,14 @@ TERM_KBDBS1:
     sw $t1, TERM_INBUF_END_OFF($fp)
     #delete a char on screen
     jal HW_GETXY
+    #in fact there are some cases under which x pos equals 0
+    beq $v1, $zero, TERM_KBDEND
     addi $a1, $v1, -1
-    blt $a1, $zero, TERM_KBDBSERR
     or $a0, $zero, $v0
     jal HW_GOTOXY
     ori $a0, $zero, 32
     jal HW_SETC
     j TERM_KBDEND
-TERM_KBDBSERR:
-    .6 #errcode
-    j TERM_KBDBSERR
     
 TERM_KBDNM:
     #output to screen

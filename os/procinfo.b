@@ -1,7 +1,7 @@
 
     #32*4word: gdt, 64word: reserved,
     #32word: gpr, 1word: epc, 1word: hi, 1word: lo, 1word: status, 12word: reserved
-    #1word: father pid, 1word: active_child_cnt, 1word: sleep time, 13word reserved
+    #1word: father pid, 1word: waiting_child, 1word: sleep time, 13word reserved
     #256words in total
     #proc_info for init
 #0x00800000 = PROC_USRSPACE_SIZE, however, macro is not used

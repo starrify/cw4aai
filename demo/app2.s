@@ -4,7 +4,7 @@
 
 .static {
 STRHELLO:
-    .str "hello world\n"
+    .str "a\n"
 MEM1:
     .dup 80 .0
 }
@@ -18,8 +18,11 @@ MAIN:
     #jal GETS
     lla $a0, STRHELLO
     jal PUTS
-    ori $k0, $zero, SC_EXIT
+    ori $a0, $zero, 2000
+    ori $k0, $zero, SC_SLEEP
     syscall
+    #ori $k0, $zero, SC_EXIT
+    #syscall
     j MAIN
 #    ori $k0, $zero, SC_FORK
 #    syscall

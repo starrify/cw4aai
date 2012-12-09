@@ -22,6 +22,12 @@ MAIN:
     ori $k0, $zero, SC_SLEEP
     syscall
     j MAIN
+    #ori $k0, $zero, SC_EXIT
+    #syscall
+END:
+    wait
+    j END
+    
 #    ori $k0, $zero, SC_FORK
 #    syscall
 #    beq $v0, $zero, CHILD
