@@ -30,7 +30,6 @@ int hdd_init()
     hddfile_t *hflist = config.hdd_filelist;
     for (i = 0; i < hfcnt; i++)
     {
-        printf(hflist[i].filename);
         int fd = open(hflist[i].filename, O_RDONLY | O_SYNC);
         assert(fd > 0);
         read(fd, hdd_base + hflist[i].secstart * SECTOR_SIZE, hflist[i].secsize * SECTOR_SIZE);

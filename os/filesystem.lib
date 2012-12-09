@@ -20,6 +20,10 @@ FILE3:
     .str "aplay.img"
 FILE4:
     .str "smbtheme"
+FILE5:
+    .str "asciiart.img"
+FILE6:
+    .str "earth.dat"
 FILE_TABLE:
     #1word: filename, 1word: start_sect, 1word: size_in_sect, 1word reserved
     .dup FILE_TABLE_ITEM_CNT * 4 .0
@@ -221,6 +225,14 @@ FS_INIT:
     jal FS_ADDFILE
     lla $a0, FILE4
     ori $a1, $zero, 0x5000
+    ori $a2, $zero, 0x1000
+    jal FS_ADDFILE
+    lla $a0, FILE5
+    ori $a1, $zero, 0x6000
+    ori $a2, $zero, 0x1000
+    jal FS_ADDFILE
+    lla $a0, FILE6
+    ori $a1, $zero, 0x7000
     ori $a2, $zero, 0x1000
     jal FS_ADDFILE
     
