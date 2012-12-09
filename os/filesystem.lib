@@ -15,6 +15,8 @@ FILE1:
     .str "app1.img"
 FILE2:
     .str "app2.img"
+FILE3:
+    .str "aplay.img"
 FILE_TABLE:
     #1word: filename, 1word: start_sect, 1word: size_in_sect, 1word reserved
     .dup FILE_TABLE_ITEM_CNT * 4 .0
@@ -204,6 +206,10 @@ FS_INIT:
     jal FS_ADDFILE
     lla $a0, FILE2
     ori $a1, $zero, 0x3000
+    ori $a2, $zero, 0x1000
+    jal FS_ADDFILE
+    lla $a0, FILE3
+    ori $a1, $zero, 0x4000
     ori $a2, $zero, 0x1000
     jal FS_ADDFILE
     
