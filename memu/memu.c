@@ -98,9 +98,11 @@ static int main_loop()
         {
             if (interrupt_test())
             {
-                u32_t entry = interrupt_entry();
-                if (entry)
+                u32_t entry_off = interrupt_entry();
+                if (entry_off)
                 {
+                    u32_t entry;
+                    mem_read(entry_off, 0, 0, MEM_ACCESS_LEN_4 | MEM_ACCESS_INST | MEM_ACCESS_READ, &entry);
                     reg_cpr_write(FKREG_CPR_EPC, 0, reg_pc);
 #if DUMP_INTERRUPT
                     fprintf(LOG_FILE, "Interrupt: set EPC=%.8X\n", reg_pc);
@@ -109,8 +111,8 @@ static int main_loop()
                     reg_special_write(REG_SPECIAL_PC_ADVANCE2, entry + 4);
                     reg_pc = reg_advance_pc();
                     reg_cpr_write(FKREG_CPR_EXL, 0, MEMU_TRUE);
-		            interrupt_reset(entry);
-                    mmu_disable();
+		            interrupt_reset(entry_off);
+                    //mmu_disable();
                 }
             }
         }
