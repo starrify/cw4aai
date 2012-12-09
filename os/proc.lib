@@ -1,9 +1,6 @@
 .inc "../lib/string.lib"
 .inc "proc.inc"
 
-.def CUR_PROC_OFF {0}
-.def MAX_PROC_OFF {4}
-.def PROC_INFO_OFF {8}
 .static {
 PROC:
 CUR_PROC:

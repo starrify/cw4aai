@@ -16,6 +16,8 @@
 
 static void *hdd_base;
 static size_t hdd_size;
+static void *membase;
+static size_t memsize;
 
 int hdd_init()
 {
@@ -34,6 +36,7 @@ int hdd_init()
         read(fd, hdd_base + hflist[i].secstart * SECTOR_SIZE, hflist[i].secsize * SECTOR_SIZE);
         close(fd);
     }
+    get_dma_info(&membase, &memsize);
 
     return MEMU_SUCCESS;
 }
@@ -42,8 +45,8 @@ int hdd_read(void *mem_start, size_t sector_start, size_t sector_count)
 {
     memcpy(mem_start, hdd_base + sector_start * SECTOR_SIZE, sector_count * SECTOR_SIZE);
 #if DUMP_HDD
-    fprintf(LOG_FILE, "HDD: Read: mem_start=0x%p, sector_start=0x%.8X, sector_count=0x%.8X\n",
-        mem_start, sector_start, sector_count);
+    fprintf(LOG_FILE, "HDD: Read: mem_start=%p, sector_start=0x%.8X, sector_count=0x%.8X\n",
+        (u32_t)(mem_start - membase), sector_start, sector_count);
 #endif
     return MEMU_SUCCESS;
 }
@@ -52,8 +55,8 @@ int hdd_write(void *mem_start, size_t sector_start, size_t sector_count)
 {
     memcpy(hdd_base + sector_start * SECTOR_SIZE, mem_start, sector_count * SECTOR_SIZE);
 #if DUMP_HDD
-    fprintf(LOG_FILE, "HDD: Write: mem_start=0x%p, sector_start=0x%.8X, sector_count=0x%.8X\n",
-        mem_start, sector_start, sector_count);
+    fprintf(LOG_FILE, "HDD: Write: mem_start=%p, sector_start=0x%.8X, sector_count=0x%.8X\n",
+       (u32_t)( mem_start - membase), sector_start, sector_count);
 #endif
     return MEMU_SUCCESS;
 }

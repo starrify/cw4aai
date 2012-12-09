@@ -1,4 +1,5 @@
 .inc "../inc/regulation.inc"
+.inc "proc.lib"
 
 .def FILE_TABLE_ITEM_CNT {203}
 .def FILE_TABLE_ITEM_LOG_SIZE {4}
@@ -17,6 +18,8 @@ FILE2:
     .str "app2.img"
 FILE3:
     .str "aplay.img"
+FILE4:
+    .str "smbtheme"
 FILE_TABLE:
     #1word: filename, 1word: start_sect, 1word: size_in_sect, 1word reserved
     .dup FILE_TABLE_ITEM_CNT * 4 .0
@@ -170,10 +173,14 @@ FS_READ: #filename, buf, cnt_in_bytes
     lw $t0, FILE_TABLE_FILENAME_OFF_PER_ITEM($v0)
     beq $t0, $zero, FS_READERR #file not found
 
+    SETFRMLB PROC
+    lw $t0, CUR_PROC_OFF($fp)
+    sll $t0, $t0, PROC_USRSPACE_LOG_SIZE
+    add $t0, $t0, $s1
     SETFRM_SYSINFO
-    sw $s1, HDD_SPMO($fp)
+    sw $t0, HDD_SPMO($fp)
     lw $t0, FILE_TABLE_STARTSECT_OFF_PER_ITEM($v0)
-    sw $t1, HDD_SSN($fp)
+    sw $t0, HDD_SSN($fp)
     srl $t0, $s2, HDD_SECT_LOG_SIZE #from size in bytes to size in sectors
     sw $t0, HDD_MAX_TSIZE($fp)
     ori $t0, $zero, 1
@@ -210,6 +217,10 @@ FS_INIT:
     jal FS_ADDFILE
     lla $a0, FILE3
     ori $a1, $zero, 0x4000
+    ori $a2, $zero, 0x1000
+    jal FS_ADDFILE
+    lla $a0, FILE4
+    ori $a1, $zero, 0x5000
     ori $a2, $zero, 0x1000
     jal FS_ADDFILE
     
