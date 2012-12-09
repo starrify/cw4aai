@@ -102,10 +102,7 @@ HW_CSNXYEND:
 }
 
 .decl func scope(terminal.lib) {
-HW_PUTC: #ch
-    addi $sp, $sp, -4
-    sw $ra, 0($sp)
-
+HW_SETC: #ch, set char without moving cursor
     SETFRM_SYSINFO
     lw $t0, SCR_BASE($fp)
     lw $t1, CURSOR($fp)
@@ -115,8 +112,17 @@ HW_PUTC: #ch
     #UGLY FIX!!!!!!!
     lli $t1, SYS_VIR_ADDR
     add $t0, $t0, $t1
-    
     sw $a0, 0($t0)
+    
+    jr $ra
+}
+
+.decl func scope(terminal.lib) {
+HW_PUTC: #ch
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)
+
+    jal HW_SETC
     jal HW_CURSORNEXT
 
 HW_PTCEND:

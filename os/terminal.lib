@@ -120,10 +120,19 @@ TERM_PUTC:
     
     ori $at, $zero, 10
     beq $a0, $at, TERM_PTC_NL
+    ori $at, $zero, 92
+    beq $a0, $at, TERM_PTC_BS
 TERM_PTC_NM:
     jal HW_PUTC
     j TERM_PTCEND
-    
+
+TERM_PTC_BS:
+    jal HW_GETXY
+    beq $v0, $zero, TERM_PTCEND
+    addi $a0, $v0, -1
+    or $a1, $zero, $v1
+    jal HW_GOTOXY
+    j TERM_PTCEND
 TERM_PTC_NL:
     jal HW_GETXY
     #move to next line and wrap
@@ -200,13 +209,45 @@ TERM_KEYBOARD:
     sw $ra, 0($sp)
     sw $s0, 4($sp)
     
-    #output to screen
     or $s0, $zero, $a0
+    #deal with special keys
+    ori $t0, $zero, 127
+    beq $s0, $t0, TERM_KBDBS
+    j TERM_KBDNM
+    
+TERM_KBDBS: #key backspace
+    #check if term buf is empty
+    SETFRMLB TERM_INBUF
+    lw $t0, TERM_INBUF_START_OFF($fp)
+    lw $t1, TERM_INBUF_END_OFF($fp)
+    beq $t0, $t1, TERM_KBDEND
+    #remove a char from termbuf
+    addi $t1, $t1, -TERM_INBUF_UNIT_SIZE
+    bge $t1, $zero, TERM_KBDBS1
+    addi $t1, $t1, TERM_INBUF_SIZE
+TERM_KBDBS1:
+    sw $t1, TERM_INBUF_END_OFF($fp)
+    #delete a char on screen
+    jal HW_GETXY
+    addi $a1, $v1, -1
+    blt $a1, $zero, TERM_KBDBSERR
+    or $a0, $zero, $v0
+    jal HW_GOTOXY
+    ori $a0, $zero, 32
+    jal HW_SETC
+    j TERM_KBDEND
+TERM_KBDBSERR:
+    .6 #errcode
+    j TERM_KBDBSERR
+    
+TERM_KBDNM:
+    #output to screen
     jal TERM_PUTC
     #write to terminal inbuf
     or $a0, $zero, $s0
     jal TERM_INBUF_PUSHC
     
+TERM_KBDEND:
     lw $ra, 0($sp)
     lw $s0, 4($sp)
     addi $sp, $sp, 8

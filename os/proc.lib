@@ -296,6 +296,9 @@ PROC_SLEEP:
     addi $sp, $sp, -4
     sw $ra, 0($sp)
 
+    #ret if sleep time < 0
+    blt $a0, $zero, PROC_SLEEP_END
+    
     SETFRMLB PROC
     lw $t0, CUR_PROC_OFF($fp)
     sll $t1, $t0, PROC_INFO_LOG_SIZE
