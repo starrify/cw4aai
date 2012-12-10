@@ -156,11 +156,11 @@ int mem_write(u32_t paddr, u32_t vaddr, u32_t attr, int access_type, i32_t word)
         u32_t seccnt = *(sbase + 0x00000023);
         if (type == 1) // read
         {
-            hdd_read(membase + memstart, secstart, seccnt);
+            hdd_read(memstart, secstart, seccnt);
         }
         else if (type == 2) // write
         {
-            hdd_write(membase + memstart, secstart, seccnt);
+            hdd_write(memstart, secstart, seccnt);
         }
         else
         {

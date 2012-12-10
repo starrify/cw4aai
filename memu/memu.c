@@ -39,7 +39,7 @@ static void init()
 
     hdd_init();
     mem_init();
-    hdd_read(membase + config.entry_offset, 0, 8 << 8);
+    hdd_read(config.entry_offset, 0, 8 << 8);
     mmu_init();
     reg_init();
     daemon_init();
