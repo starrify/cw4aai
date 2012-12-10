@@ -121,10 +121,12 @@ SNCMPEND:
 STRCMP: #str1, str2
     
 SCMPLP:
-    lb $t0, 0($a0)
-    lb $t1, 0($a1)
-    addi $a0, $a0, 1
-    addi $a1, $a1, 1
+    lw $t0, 0($a0)
+    andi $t0, $t0, 0xff
+    lw $t1, 0($a1)
+    andi $t1, $t1, 0xff
+    addi $a0, $a0, CHAR_SIZE
+    addi $a1, $a1, CHAR_SIZE
     beq $t0, $t1, SCMP1
     j SCMPEND
 SCMP1:

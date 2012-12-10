@@ -9,8 +9,12 @@ SH_BACKGROUND_OP:
     .str "&"
 SH_STR_ECHO:
     .str "echo"
+SH_STR_EXIT:
+    .str "exit"
+SH_STR_REBOOT:
+    .str "reboot"
 SH_MSG_FILE_NOT_FOUND:
-    .str " : file not found\n"
+    .str " : no such file or directory\n"
 }
 
 #tool string functions
@@ -107,6 +111,27 @@ SH_ECHO:
 }
 
 .decl func scope() {
+SH_EXIT:
+    SETFRM_SYSINFO
+    ori $t0, $zero, 1 #1 for shutdown
+    sw $t0, MISC($fp)
+
+SH_EXITERR:
+    .6 #errcode
+    j SH_EXITERR
+}
+
+.decl func scope() {
+SH_REBOOT:
+    SETFRM_SYSINFO
+    ori $t0, $zero, 2 #2 for reboot
+    sw $t0, MISC($fp)
+SH_REBOOTERR:
+    .7 #errcode
+    j SH_REBOOTERR
+}
+
+.decl func scope() {
 SH_EXEC: #a0: pt to fileinfo, a1: args
     addi $sp, $sp, -336
     sw $ra, 0($sp)
@@ -184,10 +209,22 @@ SH_CMD:
     beq $t0, $zero, SH_NOCMD
     #echo
     lla $a1, SH_STR_ECHO
-    ori $a2, $zero, 4
+    #ori $a2, $zero, 4
     or $a0, $zero, $s1
-    jal STRNCMP
+    jal STRCMP
     beq $v0, $zero, SH_CMD_ECHO
+    #exit
+    lla $a1, SH_STR_EXIT
+    #ori $a2, $zero, 4
+    or $a0, $zero, $s1
+    jal STRCMP
+    beq $v0, $zero, SH_CMD_EXIT
+    #reboot
+    lla $a1, SH_STR_REBOOT
+    #ori $a2, $zero, 4
+    or $a0, $zero, $s1
+    jal STRCMP
+    beq $v0, $zero, SH_CMD_REBOOT
 SH_CMDNF:
     #command not found, test if is a file
     or $a0, $zero, $s1
@@ -216,6 +253,14 @@ SH_NOCMD:
 SH_CMD_ECHO:
     or $a0, $zero, $s0
     jal SH_ECHO
+    j SH_CMDEND
+
+SH_CMD_EXIT:
+    jal SH_EXIT
+    j SH_CMDEND
+
+SH_CMD_REBOOT:
+    jal SH_REBOOT
     j SH_CMDEND
     
 SH_CMDEND:

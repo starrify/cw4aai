@@ -1,5 +1,6 @@
 .inc "../inc/jmp_fix.inc"
 .inc "../lib/io.lib"
+.inc "sysinfo.inc"
 .inc "shell.lib"
 
 SHELL:

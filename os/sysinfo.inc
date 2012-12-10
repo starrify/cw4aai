@@ -3,6 +3,7 @@
 .def SETFRM_SYSINFO {SETFRML 0x1808000}
 
 #sysinfo
+.def MISC {0}
 .def SCR_BASE {48}
 .def SCR_OFFSET {52}
 .def CURSOR {56}
