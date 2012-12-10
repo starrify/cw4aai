@@ -21,6 +21,11 @@ MAIN:
     ori $a0, $zero, 102
     ori $k0, $zero, SC_SLEEP
     syscall
+
+    li $t0, 0x01808000  # sbase in kernel address space
+    li $t1, 2   # 1 for shutting down and 2 for resetting
+    sw $t1, 0($t0)  # trigger hardware shutdown/reset..
+    # this line shall not be executed
     j MAIN
     #ori $k0, $zero, SC_EXIT
     #syscall

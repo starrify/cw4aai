@@ -4,6 +4,7 @@
  * COPYLEFT, ALL WRONGS RESERVED.
  */
 
+#include <setjmp.h>
 #include <pthread.h>
 #include <assert.h> 
 #include <stdio.h>
@@ -31,6 +32,8 @@ int wait = 0;
 pthread_cond_t wait_cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t wait_cond_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+jmp_buf jmpbuf;
+
 static void init()
 {
     cfg_init();
@@ -51,14 +54,18 @@ static void init()
     return;
 }
 
-static void fini()
+void fini()
 {
+    daemon_fini();
+    
+    pthread_cancel(display_daemon_thread);
+    pthread_cancel(keyboard_daemon_thread);
+    pthread_cancel(timer_daemon_thread);
+
     pthread_join(display_daemon_thread, NULL);
     pthread_join(keyboard_daemon_thread, NULL);
     pthread_join(timer_daemon_thread, NULL);
 
-    daemon_fini();
-    
     mem_destroy();
     cfg_fini();
     return;
@@ -142,6 +149,7 @@ static int main_loop()
 
 int main()
 {
+    setjmp(jmpbuf);
     init();
     main_loop();
     fini();

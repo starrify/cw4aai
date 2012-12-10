@@ -7,6 +7,7 @@
 #ifndef MEMU_H
 #define MEMU_H
 
+#include <setjmp.h>
 #include <pthread.h>
 
 #ifndef NULL
@@ -30,6 +31,7 @@
 #define DUMP_INST   1
 #define DUMP_MEM    1
 #define DUMP_MMU    0
+#define DUMP_POWER  1
 #define DUMP_HDD    1
 #define DUMP_DMA    1
 #define DUMP_REG_CPR    0
@@ -66,5 +68,9 @@ enum _memu_bool
 extern int wait;
 extern pthread_mutex_t wait_cond_mutex;
 extern pthread_cond_t wait_cond;
+
+extern jmp_buf jmpbuf;
+
+extern void fini();
 
 #endif // MEMU_H

@@ -4,6 +4,7 @@
  * COPYLEFT, ALL WRONGS RESERVED.
  */
 
+#include <setjmp.h>
 #include <unistd.h>
 #include <assert.h>
 #include <stdio.h>
@@ -148,7 +149,29 @@ int mem_write(u32_t paddr, u32_t vaddr, u32_t attr, int access_type, i32_t word)
         assert(0);
         break;
     }
-    if (paddr == config.sbase_offset + 0x00000080)  // HDD access. see spec.txt
+    if (paddr == config.sbase_offset + 0x0) // for shutting down resetting
+    {
+        u32_t type = *(sbase + 0x0);
+#if DUMP_POWER
+        fprintf(LOG_FILE, "Power: type %d: %s\n", type, 
+            type == 1 ? "Shutdown" : (type == 2 ? "Reset" : "Unknown"));
+#endif
+        switch (type)
+        {
+        case 1:
+            fini();
+            exit(0);            
+            break;
+        case 2:
+            fini();
+            longjmp(jmpbuf, 0);
+            exit(0); // this line shall not be executed
+            break;
+        default:
+            break;
+        }
+    }
+    else if (paddr == config.sbase_offset + 0x00000080)  // HDD access. see spec.txt
     {
         u32_t type = *(sbase + 0x00000020);
         u32_t memstart = *(sbase + 0x00000021);

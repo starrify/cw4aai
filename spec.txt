@@ -53,8 +53,7 @@ sysinfo and device mapping: 0x00008000 0x007FFFFF
     R for read W for write and S for static
     
     misc: -> 0
-        1word: W only. write 1 for reset.
-        1word: W only. write 1 for shutting down.
+        1word: W only. write 1 for shutdown, 2 for reset.
 
     display: -> 32
         1word: RW mode chr      #/rgba
